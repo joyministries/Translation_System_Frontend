@@ -1,5 +1,2 @@
-export default {
-  plugins: {
-    '@tailwindcss/postcss': {},
-  },
-};
+// PostCSS configuration not needed with @tailwindcss/vite plugin
+export default {};
