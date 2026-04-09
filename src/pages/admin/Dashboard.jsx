@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { adminAPI } from '../../api/admin.api';
+import { adminAPI } from '../../api/admin';
 import { Skeleton } from '../../components/shared/Spinner';
 import { EmptyState } from '../../components/shared/EmptyState';
 import toast from 'react-hot-toast';
