@@ -1,10 +1,8 @@
-import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Login } from '../pages/auth/Login';
-import { AdminGuard, StudentGuard } from './Guards';
+import { AdminGuard } from './Guards';
 import { AdminLayout } from '../components/admin/AdminLayout';
 import { Dashboard } from '../pages/admin/Dashboard';
-import { StudentLayout } from '../components/student/StudentLayout';
-import { Books } from '../pages/student/Books';
 
 export function AppRouter() {
   return (
@@ -13,7 +11,7 @@ export function AppRouter() {
         {/* Auth Routes */}
         <Route path="/login" element={<Login />} />
 
-        {/* Admin Routes */}
+        {/* Admin Routes (FE2) */}
         <Route
           path="/admin/*"
           element={
@@ -23,26 +21,14 @@ export function AppRouter() {
           }
         >
           <Route path="dashboard" element={<Dashboard />} />
-          {/* FE2 Routes: Add Books, Exams, Languages, Stats here */}
+          {/* FE2 Routes: Books, Exams, Languages, Stats will be added here */}
         </Route>
 
-        {/* Student Routes */}
-        <Route
-          path="/student/*"
-          element={
-            <StudentGuard>
-              <StudentLayout>
-                <Outlet />
-              </StudentLayout>
-            </StudentGuard>
-          }
-        >
-          <Route path="books" element={<Books />} />
-          {/* FE1 Routes: Add BookDetail, TranslationViewer here */}
-        </Route>
+        {/* Student Routes - Placeholder for FE1 */}
+        <Route path="/student/*" element={<Navigate to="/login" />} />
 
-        {/* Default redirect to student books */}
-        <Route path="/" element={<Navigate to="/login" />} />
+        {/* Default redirect to admin */}
+        <Route path="/" element={<Navigate to="/admin/dashboard" />} />
       </Routes>
     </Router>
   );
