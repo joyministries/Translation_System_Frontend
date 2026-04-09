@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../../store/auth.store';
 import toast from 'react-hot-toast';
 
@@ -7,6 +7,7 @@ export function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const { user, logout } = useAuthStore();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const menuItems = [
     { label: 'Dashboard', icon: '📊', path: '/admin/dashboard' },
@@ -15,6 +16,8 @@ export function AdminLayout() {
     { label: 'Languages', icon: '🌐', path: '/admin/languages' },
     { label: 'Stats', icon: '📈', path: '/admin/stats' },
   ];
+
+  const isActive = (path) => location.pathname.startsWith(path);
 
   const handleLogout = () => {
     logout();
@@ -54,7 +57,11 @@ export function AdminLayout() {
             <button
               key={item.path}
               onClick={() => handleNavigation(item.path)}
-              className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-800 transition-colors text-left"
+              className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-left ${
+                isActive(item.path)
+                  ? 'bg-primary text-white font-medium'
+                  : 'hover:bg-gray-800 text-gray-300'
+              }`}
               title={item.label}
             >
               <span className="text-xl">{item.icon}</span>
@@ -93,8 +100,7 @@ export function AdminLayout() {
 
         {/* Content Area */}
         <main className="flex-1 overflow-auto p-6">
-          {/* Routes will render here */}
-          {/* This is a placeholder for nested routes */}
+          <Outlet />
         </main>
       </div>
     </div>
