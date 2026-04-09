@@ -1,4 +1,5 @@
 import client from './client';
+import { mockStudentBooks, mockStudentLanguages, delay } from '../mocks/student.mock';
 
 export const studentAPI = {
   // Books endpoints
@@ -8,6 +9,12 @@ export const studentAPI = {
         const response = await client.get(`/student/books?page=${page}&limit=${limit}`);
         return response.data;
       } catch (error) {
+        // Fallback to mock data
+        if (error.code === 'ERR_NETWORK' || error.message?.includes('ERR_CONNECTION_REFUSED')) {
+          console.warn('Backend not available, using mock data for books');
+          await delay(300);
+          return mockStudentBooks;
+        }
         throw error.response?.data || { message: 'Failed to fetch books' };
       }
     },
@@ -17,6 +24,12 @@ export const studentAPI = {
         const response = await client.get(`/student/books/${bookId}`);
         return response.data;
       } catch (error) {
+        // Fallback to mock data
+        if (error.code === 'ERR_NETWORK' || error.message?.includes('ERR_CONNECTION_REFUSED')) {
+          await delay(300);
+          const book = mockStudentBooks.books.find((b) => b.id === bookId);
+          return book || { message: 'Book not found' };
+        }
         throw error.response?.data || { message: 'Failed to fetch book' };
       }
     },
@@ -29,6 +42,12 @@ export const studentAPI = {
         const response = await client.get('/student/languages');
         return response.data;
       } catch (error) {
+        // Fallback to mock data
+        if (error.code === 'ERR_NETWORK' || error.message?.includes('ERR_CONNECTION_REFUSED')) {
+          console.warn('Backend not available, using mock data for languages');
+          await delay(300);
+          return { languages: mockStudentLanguages };
+        }
         throw error.response?.data || { message: 'Failed to fetch languages' };
       }
     },

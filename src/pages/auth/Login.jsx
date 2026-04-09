@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useAuthStore } from '../../store/auth.store';
 import { authAPI } from '../../api/auth.api';
-import { Button } from '../shared/Button';
-import { Input } from '../shared/Input';
+import { Button } from '../../components/shared/Button';
+import { Input } from '../../components/shared/Input';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 

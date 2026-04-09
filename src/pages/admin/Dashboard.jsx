@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { adminAPI } from '../../api/admin.api';
-import { Skeleton } from '../shared/Spinner';
-import { EmptyState } from '../shared/EmptyState';
+import { Skeleton } from '../../components/shared/Spinner';
+import { EmptyState } from '../../components/shared/EmptyState';
 import toast from 'react-hot-toast';
 
 function StatCard({ title, value, icon, loading }) {
