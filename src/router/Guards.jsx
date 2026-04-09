@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Routes, Route } from 'react-router-dom';
 import { useAuthStore } from '../store/auth.store';
 
 // Admin Guard - Check if user is admin
