@@ -1,6 +1,8 @@
-import { useState } from 'react';
-import { MdSearch } from 'react-icons/md';
+import { useState, useEffect } from 'react';
+import { MdSearch, MdArrowBack } from 'react-icons/md';
 import { ExamCard } from '../../components/student/ExamCard';
+import { studentAPI } from '../../api/student.jsx';
+import { useNavigate } from 'react-router-dom';
 
 export function BrowseExams() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -8,58 +10,33 @@ export function BrowseExams() {
   const [userExamLibrary, setUserExamLibrary] = useState(
     JSON.parse(localStorage.getItem('userExamLibrary')) || []
   );
+  const [allExams, setAllExams] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
 
-  // Mock exams data - Replace with API call
-  const allExams = [
-    {
-      id: 1,
-      title: 'Mathematics Final Exam',
-      subject: 'Mathematics',
-      dateUploaded: '2026-04-10',
-    },
-    {
-      id: 2,
-      title: 'English Midterm Exam',
-      subject: 'English',
-      dateUploaded: '2026-04-08',
-    },
-    {
-      id: 3,
-      title: 'Science Comprehensive Exam',
-      subject: 'Science',
-      dateUploaded: '2026-04-05',
-    },
-    {
-      id: 4,
-      title: 'History Quiz',
-      subject: 'History',
-      dateUploaded: '2026-03-28',
-    },
-    {
-      id: 5,
-      title: 'Biology Practical Exam',
-      subject: 'Biology',
-      dateUploaded: '2026-03-25',
-    },
-    {
-      id: 6,
-      title: 'Chemistry Exam',
-      subject: 'Chemistry',
-      dateUploaded: '2026-03-20',
-    },
-    {
-      id: 7,
-      title: 'Physics Final Exam',
-      subject: 'Physics',
-      dateUploaded: '2026-03-15',
-    },
-    {
-      id: 8,
-      title: 'Geography Assessment',
-      subject: 'Geography',
-      dateUploaded: '2026-03-10',
-    },
-  ];
+  // Fetch exams from API
+  useEffect(() => {
+    const fetchExams = async () => {
+      try {
+        const exams = await studentAPI.getExams();
+
+        const formattedExams = (exams || []).map(exam => ({
+          id: exam.id || '',
+          title: exam.title || 'Untitled',
+          subject: exam.title || 'Exam', // Use title as subject
+          dateUploaded: exam.created_at || new Date().toISOString(),
+          file_path: exam.file_path || '',
+        }));
+        setAllExams(formattedExams);
+      } catch (error) {
+        console.error('Error fetching exams:', error);
+        setAllExams([]); // Empty state on error
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchExams();
+  }, []);
 
   const categories = ['All', ...new Set(allExams.map(exam => exam.subject))];
 
@@ -172,12 +149,17 @@ export function BrowseExams() {
             />
           ))}
         </div>
-      ) : (
+      ) : allExams.length === 0 && !isLoading ? (
+        <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-12 text-center">
+          <p className="text-slate-600 text-lg">No exams available</p>
+          <p className="text-slate-500 mt-2">Exams may not be uploaded yet by administrators.</p>
+        </div>
+      ) : filteredExams.length === 0 ? (
         <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-12 text-center">
           <p className="text-slate-600 text-lg">No exams found matching your search.</p>
           <p className="text-slate-500 mt-2">Try adjusting your search terms or filters.</p>
         </div>
-      )}
+      ) : null}
     </div>
   );
 }

@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MdSearch, MdArrowBack } from 'react-icons/md';
 import { BookCard } from '../../components/student/BookCard';
+import { studentAPI } from '../../api/student.jsx';
 
 export function BrowseBooks() {
   const navigate = useNavigate();
@@ -10,91 +11,37 @@ export function BrowseBooks() {
   const [userLibrary, setUserLibrary] = useState(
     JSON.parse(localStorage.getItem('userLibrary')) || []
   );
+  const [allBooks, setAllBooks] = useState([]);
 
-  // Mock books data - Replace with API call
-  const allBooks = [
-    {
-      id: 1,
-      title: 'The Great Gatsby',
-      author: 'F. Scott Fitzgerald',
-      subject: 'Literature & Fiction',
-      language: 'English',
-      description: 'A classic novel about the American Dream in the Jazz Age.',
-      pages: 180,
-      dateUploaded: '2026-04-10',
-    },
-    {
-      id: 2,
-      title: 'To Kill a Mockingbird',
-      author: 'Harper Lee',
-      subject: 'Literature & Fiction',
-      language: 'English',
-      description: 'A gripping tale of racial injustice and childhood innocence in the Deep South.',
-      pages: 281,
-      dateUploaded: '2026-04-08',
-    },
-    {
-      id: 3,
-      title: '1984',
-      author: 'George Orwell',
-      subject: 'Science Fiction & Fantasy',
-      language: 'English',
-      description: 'A dystopian masterpiece exploring totalitarianism and surveillance.',
-      pages: 328,
-      dateUploaded: '2026-04-05',
-    },
-    {
-      id: 4,
-      title: 'Pride and Prejudice',
-      author: 'Jane Austen',
-      subject: 'Romance',
-      language: 'English',
-      description: 'A witty and romantic novel about Elizabeth Bennet and Mr. Darcy.',
-      pages: 279,
-      dateUploaded: '2026-03-28',
-    },
-    {
-      id: 5,
-      title: 'The Catcher in the Rye',
-      author: 'J.D. Salinger',
-      subject: 'Coming of Age',
-      language: 'English',
-      description: 'The journey of Holden Caulfield through New York City.',
-      pages: 277,
-      dateUploaded: '2026-03-25',
-    },
-    {
-      id: 6,
-      title: 'Brave New World',
-      author: 'Aldous Huxley',
-      subject: 'Science Fiction & Fantasy',
-      language: 'English',
-      description: 'A nightmarish vision of a future utopia.',
-      pages: 311,
-      dateUploaded: '2026-03-20',
-    },
-    {
-      id: 7,
-      title: 'Mathematics Fundamentals',
-      author: 'John Smith',
-      subject: 'Mathematics',
-      language: 'English',
-      description: 'A comprehensive guide to basic mathematical concepts.',
-      pages: 450,
-      dateUploaded: '2026-03-15',
-    },
-    {
-      id: 8,
-      title: 'The History of Empires',
-      author: 'David Brown',
-      subject: 'History',
-      language: 'English',
-      description: 'Exploring the rise and fall of major world empires.',
-      pages: 520,
-      dateUploaded: '2026-03-10',
-    },
-  ];
+  useEffect(() => {
+    const fetchBooks = async () => {
+      try {
+        const response = await studentAPI.getBooks();
+        const booksArray = response.books || response.data || [];
+        // Ensure each book has the required properties
+        const books = booksArray.map(book => ({
+          id: book.id || '',
+          title: book.title || 'Untitled',
+          author: book.author || 'Unknown Author',
+          subject: book.subject || 'General',
+          language: book.language || 'English',
+          pages: book.pages || 0,
+          dateUploaded: book.dateUploaded || new Date().toISOString(),
+          coverImage: book.coverImage || 'https://images.unsplash.com/photo-1507842217343-583f20270319?w=400&q=80',
+          rating: book.rating || 0,
+          reviews: book.reviews || 0,
+          description: book.description || ''
+        }));
 
+        setAllBooks(books);
+      } catch (error) {
+        console.error('Error fetching books:', error);
+        // Set empty array on error (will still work with UI)
+        setAllBooks([]);
+      }
+    };
+    fetchBooks();
+  }, []);
   const categories = ['All', ...new Set(allBooks.map(book => book.subject))];
 
   // Filter books based on search and category
@@ -120,6 +67,7 @@ export function BrowseBooks() {
   };
 
   const isInLibrary = (bookId) => userLibrary.some(b => b.id === bookId);
+
 
   return (
     <div>

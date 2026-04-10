@@ -4,10 +4,15 @@ import { useAuthStore } from '../store/auth_store';
 
 // Admin Guard - Check if user is admin
 export function AdminGuard({ children }) {
-  const { role, isAuthenticated } = useAuthStore();
+  const { role, isAuthenticated, isInitializing } = useAuthStore();
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Don't redirect while initializing auth from localStorage
+    if (isInitializing) {
+      return;
+    }
+
     if (!isAuthenticated) {
       navigate('/login');
       return;
@@ -17,7 +22,12 @@ export function AdminGuard({ children }) {
       navigate('/login');
       return;
     }
-  }, [isAuthenticated, role, navigate]);
+  }, [isAuthenticated, role, isInitializing, navigate]);
+
+  // Show nothing while initializing
+  if (isInitializing) {
+    return null;
+  }
 
   if (!isAuthenticated || role !== 'admin') {
     return null;
@@ -28,10 +38,15 @@ export function AdminGuard({ children }) {
 
 // Student Guard - Check if user is student
 export function StudentGuard({ children }) {
-  const { role, isAuthenticated } = useAuthStore();
+  const { role, isAuthenticated, isInitializing } = useAuthStore();
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Don't redirect while initializing auth from localStorage
+    if (isInitializing) {
+      return;
+    }
+
     if (!isAuthenticated) {
       navigate('/login');
       return;
@@ -41,7 +56,12 @@ export function StudentGuard({ children }) {
       navigate('/login');
       return;
     }
-  }, [isAuthenticated, role, navigate]);
+  }, [isAuthenticated, role, isInitializing, navigate]);
+
+  // Show nothing while initializing
+  if (isInitializing) {
+    return null;
+  }
 
   if (!isAuthenticated || role !== 'student') {
     return null;
