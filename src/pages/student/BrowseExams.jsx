@@ -88,7 +88,14 @@ export function BrowseExams() {
   const isInLibrary = (examId) => userExamLibrary.some(e => e.id === examId);
 
   return (
-    <div>
+    <div>      {/* Back Button */}
+      <button
+        onClick={() => navigate(-1)}
+        className="flex items-center gap-2 mb-6 px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors font-medium"
+      >
+        <MdArrowBack className="w-5 h-5" />
+        Back
+      </button>
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-slate-900 mb-2">Browse & Add Exams</h1>

@@ -4,6 +4,12 @@ import { AdminGuard, StudentGuard } from './Guards';
 import { AdminLayout } from '../components/admin/AdminLayout';
 import { StudentLayout } from '../components/student/StudentLayout';
 import { Dashboard } from '../pages/admin/Dashboard';
+import { Books } from '../pages/admin/Books';
+import { Exams } from '../pages/admin/Exams';
+import { AnswerKeys } from '../pages/admin/AnswerKeys';
+import { Languages } from '../pages/admin/Languages';
+import { Stats } from '../pages/admin/Stats';
+import { Institutions } from '../pages/admin/Institutions';
 import { StudentDashboard } from '../pages/student/StudentDashbboard';
 import { BookDetails } from '../pages/student/BookDetails';
 import { BrowseBooks } from '../pages/student/BrowseBooks';
@@ -30,7 +36,13 @@ export function AppRouter() {
           }
         >
           <Route path="dashboard" element={<Dashboard />} />
-          {/* FE2 Routes: Books, Exams, Languages, Stats will be added here */}
+          <Route path="books" element={<Books />} />
+          <Route path="exams" element={<Exams />} />
+          <Route path="answer-keys" element={<AnswerKeys />} />
+          <Route path="languages" element={<Languages />} />
+          <Route path="stats" element={<Stats />} />
+          <Route path="institutions" element={<Institutions />} />
+          {/* FE2 Routes: Additional pages will be added here */}
         </Route>
 
         {/* Student Routes (FE1) */}
