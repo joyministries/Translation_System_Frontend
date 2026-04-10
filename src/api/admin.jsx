@@ -1,13 +1,11 @@
-import axios from "axios"
-
-const API_URL = import.meta.env.VITE_API_URL
-
-const axiosInstance = axios.create({ baseURL: API_URL })
+import { axiosInstance } from "./baseapi"
 
 export const adminEndpoints = {
     stats: '/admin/stats',
     books: '/admin/books',
     translations: '/admin/translations',
+    exams: '/admin/exams',
+    answerkeys: '/admin/answer-keys',
     languages: '/admin/languages',
     jobs: '/admin/jobs',
 }

@@ -1,13 +1,15 @@
 
 import { useNavigate } from 'react-router-dom';
-import { useAuthStore } from '../../store/auth.store';
+import { useAuthStore } from '../../store/auth_store';
 import { MdLogout } from 'react-icons/md';
+import { authAPI } from '../../api/auth';
 
 export const NavBar = ({title, subtitle}) => {
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
 
   const handleLogout = () => {
+    authAPI.logout();
     logout();
     navigate('/login');
   };

@@ -1,9 +1,10 @@
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuthStore } from '../../store/auth.store';
+import { useAuthStore } from '../../store/auth_store';
 import { MdOutlineVisibility, MdOutlineVisibilityOff} from 'react-icons/md';
-import { Alert } from '../../components/shared/Alert';
+import { Modal } from '../../components/shared/Modal';
+import { authAPI } from '../../api/auth.jsx';
 
 export function Login() {
     const [activeTab, setActiveTab] = useState('student');
@@ -12,6 +13,7 @@ export function Login() {
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
     const [fieldErrors, setFieldErrors] = useState({});
     
     const navigate = useNavigate();
@@ -96,31 +98,38 @@ export function Login() {
         setLoading(true);
 
         try {
-            // TODO: Replace with actual API call
-            // const response = await loginAPI.post('/login', { email, password, role: activeTab });
-            
-            // Mock login - set auth state
-            const mockUser = {
-                id: '1',
-                email,
-                role: activeTab,
-                name: email.split('@')[0]
-            };
-            const mockToken = 'mock-token-' + Date.now();
-            
-            // Update auth store
-            setToken(mockToken, mockUser);
-            
-            console.log('Login successful:', { email, role: activeTab });
-            
-            // Redirect based on role
-            if (activeTab === 'admin') {
-                navigate('/admin/dashboard');
+            // Step 1: Authenticate user with email and password
+            const loginData = await authAPI.login(email, password);
+            const token = loginData.access_token || loginData.token || null;
+
+            if (token) {
+                localStorage.setItem('token', token);
             } else {
+                throw new Error('No authentication token received. Please try again.');
+            }
+
+            // Step 2: Fetch user info from auth/me endpoint
+            const userData = await authAPI.getMe();
+            const user = userData.user || userData;
+
+            if (!user) {
+                throw new Error('Failed to fetch user information.');
+            }
+
+            // Step 3: Update auth store with user data and token
+            setToken(token, user);
+
+            // Step 4: Redirect based on user role
+            if (user.role === 'admin') {
+                navigate('/admin/dashboard');
+            } else if (user.role === 'student') {
                 navigate('/student/dashboard');
+            } else {
+                throw new Error('Invalid user role.');
             }
         } catch (err) {
-            setError('Login failed. Please try again.');
+            setError(err.message || 'Login failed. Please try again.');
+            setIsErrorModalOpen(true);
             console.error('Login error:', err);
         } finally {
             setLoading(false);
@@ -132,11 +141,6 @@ export function Login() {
             <div className="w-full max-w-md">
                 {/* Header */}
                 <div className="text-center mb-8">
-                    <div className="flex justify-center mb-4">
-                        <div className="w-14 h-14 bg-blue-600 rounded-full flex items-center justify-center text-white text-2xl">
-                            📚
-                        </div>
-                    </div>
                     <h1 className="text-3xl font-bold text-gray-900">Team Impact Christian University</h1>
                     <p className="text-gray-600 mt-2"> Education material Translation System</p>
                 </div>
@@ -179,12 +183,6 @@ export function Login() {
                                     : 'Sign in to manage translations and content'}
                             </p>
                         </div>
-
-                        {error && (
-                            <div className="p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
-                                {error}
-                            </div>
-                        )}
 
                         {/* Email Field */}
                         <div>
@@ -243,6 +241,25 @@ export function Login() {
                         </button>
                     </form>
                 </div>
+
+                {/* Error Modal */}
+                <Modal 
+                  isOpen={isErrorModalOpen}
+                  title="Login Error"
+                  actions={
+                    <button
+                      onClick={() => {
+                        setIsErrorModalOpen(false);
+                        setError('');
+                      }}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+                    >
+                      Close
+                    </button>
+                  }
+                >
+                  <p className="text-gray-700">{error}</p>
+                </Modal>
             </div>
         </div>
     );

@@ -28,7 +28,7 @@ export function StudentLayout() {
       {showAnyTabs && (
         <div className="bg-white border-b border-slate-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex gap-1">
+            <div className="flex justify-content align-items centergap-1">
               {/* Books Tabs */}
               {showBooksTabs && (
                 <>

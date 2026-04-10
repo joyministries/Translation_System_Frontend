@@ -8,10 +8,13 @@ export const useAuthStore = create((set) => ({
 
   // Set token and user info after successful login
   setToken: (token, user) => {
+    // Handle both 'role' and 'user_role' fields from different API responses
+    const userRole = user?.user_role || user?.role || null;
+
     set({
       token,
       user,
-      role: user?.role || null,
+      role: userRole,
       isAuthenticated: true,
     });
   },

@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuthStore } from '../store/auth.store';
+import { useAuthStore } from '../store/auth_store';
 
 // Admin Guard - Check if user is admin
 export function AdminGuard({ children }) {
