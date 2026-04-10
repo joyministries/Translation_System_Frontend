@@ -3,7 +3,6 @@ import { adminAPI } from '../../api/admin.api.js';
 import { Skeleton } from '../../components/shared/Spinner';
 import { useNavigate } from 'react-router-dom';
 import { MdArrowBack } from 'react-icons/md';
-import toast from 'react-hot-toast';
 import { useAuthStore } from '../../store/auth.store';
 
 function StatCard({ title, value, icon, loading }) {
