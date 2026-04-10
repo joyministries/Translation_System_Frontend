@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MdAdd } from 'react-icons/md';
+import { MdAdd, MdArrowBack } from 'react-icons/md';
 import { ExamCard } from '../../components/student/ExamCard';
 
 export function MyExams() {
@@ -15,6 +15,15 @@ export function MyExams() {
 
   return (
     <div className="p-6">
+      {/* Back Button */}
+      <button
+        onClick={() => navigate(-1)}
+        className="flex items-center gap-2 mb-6 px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors font-medium"
+      >
+        <MdArrowBack className="w-5 h-5" />
+        Back
+      </button>
+
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-slate-900 mb-2">My Exams</h1>

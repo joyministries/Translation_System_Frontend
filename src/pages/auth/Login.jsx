@@ -179,7 +179,7 @@ export function Login() {
                             </h2>
                             <p className="text-gray-600 text-sm mt-1">
                                 {activeTab === 'student' 
-                                    ? 'Sign in to access and translate curriculum content'
+                                    ? 'Sign in to access and translate content'
                                     : 'Sign in to manage translations and content'}
                             </p>
                         </div>
