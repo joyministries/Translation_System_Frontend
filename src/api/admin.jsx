@@ -105,14 +105,18 @@ export const adminAPI = {
 
     // Answer Keys
     answerKeys: {
-        list: (page = 1, limit = 100) =>
-            axiosInstance.get(adminEndpoints.answerkeys, {
-                params: { page, limit }
-            }),
-        import: async (file) => {
+        list: (page = 1, limit = 100) => {
+            const skip = (page - 1) * limit;
+            return axiosInstance.get(adminEndpoints.answerkeys, {
+                params: { skip, limit }
+            });
+        },
+        import: async (file, metadata) => {
             const formData = new FormData();
             formData.append('file', file);
-            const response = await axiosInstance.post(adminEndpoints.answerkeyImport, formData);
+            const response = await axiosInstance.post(adminEndpoints.answerkeyImport, formData, {
+                params: metadata,
+            });
             
             // Trigger translation for imported answer keys
             if (response.data?.ids && Array.isArray(response.data.ids)) {
@@ -129,7 +133,12 @@ export const adminAPI = {
 
     // Languages
     languages: {
-        list: () => axiosInstance.get(adminEndpoints.languages),
+        list: (page = 1, limit = 100) => {
+            const skip = (page - 1) * limit;
+            return axiosInstance.get(adminEndpoints.languages, {
+                params: { skip, limit }
+            });
+        },
         create: (languageData) => axiosInstance.post(adminEndpoints.languages, languageData),
         get: (languageId) => axiosInstance.get(`${adminEndpoints.languages}/${languageId}`),
         update: (languageId, languageData) => axiosInstance.patch(`${adminEndpoints.languages}/${languageId}`, languageData),
@@ -191,10 +200,12 @@ export const adminAPI = {
 
     // Institutions
     institutions: {
-        list: (page = 1, limit = 100) =>
-            axiosInstance.get(adminEndpoints.institutions, {
-                params: { page, limit }
-            }),
+        list: (page = 1, limit = 100) => {
+            const skip = (page - 1) * limit;
+            return axiosInstance.get(adminEndpoints.institutions, {
+                params: { skip, limit }
+            });
+        },
         create: (institutionData) => axiosInstance.post(adminEndpoints.institutions, institutionData),
         update: (institutionId, institutionData) => axiosInstance.put(`${adminEndpoints.institutions}/${institutionId}`, institutionData),
         delete: (institutionId) => axiosInstance.delete(`${adminEndpoints.institutions}/${institutionId}`),
