@@ -1,33 +1,113 @@
-import { MdCalendarToday, MdPages } from 'react-icons/md';
+import {
+  MdCalendarToday,
+  MdDownload,
+  MdTranslate,
+  MdPages,
+} from "react-icons/md";
+import { toast } from "react-hot-toast";
+import { studentAPI } from "../../api/student";
+import { useState, useEffect } from "react";
+import Button from "./Button";
 
-export function BookCard({ book, actionButton }) {
-  // Format date to readable format (e.g., "Apr 10, 2026")
+export function BookCard({ book }) {
+  const [languages, setLanguages] = useState([]);
+  const [translationId, setTranslationId] = useState(null);
+  const [isTranslating, setIsTranslating] = useState(false);
+  const [selectedLanguageId, setSelectedLanguageId] = useState("");
+
+  useEffect(() => {
+    const fetchLanguages = async () => {
+      try {
+        const availableLanguages = await studentAPI.getAvailableLanguages();
+        setLanguages(availableLanguages || []);
+      } catch (error) {
+        toast.error("Could not fetch languages.");
+      }
+    };
+    fetchLanguages();
+  }, []);
+
   const formatDate = (dateString) => {
     try {
       const date = new Date(dateString);
-      return date.toLocaleDateString('en-US', { 
-        year: 'numeric', 
-        month: 'short', 
-        day: 'numeric' 
+      return date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
       });
     } catch {
       return dateString;
     }
   };
 
-  // Language color mapping
-  const languageColors = {
-    English: 'bg-blue-100 text-blue-800',
-    Spanish: 'bg-red-100 text-red-800',
-    French: 'bg-purple-100 text-purple-800',
-    German: 'bg-amber-100 text-amber-800',
-    Chinese: 'bg-red-100 text-red-800',
-    Arabic: 'bg-emerald-100 text-emerald-800',
-    Japanese: 'bg-pink-100 text-pink-800',
-    Portuguese: 'bg-green-100 text-green-800',
+  const handleTranslate = async () => {
+    if (!selectedLanguageId) {
+      toast.error("Please select a language first.");
+      return;
+    }
+    setIsTranslating(true);
+    const toastId = toast.loading("Starting translation...");
+    try {
+      const response = await studentAPI.triggerTranslation(
+        "book",
+        book.id,
+        selectedLanguageId
+      );
+      if (response && response.job_id) {
+        const completedJob = await studentAPI.pollTranslationStatus(
+          response.job_id
+        );
+        const transId = completedJob.translation_id || completedJob.id;
+        setTranslationId(transId);
+        toast.success("Translation ready for download!", { id: toastId });
+      } else {
+        throw new Error("Did not receive a job ID.");
+      }
+    } catch (error) {
+      toast.error(
+        error.message || "Failed to trigger translation job.",
+        { id: toastId }
+      );
+    } finally {
+      setIsTranslating(false);
+    }
   };
 
-  const languageColorClass = languageColors[book?.language] || 'bg-slate-100 text-slate-800';
+  const handleDownload = async () => {
+    if (!translationId) {
+      toast.error("No translation available for download.");
+      return;
+    }
+    const toastId = toast.loading("Downloading...");
+    try {
+      const translationDetails = await studentAPI.getTranslation(translationId);
+      const downloadUrl = translationDetails.file_path;
+      if (downloadUrl) {
+        window.open(downloadUrl, "_blank");
+        toast.success("Download started.", { id: toastId });
+      } else {
+        throw new Error("No download URL found.");
+      }
+    } catch (error) {
+      toast.error(error.message || "Failed to download translation.", {
+        id: toastId,
+      });
+    }
+  };
+
+  const languageColors = {
+    English: "bg-blue-100 text-blue-800",
+    Spanish: "bg-red-100 text-red-800",
+    French: "bg-purple-100 text-purple-800",
+    German: "bg-amber-100 text-amber-800",
+    Chinese: "bg-red-100 text-red-800",
+    Arabic: "bg-emerald-100 text-emerald-800",
+    Japanese: "bg-pink-100 text-pink-800",
+    Portuguese: "bg-green-100 text-green-800",
+  };
+
+  const languageColorClass =
+    languageColors[book?.language] || "bg-slate-100 text-slate-800";
 
   return (
     <div
@@ -44,7 +124,9 @@ export function BookCard({ book, actionButton }) {
             {book?.title}
           </h3>
           {book?.language && (
-            <span className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap ${languageColorClass}`}>
+            <span
+              className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap ${languageColorClass}`}
+            >
               {book.language}
             </span>
           )}
@@ -83,15 +165,39 @@ export function BookCard({ book, actionButton }) {
       </div>
 
       {/* Footer CTA */}
-      {book?.id && (
-        <div className="px-4 py-3 bg-slate-50 border-t border-slate-100 flex gap-2">
-          {actionButton && (
-            <div className="flex-1 w-full">
-              {actionButton}
-            </div>
-          )}
+      <div className="px-4 py-3 bg-slate-50 border-t border-slate-100 space-y-3">
+        <select
+          className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          value={selectedLanguageId}
+          onChange={(e) => setSelectedLanguageId(e.target.value)}
+        >
+          <option value="">Select language</option>
+          {languages.map((lang) => (
+            <option key={lang.id} value={lang.id}>
+              {lang.name}
+            </option>
+          ))}
+        </select>
+        <div className="flex gap-2">
+          <Button
+            onClick={handleTranslate}
+            disabled={isTranslating || !selectedLanguageId}
+            className="w-full"
+          >
+            <MdTranslate className="mr-2" />
+            {isTranslating ? "Translating..." : "Translate"}
+          </Button>
+          <Button
+            onClick={handleDownload}
+            disabled={!translationId}
+            variant="secondary"
+            className="w-full"
+          >
+            <MdDownload className="mr-2" />
+            Download
+          </Button>
         </div>
-      )}
+      </div>
     </div>
   );
 }

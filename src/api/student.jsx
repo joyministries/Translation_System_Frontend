@@ -1,7 +1,6 @@
 import { axiosInstance } from './baseapi';
 
 export const studentEndpoints = {
-    dashboard: '/student/dashboard',
     books: '/student/content/books',
     exams: '/student/content/exams',
     answerKeys: '/student/content/answer-keys',
@@ -12,17 +11,18 @@ export const studentEndpoints = {
     getTranslation: '/student/translate',
     downloadTranslation: '/student/translate',
     languages: '/student/content/languages',
-
 }
 
 export const studentAPI = {
     // Trigger a translation job
     triggerTranslation: async (content_type, content_id, language_id) => {
         try {
-            const response = await axiosInstance.post(studentEndpoints.triggerTranslate, {
-                content_type,
-                content_id,
-                language_id,
+            const response = await axiosInstance.post(studentEndpoints.triggerTranslate, null, {
+                params: {
+                    content_type,
+                    content_id,
+                    language_id,
+                },
             });
             return response.data; // Returns { job_id, status, ... }
         } catch (error) {
@@ -182,7 +182,7 @@ export const studentAPI = {
             console.error('Get available languages error:', error);
             return []; // Return empty array on error
         }
-    },
+    }
 }
 
 
