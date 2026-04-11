@@ -50,8 +50,11 @@ export function BrowseExams() {
 
   // Filter exams based on search and category
   const filteredExams = allExams.filter(exam => {
-    const matchesSearch = exam.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         exam.subject.toLowerCase().includes(searchQuery.toLowerCase());
+    const title = exam.title?.toLowerCase() || '';
+    const subject = exam.subject?.toLowerCase() || '';
+    
+    const matchesSearch = title.includes(searchQuery.toLowerCase()) ||
+                         subject.includes(searchQuery.toLowerCase());
     const matchesCategory = selectedCategory === 'All' || exam.subject === selectedCategory;
     return matchesSearch && matchesCategory;
   });
@@ -118,7 +121,10 @@ export function BrowseExams() {
             <div
               key={exam.id}
               className="cursor-pointer"
-              onClick={() => navigate(`/student/exam/${exam.id}`)}
+              onClick={() =>  {
+                navigate(`/student/exam/${exam.id}`)
+                console.log("Navigating to exam details for exam ID:", exam.id);
+              }}
             >
               <ExamCard exam={exam} />
             </div>
