@@ -8,9 +8,6 @@ export function BrowseBooks() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
-  const [userLibrary, setUserLibrary] = useState(
-    JSON.parse(localStorage.getItem('userLibrary')) || []
-  );
   const [allBooks, setAllBooks] = useState([]);
 
   useEffect(() => {
@@ -52,23 +49,6 @@ export function BrowseBooks() {
     return matchesSearch && matchesCategory;
   });
 
-  const handleAddToLibrary = (book) => {
-    if (!userLibrary.find(b => b.id === book.id)) {
-      const updatedLibrary = [...userLibrary, book];
-      setUserLibrary(updatedLibrary);
-      localStorage.setItem('userLibrary', JSON.stringify(updatedLibrary));
-    }
-  };
-
-  const handleRemoveFromLibrary = (bookId) => {
-    const updatedLibrary = userLibrary.filter(b => b.id !== bookId);
-    setUserLibrary(updatedLibrary);
-    localStorage.setItem('userLibrary', JSON.stringify(updatedLibrary));
-  };
-
-  const isInLibrary = (bookId) => userLibrary.some(b => b.id === bookId);
-
-
   return (
     <div>
       {/* Back Button */}
@@ -82,8 +62,8 @@ export function BrowseBooks() {
 
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-slate-900 mb-2">Browse & Add Books</h1>
-        <p className="text-slate-600">Search for books and add them to your library</p>
+        <h1 className="text-3xl font-bold text-slate-900 mb-2">Browse Books</h1>
+        <p className="text-slate-600">Search for books</p>
       </div>
 
       {/* Search Section */}
@@ -133,26 +113,6 @@ export function BrowseBooks() {
             <BookCard
               key={book.id}
               book={book}
-              actionButton={
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (isInLibrary(book.id)) {
-                      handleRemoveFromLibrary(book.id);
-                    } else {
-                      handleAddToLibrary(book);
-                    }
-                  }}
-                  className={`w-full px-4 py-2 rounded-md text-sm font-medium transition-all ${
-                    isInLibrary(book.id)
-                      ? 'bg-green-600 text-white hover:bg-green-700'
-                      : 'bg-slate-200 text-slate-700 hover:bg-blue-600 hover:text-white'
-                  }`}
-                  title={isInLibrary(book.id) ? 'Remove from library' : 'Add to library'}
-                >
-                  {isInLibrary(book.id) ? 'Added ✓' : 'Add'}
-                </button>
-              }
             />
           ))}
         </div>

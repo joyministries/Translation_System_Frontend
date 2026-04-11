@@ -10,10 +10,8 @@ import { AnswerKeys } from '../pages/admin/AnswerKeys';
 import { Languages } from '../pages/admin/Languages';
 import { Stats } from '../pages/admin/Stats';
 import { Institutions } from '../pages/admin/Institutions';
-import { StudentDashboard } from '../pages/student/StudentDashbboard';
 import { BookDetails } from '../pages/student/BookDetails';
 import { BrowseBooks } from '../pages/student/BrowseBooks';
-import { MyExams } from '../pages/student/MyExams';
 import { BrowseExams } from '../pages/student/BrowseExams';
 import { ExamDetails } from '../pages/student/ExamDetails';
 
@@ -54,10 +52,8 @@ export function AppRouter() {
             </StudentGuard>
           }
         >
-          <Route path="dashboard" element={<StudentDashboard />} />
           <Route path="browse" element={<BrowseBooks />} />
           <Route path="book/:bookId" element={<BookDetails />} />
-          <Route path="my-exams" element={<MyExams />} />
           <Route path="browse-exams" element={<BrowseExams />} />
           <Route path="exam/:examId" element={<ExamDetails />} />
           {/* FE1 Routes: Active Translations, History, Profile will be added here */}
@@ -65,7 +61,7 @@ export function AppRouter() {
 
         {/* Default redirect */}
         <Route path="/admin/" element={<Navigate to="/admin/dashboard" />} />
-        <Route path="/student/" element={<Navigate to="/student/dashboard" />} />
+        <Route path="/student/" element={<Navigate to="/student/browse" />} />
       </Routes>
     </Router>
   );
