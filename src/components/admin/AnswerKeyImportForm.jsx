@@ -84,7 +84,7 @@ export function AnswerKeyImportForm({ onImportSuccess }) {
     setImporting(true);
 
     try {
-      await adminAPI.answerKeys.import(file, metadata);
+      await adminAPI.answerkeys.upload(file, metadata);
       toast.success(`Answer Key "${metadata.title}" imported successfully!`);
       setFile(null);
       setMetadata({ title: '', book_id: '', exam_id: '' });

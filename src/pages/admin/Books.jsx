@@ -16,22 +16,22 @@ export function Books() {
   const [pollIntervals, setPollIntervals] = useState({});
 
 
+  const fetchBooks = async () => {
+    setLoading(true);
+    try {
+      const res = await adminAPI.books.list(1, 100);
+      setBooks(res.books);
+    } catch (error) {
+      console.error('Failed to fetch books:', error);
+      toast.error('Failed to load books');
+      setBooks([]); // Clear books on error
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchBooks = async () => {
-      setLoading(true);
-      try {
-        const res = await adminAPI.books.list(1, 100);
-        setBooks(res.data?.books || res.books || res.data || []);
-      } catch (error) {
-        console.error('Failed to fetch books:', error);
-        toast.error('Failed to load books');
-        setBooks([]); // Clear books on error
-      } finally {
-        setLoading(false);
-      }
-      };
-      
-      fetchBooks();
+    fetchBooks();
   }, []);
 
   // Poll for status updates on pending books
@@ -97,51 +97,45 @@ export function Books() {
 
   const handleBookUploaded = () => {
     setShowUploadForm(false);
-    setLoading(true);
-    // Refetch books after upload
-    adminAPI.books.list(1, 100).then((res) => {
-      setBooks(res.data?.books || res.books || res.data || []);
-      setLoading(false);
-    });
-
+    fetchBooks();
   };
 
-  return (
-    <div className="space-y-6">
-      {/* Back Button */}
-      <button
-        onClick={() => navigate(-1)}
-        className="flex items-center gap-2 px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors font-medium"
-      >
-        <MdArrowBack className="w-5 h-5" />
-        Back
-      </button>
+  const handleBookDeleted = () => {
+    fetchBooks();
+  };
 
-      <h1 className="text-3xl font-bold text-gray-900">Book Management</h1>
-      <p className="text-gray-600 mt-1">Upload new books and manage existing ones.</p>
-
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Books Manager</h1>
-          <p className="text-gray-600 mt-1">Upload new books and manage existing ones.</p>
+  if (showUploadForm) {
+    return (
+        <div className="container mx-auto p-6">
+            <Button onClick={() => setShowUploadForm(false)} variant="secondary" className="mb-4">
+                <MdArrowBack className="inline-block mr-2" />
+                Back to Library
+            </Button>
+            <BookUploadForm onBookUploaded={handleBookUploaded} />
         </div>
-        <Button
-          variant="primary"
-          onClick={() => setShowUploadForm(true)}
-        >
-          Upload Book
-        </Button>
+    );
+  }
+
+  return (
+    <div className="container mx-auto p-6">
+      <div className="flex justify-between items-center mb-6">
+        <div className="flex items-center gap-4">
+            <Button onClick={() => navigate('/admin/dashboard')} variant="secondary" size="sm">
+                <MdArrowBack />
+            </Button>
+            <h1 className="text-3xl font-bold text-gray-800">Content Library</h1>
+        </div>
+        <Button onClick={() => setShowUploadForm(true)}>Upload Book</Button>
       </div>
 
-      {showUploadForm ? (
-        <BookUploadForm onBookUploaded={handleBookUploaded} />
+      {loading && books.length === 0 ? (
+        <div className="flex justify-center items-center h-64">
+          <Spinner />
+        </div>
       ) : (
-        <BookTable
-          books={books}
-          loading={loading}
-          onBooksChanged={handleBookUploaded}
-        />
+        <BookTable books={books} onBookDeleted={handleBookDeleted} />
       )}
     </div>
   );
 }
+    

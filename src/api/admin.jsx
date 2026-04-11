@@ -2,21 +2,22 @@ import { axiosInstance } from "./baseapi"
 
 export const adminEndpoints = {
     stats: '/admin/stats',
-    books: '/admin/books',
+    books: '/admin/content/books',
     booksUpload: '/admin/books/upload',
     translations: '/admin/translations',
     translationStats: '/admin/translations/stats',
     translationTranslate: '/admin/translations/translate',
-    exams: '/admin/exams',
-    examsImport: '/admin/exams/import',
-    answerkeys: '/admin/answer-keys',
+    exams: '/admin/content/exams',
+    examsImport: '/admin/content/exams/import',
+    answerkeys: '/admin/content/answer-keys',
     answerkeyImport: '/admin/answer-keys/import',
-    languages: '/admin/languages',
+    languages: '/admin/content/languages',
     languagesActivate: '/admin/languages/{language_id}/activate',
     languagesDeactivate: '/admin/languages/{language_id}/deactivate',
     jobs: '/admin/jobs',
     users: '/admin/users',
     institutions: '/admin/institutions',
+    all: '/admin/content',
 }
 
 // Helper function to trigger translations to all active languages
@@ -211,26 +212,6 @@ export const adminAPI = {
         list: () => axiosInstance.get(adminEndpoints.jobs),
     },
 
-    // Legacy methods for backward compatibility
-    getStats: () => axiosInstance.get(adminEndpoints.stats),
-    getBooks: () => axiosInstance.get(adminEndpoints.books),
-    uploadBook: async (file) => adminAPI.books.upload(file),
-    deleteBook: (bookId) => adminAPI.books.delete(bookId),
-    getExams: () => axiosInstance.get(adminEndpoints.exams),
-    importExam: async (file) => adminAPI.exams.import(file),
-    getAnswerKeys: () => axiosInstance.get(adminEndpoints.answerkeys),
-    importAnswerKey: async (file) => adminAPI.answerKeys.import(file),
-    getLanguages: () => axiosInstance.get(adminEndpoints.languages),
-    createLanguage: (languageData) => axiosInstance.post(adminEndpoints.languages, languageData),
-    getLanguage: (languageId) => axiosInstance.get(`${adminEndpoints.languages}/${languageId}`),
-    updateLanguage: (languageId, languageData) => axiosInstance.patch(`${adminEndpoints.languages}/${languageId}`, languageData),
-    activateLanguage: (languageId) => axiosInstance.post(`${adminEndpoints.languages}/${languageId}/activate`),
-    deactivateLanguage: (languageId) => axiosInstance.post(`${adminEndpoints.languages}/${languageId}/deactivate`),
-    getTranslations: () => axiosInstance.get(adminEndpoints.translations),
-    getTranslationStats: () => axiosInstance.get(adminEndpoints.translationStats),
-    triggerTranslation: (translationData) => axiosInstance.post(adminEndpoints.translationTranslate, translationData),
-    getJobs: () => axiosInstance.get(adminEndpoints.jobs),
-
     // Users
     users: {
         list: (page = 1, limit = 100) => {
@@ -259,5 +240,13 @@ export const adminAPI = {
         update: (institutionId, institutionData) => axiosInstance.put(`${adminEndpoints.institutions}/${institutionId}`, institutionData),
         delete: (institutionId) => axiosInstance.delete(`${adminEndpoints.institutions}/${institutionId}`),
         assignBooks: (institutionId, bookIds) => axiosInstance.post(`${adminEndpoints.institutions}/${institutionId}/books`, { bookIds }),
+    },
+    allContent: {
+        list: (contentType, page = 1, limit = 10) => {
+            const skip = (page - 1) * limit;
+            return axiosInstance.get(adminEndpoints.all, {
+                params: { content_type: contentType, skip, limit }
+            });
+        },
     },
 };

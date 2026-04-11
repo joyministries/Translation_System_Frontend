@@ -207,7 +207,7 @@ export function BookUploadForm({ onBookUploaded }) {
       ) : (
         <div className="p-4 border border-gray-200 rounded-lg bg-gray-50">
           <div className="flex items-center justify-between mb-4">
-            <p className="text-sm font-medium text-gray-700 truncate">{file.name}</p>
+            <p className="text-sm font-medium text-gray-700 truncate"> Uploading File</p>
             <Button variant="danger" size="sm" onClick={clearFile}>
               Clear
             </Button>
@@ -260,7 +260,7 @@ export function BookUploadForm({ onBookUploaded }) {
       ) } uploading ? (
       
         <div className="p-6 border border-green-200 rounded-lg bg-green-50">
-          <h3 className="text-lg font-semibold text-green-900 mb-4">Uploading: {file.name}</h3>
+          <h3 className="text-lg font-semibold text-green-900 mb-4">Uploading file</h3>
           
           {/* Progress Bar */}
           <div className="mb-6">
@@ -278,10 +278,6 @@ export function BookUploadForm({ onBookUploaded }) {
 
           {/* Upload Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            <div className="bg-white p-3 rounded-lg border border-green-100">
-              <p className="text-xs text-gray-600 mb-1">File Size</p>
-              <p className="text-sm font-semibold text-gray-900">{formatBytes(file.size)}</p>
-            </div>
             <div className="bg-white p-3 rounded-lg border border-green-100">
               <p className="text-xs text-gray-600 mb-1">Speed</p>
               <p className="text-sm font-semibold text-gray-900">{formatBytes(uploadSpeed)}/s</p>
@@ -301,7 +297,7 @@ export function BookUploadForm({ onBookUploaded }) {
       ) : (
         <div className="p-4 border border-gray-200 rounded-lg bg-gray-50">
           <div className="flex items-center justify-between mb-4">
-            <p className="text-sm font-medium text-gray-700 truncate">{file.name}</p>
+            <p className="text-sm font-medium text-gray-700 truncate">Selected File {console.log(file)}</p>
             <Button variant="danger" size="sm" onClick={clearFile} disabled={uploading}>
               Clear
             </Button>
@@ -354,7 +350,7 @@ export function BookUploadForm({ onBookUploaded }) {
           {/* File Size Info */}
           <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
             <p className="text-sm text-blue-900">
-              File size: <span className="font-semibold">{formatBytes(file.size)}</span>
+              File size: <span className="font-semibold">{console.log(file)}</span>
             </p>
           </div>
         </div>

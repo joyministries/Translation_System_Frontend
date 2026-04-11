@@ -17,43 +17,23 @@ export function ContentLibrary() {
   const [deletingId, setDeletingId] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(null);
 
-  // Fetch all content
-  const fetchContent = useCallback(async () => {
-    setLoading(true);
-    try {
-      const [booksRes, examsRes, keysRes] = await Promise.all([
-        adminAPI.getBooks().catch(() => ({ data: [] })),
-        adminAPI.getExams().catch(() => ({ data: [] })),
-        adminAPI.getAnswerKeys().catch(() => ({ data: [] })),
-      ]);
-
-      console.log('Books response:', booksRes);
-      console.log('Exams response:', examsRes);
-      console.log('Answer keys response:', keysRes);
-
-      // Handle different response formats
-      const extractData = (response) => {
-        if (response?.data?.books) return response.data.books;
-        if (response?.data && Array.isArray(response.data)) return response.data;
-        if (Array.isArray(response?.data)) return response.data;
-        if (Array.isArray(response)) return response;
-        return [];
-      };
-
-      setBooks(extractData(booksRes) || []);
-      setExams(extractData(examsRes) || []);
-      setAnswerKeys(extractData(keysRes) || []);
-    } catch (error) {
-      console.error('Failed to fetch content:', error);
-      toast.error('Failed to load content');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
   useEffect(() => {
+   const  fetchContent = async () => {
+      setLoading(true)
+      try {
+        const res = await adminAPI.allContent.list(1, 100);
+        setBooks(res.data.books || []);
+        setExams(res.data.exams || []);
+        setAnswerKeys(res.data.answer_keys || []);
+      } catch (error) {
+        console.error('Failed to fetch content:', error);
+        toast.error('Failed to load content');
+      } finally {
+        setLoading(false);
+      }
+    };
     fetchContent();
-  }, [fetchContent]);
+  }, []);
 
   // Delete handlers
   const handleDeleteBook = async (bookId) => {
@@ -233,18 +213,6 @@ export function ContentLibrary() {
         <MdArrowBack className="w-5 h-5" />
         Back
       </button>
-
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-gray-900">Content Library</h1>
-        <button
-          onClick={fetchContent}
-          disabled={loading}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 rounded-lg transition-colors font-medium disabled:opacity-50"
-        >
-          <MdRefresh className="w-5 h-5" />
-          Refresh
-        </button>
-      </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
