@@ -31,6 +31,7 @@ export function BookDetails() {
       setIsLoading(true);
       try {
         const data = await studentAPI.getBook(bookId);
+        console.log("Fetched book data:", data);
         if (!data) {
           setNotFound(true);
         } else {
@@ -75,75 +76,43 @@ export function BookDetails() {
     const toastId = toast.loading("Starting translation...");
 
     try {
+      // 1. Start the translation and get the job details
       const jobResponse = await studentAPI.triggerTranslation(
         "book",
         bookId,
         selectedLanguageId
       );
 
-      const translationId = jobResponse.translation_id || jobResponse.id;
-
+      // Check if the job was completed immediately
       if (jobResponse.status === "done" || jobResponse.status === "completed") {
-        toast.success("Translation complete! Preparing download...", {
-          id: toastId,
-        });
+        const translationId = jobResponse.translation_id || jobResponse.id;
+        toast.success("Translation complete! Preparing download...", { id: toastId });
+
+        // 2. Download the file blob
         const fileBlob = await studentAPI.downloadTranslation(translationId);
+
+        // 3. Trigger the browser download
         const url = window.URL.createObjectURL(fileBlob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = book.title
-          ? `${book.title.replace(/ /g, "_")}_translated.pdf`
-          : "translated_document.pdf";
+        a.download = book.title ? `${book.title.replace(/ /g, "_")}_translated.pdf` : "translated_document.pdf";
         document.body.appendChild(a);
         a.click();
         a.remove();
         window.URL.revokeObjectURL(url);
+        
         toast.success("Download has started!", { id: toastId });
+
       } else {
-        toast.loading("Translation in progress...", { id: toastId });
-        const poll = setInterval(async () => {
-          try {
-            const statusResponse = await studentAPI.getTranslationStatus(
-              translationId
-            );
-            if (
-              statusResponse.status === "done" ||
-              statusResponse.status === "completed"
-            ) {
-              clearInterval(poll);
-              toast.success("Translation complete! Preparing download...", {
-                id: toastId,
-              });
-              const fileBlob = await studentAPI.downloadTranslation(
-                translationId
-              );
-              const url = window.URL.createObjectURL(fileBlob);
-              const a = document.createElement("a");
-              a.href = url;
-              a.download = book.title
-                ? `${book.title.replace(/ /g, "_")}_translated.pdf`
-                : "translated_document.pdf";
-              document.body.appendChild(a);
-              a.click();
-              a.remove();
-              window.URL.revokeObjectURL(url);
-              toast.success("Download has started!", { id: toastId });
-              setIsTranslating(false);
-            }
-          } catch (error) {
-            clearInterval(poll);
-            toast.error(
-              error.message || "Failed to check translation status.",
-              { id: toastId }
-            );
-            setIsTranslating(false);
-          }
-        }, 5000); // Poll every 5 seconds
+        // If the job is not done, you might need to poll (optional, based on previous logic)
+        toast.error("Translation is taking longer than expected. Please try again later.", { id: toastId });
       }
     } catch (error) {
-      toast.error(error.message || "Translation failed. Please try again.", {
-        id: toastId,
-      });
+      toast.error(
+        error.message || "Translation failed. Please try again.",
+        { id: toastId }
+      );
+    } finally {
       setIsTranslating(false);
     }
   };
