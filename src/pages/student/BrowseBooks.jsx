@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MdSearch, MdArrowBack } from 'react-icons/md';
-import { BookCard } from '../../components/student/BookCard';
+import { BookCard } from '../../components/student/BookCard.jsx';
 import { studentAPI } from '../../api/student.jsx';
 
 export function BrowseBooks() {
@@ -14,9 +14,7 @@ export function BrowseBooks() {
     const fetchBooks = async () => {
       try {
         const response = await studentAPI.getBooks();
-        const booksArray = response.books || response.data || [];
-        // Ensure each book has the required properties
-        const books = booksArray.map(book => ({
+        const books = response.map(book => ({
           id: book.id || '',
           title: book.title || 'Untitled',
           author: book.author || 'Unknown Author',
@@ -24,9 +22,6 @@ export function BrowseBooks() {
           language: book.language || 'English',
           pages: book.pages || 0,
           dateUploaded: book.dateUploaded || new Date().toISOString(),
-          coverImage: book.coverImage || 'https://images.unsplash.com/photo-1507842217343-583f20270319?w=400&q=80',
-          rating: book.rating || 0,
-          reviews: book.reviews || 0,
           description: book.description || ''
         }));
 
@@ -108,12 +103,15 @@ export function BrowseBooks() {
 
       {/* Books Grid */}
       {filteredBooks.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {filteredBooks.map((book) => (
-            <BookCard
+            <div
               key={book.id}
-              book={book}
-            />
+              className="cursor-pointer"
+              onClick={() => navigate(`/student/book/${book.id}`)}
+            >
+              <BookCard book={book} />
+            </div>
           ))}
         </div>
       ) : (

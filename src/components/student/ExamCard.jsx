@@ -1,14 +1,14 @@
-import { MdCalendarToday } from 'react-icons/md';
+import { MdCalendarToday } from "react-icons/md";
 
-export function ExamCard({ exam, actionButton }) {
+export function ExamCard({ exam }) {
   // Format date to readable format (e.g., "Apr 10, 2026")
   const formatDate = (dateString) => {
     try {
       const date = new Date(dateString);
-      return date.toLocaleDateString('en-US', { 
-        year: 'numeric', 
-        month: 'short', 
-        day: 'numeric' 
+      return date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
       });
     } catch {
       return dateString;
@@ -49,17 +49,6 @@ export function ExamCard({ exam, actionButton }) {
           )}
         </div>
       </div>
-
-      {/* Footer CTA */}
-      {exam?.id && (
-        <div className="px-4 py-3 bg-slate-50 border-t border-slate-100 flex gap-2">
-          {actionButton && (
-            <div className="flex-1 w-full">
-              {actionButton}
-            </div>
-          )}
-        </div>
-      )}
     </div>
   );
 }

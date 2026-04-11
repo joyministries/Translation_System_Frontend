@@ -7,7 +7,6 @@ import { Modal } from '../../components/shared/Modal';
 import { authAPI } from '../../api/auth.jsx';
 
 export function Login() {
-    const [activeTab, setActiveTab] = useState('student');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
@@ -123,7 +122,7 @@ export function Login() {
             if (user.role === 'admin') {
                 navigate('/admin/dashboard');
             } else if (user.role === 'student') {
-                navigate('/student/dashboard');
+                navigate('/student/browse');
             } else {
                 throw new Error('Invalid user role.');
             }
@@ -147,42 +146,13 @@ export function Login() {
 
                 {/* Card */}
                 <div className="bg-white rounded-lg shadow-lg p-8">
-                    {/* Tabs */}
-                    <div className="flex gap-2 mb-8 bg-gray-100 p-1 rounded-lg">
-                        <button
-                            onClick={() => setActiveTab('student')}
-                            className={`flex-1 py-2 px-4 rounded font-medium transition ${
-                                activeTab === 'student'
-                                    ? 'bg-white text-blue-600 shadow'
-                                    : 'text-gray-600 hover:text-gray-900'
-                            }`}
-                        >
-                            Student
-                        </button>
-                        <button
-                            onClick={() => setActiveTab('admin')}
-                            className={`flex-1 py-2 px-4 rounded font-medium transition ${
-                                activeTab === 'admin'
-                                    ? 'bg-white text-blue-600 shadow'
-                                    : 'text-gray-600 hover:text-gray-900'
-                            }`}
-                        >
-                            Admin
-                        </button>
-                    </div>
 
                     {/* Form */}
                     <form onSubmit={handleSubmit} className="space-y-6">
-                        <div>
-                            <h2 className="text-xl font-bold text-gray-900">
-                                {activeTab === 'student' ? 'Student Access' : 'Admin Access'}
-                            </h2>
-                            <p className="text-gray-600 text-sm mt-1">
-                                {activeTab === 'student' 
-                                    ? 'Sign in to access and translate content'
-                                    : 'Sign in to manage translations and content'}
-                            </p>
-                        </div>
+                        <h3 className="text-xl font-semibold text-gray-900">
+                           Sign In
+                        </h3>
+                        <p className='text-sm font-medium text-gray-700'> Access your learning resources </p>
 
                         {/* Email Field */}
                         <div>
@@ -196,7 +166,7 @@ export function Login() {
                                         ? 'border-red-500 focus:ring-red-500 bg-red-50'
                                         : 'border-gray-300 focus:ring-blue-500'
                                 }`}
-                                placeholder={activeTab === 'student' ? 'student@example.com' : 'admin@example.com'}
+                                placeholder='student@example.com'
                             />
                             {fieldErrors.email && (
                                 <p className="text-red-600 text-xs mt-1 font-medium">⚠️ {fieldErrors.email}</p>

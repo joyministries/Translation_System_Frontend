@@ -28,14 +28,18 @@ const triggerTranslationForContent = async (contentId, contentType) => {
         
         // Trigger translation for each active language
         const translationPromises = activeLanguages.map(lang =>
-            axiosInstance.post(adminEndpoints.translationTranslate, {
-                contentId,
-                contentType, // 'book', 'exam', or 'answerKey'
-                targetLanguage: lang.isoCode
-            }).catch(err => {
-                console.warn(`Translation to ${lang.name} failed:`, err.message);
-                return null;
-            })
+            axiosInstance
+                .post(adminEndpoints.translationTranslate, null, {
+                    params: {
+                        content_id: contentId,
+                        content_type: contentType, // 'book', 'exam', or 'answerKey'
+                        language_id: lang.id,
+                    },
+                })
+                .catch(err => {
+                    console.warn(`Translation to ${lang.name} failed:`, err.message);
+                    return null;
+                })
         );
         
         await Promise.all(translationPromises);
@@ -154,7 +158,15 @@ export const adminAPI = {
     translations: {
         list: () => axiosInstance.get(adminEndpoints.translations),
         getStats: () => axiosInstance.get(adminEndpoints.translationStats),
-        trigger: (translationData) => axiosInstance.post(adminEndpoints.translationTranslate, translationData),
+        trigger: (contentId, contentType, languageId) => {
+            return axiosInstance.post(adminEndpoints.translationTranslate, null, {
+                params: {
+                    content_id: contentId,
+                    content_type: contentType,
+                    language_id: languageId,
+                },
+            });
+        },
     },
 
     // Jobs

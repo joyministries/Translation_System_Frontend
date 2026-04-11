@@ -13,7 +13,6 @@ import { Stats } from '../pages/admin/Stats';
 import { Institutions } from '../pages/admin/Institutions';
 import { Users } from '../pages/admin/Users';
 import { ContentLibrary } from '../pages/admin/ContentLibrary';
-import { StudentDashboard } from '../pages/student/StudentDashbboard';
 import { BookDetails } from '../pages/student/BookDetails';
 import { BrowseBooks } from '../pages/student/BrowseBooks';
 import { BrowseExams } from '../pages/student/BrowseExams';
@@ -29,7 +28,7 @@ export function AppRouter() {
         <Route path="/set-password" element={<SetPassword />} />
         
 
-        {/* Admin Routes (FE2) */}
+        {/* Admin Routes*/}
         <Route
           path="/admin/*"
           element={
@@ -50,7 +49,7 @@ export function AppRouter() {
           {/* FE2 Routes: Additional pages will be added here */}
         </Route>
 
-        {/* Student Routes (FE1) */}
+        {/* Student Routes */}
         <Route
           path="/student/*"
           element={

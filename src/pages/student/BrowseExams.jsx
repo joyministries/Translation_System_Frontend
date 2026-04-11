@@ -20,7 +20,8 @@ export function BrowseExams() {
           studentAPI.getExams(),
           studentAPI.getAnswerKeys()
         ]);
-
+        console.log('API response for exams:', exams);
+        console.log('API response for answer keys:', keys);
         const formattedExams = (exams || []).map(exam => {
           // Find the associated answer key document
           const associatedKey = (keys || []).find(k => k.exam_id === exam.id || k.title?.includes(exam.title));
@@ -28,7 +29,6 @@ export function BrowseExams() {
           return {
             id: exam.id || '',
             title: exam.title || 'Untitled',
-            subject: exam.title || 'Exam', // Use title as subject
             dateUploaded: exam.created_at || new Date().toISOString(),
             file_path: exam.file_path || '',
             answerKey: associatedKey || null
@@ -50,8 +50,11 @@ export function BrowseExams() {
 
   // Filter exams based on search and category
   const filteredExams = allExams.filter(exam => {
-    const matchesSearch = exam.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         exam.subject.toLowerCase().includes(searchQuery.toLowerCase());
+    const title = exam.title?.toLowerCase() || '';
+    const subject = exam.subject?.toLowerCase() || '';
+    
+    const matchesSearch = title.includes(searchQuery.toLowerCase()) ||
+                         subject.includes(searchQuery.toLowerCase());
     const matchesCategory = selectedCategory === 'All' || exam.subject === selectedCategory;
     return matchesSearch && matchesCategory;
   });
@@ -115,28 +118,16 @@ export function BrowseExams() {
       {filteredExams.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredExams.map((exam) => (
-            <ExamCard
+            <div
               key={exam.id}
-              exam={exam}
-              actionButton={
-                exam.answerKey ? (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (exam.answerKey.file_path) {
-                        window.open(exam.answerKey.file_path, '_blank');
-                      } else {
-                        alert('Answer key document not available');
-                      }
-                    }}
-                    className="w-full px-4 py-2 rounded-md text-sm font-medium transition-all bg-green-600 text-white hover:bg-green-700"
-                    title="View Answer Key"
-                  >
-                    Answer Key
-                  </button>
-                ) : null
-              }
-            />
+              className="cursor-pointer"
+              onClick={() =>  {
+                navigate(`/student/exam/${exam.id}`)
+                console.log("Navigating to exam details for exam ID:", exam.id);
+              }}
+            >
+              <ExamCard exam={exam} />
+            </div>
           ))}
         </div>
       ) : allExams.length === 0 && !isLoading ? (

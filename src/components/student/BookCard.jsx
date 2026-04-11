@@ -1,14 +1,14 @@
-import { MdCalendarToday, MdPages } from 'react-icons/md';
+import { MdCalendarToday, MdPages } from "react-icons/md";
 
-export function BookCard({ book, actionButton }) {
+export function BookCard({ book }) {
   // Format date to readable format (e.g., "Apr 10, 2026")
   const formatDate = (dateString) => {
     try {
       const date = new Date(dateString);
-      return date.toLocaleDateString('en-US', { 
-        year: 'numeric', 
-        month: 'short', 
-        day: 'numeric' 
+      return date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
       });
     } catch {
       return dateString;
@@ -17,17 +17,18 @@ export function BookCard({ book, actionButton }) {
 
   // Language color mapping
   const languageColors = {
-    English: 'bg-blue-100 text-blue-800',
-    Spanish: 'bg-red-100 text-red-800',
-    French: 'bg-purple-100 text-purple-800',
-    German: 'bg-amber-100 text-amber-800',
-    Chinese: 'bg-red-100 text-red-800',
-    Arabic: 'bg-emerald-100 text-emerald-800',
-    Japanese: 'bg-pink-100 text-pink-800',
-    Portuguese: 'bg-green-100 text-green-800',
+    English: "bg-blue-100 text-blue-800",
+    Spanish: "bg-red-100 text-red-800",
+    French: "bg-purple-100 text-purple-800",
+    German: "bg-amber-100 text-amber-800",
+    Chinese: "bg-red-100 text-red-800",
+    Arabic: "bg-emerald-100 text-emerald-800",
+    Japanese: "bg-pink-100 text-pink-800",
+    Portuguese: "bg-green-100 text-green-800",
   };
 
-  const languageColorClass = languageColors[book?.language] || 'bg-slate-100 text-slate-800';
+  const languageColorClass =
+    languageColors[book?.language] || "bg-slate-100 text-slate-800";
 
   return (
     <div
@@ -40,11 +41,13 @@ export function BookCard({ book, actionButton }) {
       {/* Header Section */}
       <div className="p-4 pb-3 border-b border-slate-100">
         <div className="flex items-start justify-between gap-3 mb-2">
-          <h3 className="font-semibold text-slate-900 text-lg leading-tight flex-1">
+          <h4 className="text-sm text-slate-900 leading-tight flex-1">
             {book?.title}
-          </h3>
+          </h4>
           {book?.language && (
-            <span className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap ${languageColorClass}`}>
+            <span
+              className={`px-2 py-0.5 rounded-full text-xs font-medium ${languageColorClass}`}
+            >
               {book.language}
             </span>
           )}
@@ -81,17 +84,6 @@ export function BookCard({ book, actionButton }) {
           )}
         </div>
       </div>
-
-      {/* Footer CTA */}
-      {book?.id && (
-        <div className="px-4 py-3 bg-slate-50 border-t border-slate-100 flex gap-2">
-          {actionButton && (
-            <div className="flex-1 w-full">
-              {actionButton}
-            </div>
-          )}
-        </div>
-      )}
     </div>
   );
 }
