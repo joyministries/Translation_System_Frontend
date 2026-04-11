@@ -54,35 +54,41 @@ export const adminAPI = {
 
     // Books
     books: {
-        list: (page = 1, limit = 100) =>
-            axiosInstance.get(adminEndpoints.books, {
-                params: { page, limit }
-            }),
-        upload: async (file) => {
+        list: (page = 1, limit = 100) => {
+            const skip = (page - 1) * limit;
+            return axiosInstance.get(adminEndpoints.books, {
+                params: { skip, limit }
+            });
+        },
+        upload: async (file, metadata) => {
             const formData = new FormData();
             formData.append('file', file);
-            const response = await axiosInstance.post(adminEndpoints.booksUpload, formData);
-            
-            // Trigger translation for the uploaded book
-            if (response.data?.id) {
-                await triggerTranslationForContent(response.data.id, 'book');
-            }
-            
-            return response.data;
+            const response = await axiosInstance.post(adminEndpoints.booksUpload, formData, {
+                params: metadata,
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+
+            return response;
         },
         delete: (bookId) => axiosInstance.delete(`${adminEndpoints.books}/${bookId}`),
     },
 
     // Exams
     exams: {
-        list: (page = 1, limit = 100) =>
-            axiosInstance.get(adminEndpoints.exams, {
-                params: { page, limit }
-            }),
-        import: async (file) => {
+        list: (page = 1, limit = 100) => {
+            const skip = (page - 1) * limit;
+            return axiosInstance.get(adminEndpoints.exams, {
+                params: { skip, limit }
+            });
+        },
+        import: async (file, metadata) => {
             const formData = new FormData();
             formData.append('file', file);
-            const response = await axiosInstance.post(adminEndpoints.examsImport, formData);
+            const response = await axiosInstance.post(adminEndpoints.examsImport, formData, {
+                params: metadata,
+            });
             
             // Trigger translation for imported exams
             if (response.data?.ids && Array.isArray(response.data.ids)) {
@@ -169,11 +175,16 @@ export const adminAPI = {
 
     // Users
     users: {
-        list: (page = 1, limit = 100) =>
-            axiosInstance.get(adminEndpoints.users, {
-                params: { page, limit }
-            }),
-        create: (userData) => axiosInstance.post(adminEndpoints.users, userData),
+        list: (page = 1, limit = 100) => {
+            const skip = (page - 1) * limit;
+            return axiosInstance.get(adminEndpoints.users, {
+                params: { skip, limit }
+            });
+        },
+        create: (userData) => {
+            const { name, ...rest } = userData; // Exclude name from the request
+            return axiosInstance.post(adminEndpoints.users, { ...rest, use_temp_password: true });
+        },
         delete: (userId) => axiosInstance.delete(`${adminEndpoints.users}/${userId}`),
         update: (userId, userData) => axiosInstance.put(`${adminEndpoints.users}/${userId}`, userData),
     },

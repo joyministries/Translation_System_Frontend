@@ -6,6 +6,7 @@ export const authEndpoints = {
     register: '/auth/register',
     refresh: '/auth/refresh',
     me: '/auth/me',
+    setPassword: '/auth/set-password',
 }
 
 export const authAPI = {
@@ -50,6 +51,19 @@ export const authAPI = {
             return response.data;
         } catch (error) {
             console.error('Token refresh error:', error);
+            throw error;
+        }
+    },
+    setPassword: async (email, token, password) => {
+        try {
+            const response = await axiosInstance.post(authEndpoints.setPassword, {
+                email,
+                token,
+                password,
+            });
+            return response.data;
+        } catch (error) {
+            console.error('Set password error:', error);
             throw error;
         }
     },

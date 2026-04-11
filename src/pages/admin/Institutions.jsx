@@ -15,6 +15,24 @@ export function Institutions() {
   const [localAssignments, setLocalAssignments] = useState({});
   const [loading, setLoading] = useState(false);
 
+  // Default institutions to display
+  const defaultInstitutions = [
+    {
+      id: 1,
+      name: 'Lambton Christian School',
+      code: 'LCS',
+      contact: 'info@lambtoncristian.edu',
+      assignedBooks: [],
+    },
+    {
+      id: 2,
+      name: 'New Haven Academy',
+      code: 'NHA',
+      contact: 'contact@newhavencademy.edu',
+      assignedBooks: [],
+    },
+  ];
+
   // Fetch institutions and books from API
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -34,6 +52,11 @@ export function Institutions() {
         institutionsData = institutionsRes;
       }
 
+      // Use default institutions if API returns empty
+      if (institutionsData.length === 0) {
+        institutionsData = defaultInstitutions;
+      }
+
       // Handle different response formats for books
       let booksData = [];
       if (booksRes.data?.books) {
@@ -48,11 +71,13 @@ export function Institutions() {
       setBooks(Array.isArray(booksData) ? booksData : []);
     } catch (error) {
       console.error('Failed to fetch data:', error);
+      // Use default institutions on error
+      setInstitutions(defaultInstitutions);
       toast.error('Failed to load institutions and books');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [defaultInstitutions]);
 
   useEffect(() => {
     fetchData();

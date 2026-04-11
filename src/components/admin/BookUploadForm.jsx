@@ -101,12 +101,21 @@ export function BookUploadForm({ onBookUploaded }) {
     setUploadProgress(0);
 
     try {
+      console.log('Starting upload for file:', file.name, 'size:', file.size);
       // Simulate progress updates
       const progressInterval = setInterval(() => {
         setUploadProgress((prev) => Math.min(prev + 10, 90));
       }, 200);
 
-      await adminAPI.books.upload(file);
+      // TODO: Get metadata from a form
+      const metadata = {
+        title: file.name.replace(/\.pdf$/i, ''),
+        subject: 'General',
+        grade_level: '1',
+      };
+
+      const res = await adminAPI.books.upload(file, metadata);
+      console.log('Upload response:', res);
 
       clearInterval(progressInterval);
       setUploadProgress(100);

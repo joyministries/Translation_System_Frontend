@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Login } from '../pages/auth/Login';
+import { SetPassword } from '../pages/auth/SetPassword';
 import { AdminGuard, StudentGuard } from './Guards';
 import { AdminLayout } from '../components/admin/AdminLayout';
 import { StudentLayout } from '../components/student/StudentLayout';
@@ -26,6 +27,7 @@ export function AppRouter() {
         {/* Auth Routes */}
         <Route path="/" element={<Navigate to="/login" />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/set-password" element={<SetPassword />} />
         
 
         {/* Admin Routes (FE2) */}
