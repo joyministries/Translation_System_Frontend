@@ -13,63 +13,51 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
-import { adminAPI } from '../../api/admin.api.js';
-
-const MOCK_LANGUAGE_DATA = [
-  { language: 'Swahili', translations: 450 },
-  { language: 'Yoruba', translations: 380 },
-  { language: 'Hausa', translations: 320 },
-  { language: 'Igbo', translations: 280 },
-  { language: 'Amharic', translations: 250 },
-  { language: 'Oromo', translations: 210 },
-  { language: 'Somali', translations: 190 },
-  { language: 'Xhosa', translations: 170 },
-  { language: 'Zulu', translations: 160 },
-  { language: 'Arabic', translations: 140 },
-];
-
-const MOCK_DAILY_DATA = [
-  { date: 'Mar 27', translations: 45 },
-  { date: 'Mar 28', translations: 52 },
-  { date: 'Mar 29', translations: 38 },
-  { date: 'Mar 30', translations: 61 },
-  { date: 'Mar 31', translations: 55 },
-  { date: 'Apr 1', translations: 48 },
-  { date: 'Apr 2', translations: 72 },
-  { date: 'Apr 3', translations: 68 },
-  { date: 'Apr 4', translations: 54 },
-  { date: 'Apr 5', translations: 86 },
-  { date: 'Apr 6', translations: 79 },
-  { date: 'Apr 7', translations: 64 },
-  { date: 'Apr 8', translations: 92 },
-  { date: 'Apr 9', translations: 88 },
-];
+import { adminAPI } from '../../api/admin.jsx';
+import toast from 'react-hot-toast';
 
 export function Stats() {
-  const [languageData, setLanguageData] = useState(MOCK_LANGUAGE_DATA);
-  const [dailyData, setDailyData] = useState(MOCK_DAILY_DATA);
+  const navigate = useNavigate();
+  const [languageData, setLanguageData] = useState([]);
+  const [dailyData, setDailyData] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchStatsData = async () => {
       try {
         setLoading(true);
-        // Attempt to fetch from API
-        const response = await adminAPI.stats.get();
+        // Fetch real translation stats from API
+        const response = await adminAPI.translations.getStats();
 
-        // Parse the response if it contains chart data
-        if (response.languageStats) {
-          setLanguageData(response.languageStats.slice(0, 10));
+        console.log('Stats response:', response);
+
+        // Handle different response formats
+        let langStats = [];
+        let dailyStats = [];
+
+        if (response.data) {
+          // axios response format
+          if (response.data.languageStats) langStats = response.data.languageStats;
+          if (response.data.dailyStats) dailyStats = response.data.dailyStats;
+        } else {
+          // Direct response format
+          if (response.languageStats) langStats = response.languageStats;
+          if (response.dailyStats) dailyStats = response.dailyStats;
         }
 
-        if (response.dailyStats) {
-          setDailyData(response.dailyStats);
-        }
+        setLanguageData(Array.isArray(langStats) ? langStats : []);
+        setDailyData(Array.isArray(dailyStats) ? dailyStats : []);
 
-        setLoading(false);
-      } catch {
-        // Fall back to mock data on error
-        console.log('Using mock stats data');
+        if (langStats.length === 0 || dailyStats.length === 0) {
+          console.warn('No stats data returned from API');
+        }
+      } catch (error) {
+        console.error('Failed to fetch stats:', error);
+        toast.error('Failed to load statistics');
+        // Set empty arrays on error instead of using mock data
+        setLanguageData([]);
+        setDailyData([]);
+      } finally {
         setLoading(false);
       }
     };

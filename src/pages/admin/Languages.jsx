@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { MdArrowBack } from 'react-icons/md';
 import { Button } from '../../components/shared/Button';
 import { ConfirmModal } from '../../components/shared/ConfirmModal';
-import { adminAPI } from '../../api/admin.api.js';
+import { adminAPI } from '../../api/admin.jsx';
 import toast from 'react-hot-toast';
 
 const AFRICAN_LANGUAGES = [

@@ -1,55 +1,68 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MdArrowBack } from 'react-icons/md';
 import { Button } from '../../components/shared/Button';
 import { ConfirmModal } from '../../components/shared/ConfirmModal';
+import { adminAPI } from '../../api/admin.jsx';
 import toast from 'react-hot-toast';
-
-const MOCK_INSTITUTIONS = [
-  {
-    id: 1,
-    name: 'Team Impact University',
-    code: 'TIU-001',
-    contact: 'admin@teamimpact.edu',
-    assignedBooks: [1, 3, 5],
-  },
-  {
-    id: 2,
-    name: 'Lambton Christian School',
-    code: 'LCS-002',
-    contact: 'contact@lambton-christian.edu',
-    assignedBooks: [2, 4],
-  },
-  {
-    id: 3,
-    name: 'New Haven Academy',
-    code: 'NHA-003',
-    contact: 'admin@newhaven-academy.edu',
-    assignedBooks: [1, 2, 3, 4, 5],
-  },
-];
-
-const MOCK_BOOKS = [
-  { id: 1, title: 'Mathematics Grade 10', subject: 'Mathematics' },
-  { id: 2, title: 'Physics Fundamentals', subject: 'Science' },
-  { id: 3, title: 'English Literature', subject: 'English' },
-  { id: 4, title: 'History of Africa', subject: 'History' },
-  { id: 5, title: 'Chemistry Essentials', subject: 'Science' },
-];
 
 export function Institutions() {
   const navigate = useNavigate();
-  const [institutions, setInstitutions] = useState(MOCK_INSTITUTIONS);
-  const [books] = useState(MOCK_BOOKS);
+  const [institutions, setInstitutions] = useState([]);
+  const [books, setBooks] = useState([]);
   const [expandedId, setExpandedId] = useState(null);
   const [savingId, setSavingId] = useState(null);
   const [localAssignments, setLocalAssignments] = useState({});
+  const [loading, setLoading] = useState(false);
+
+  // Fetch institutions and books from API
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [institutionsRes, booksRes] = await Promise.all([
+        adminAPI.institutions.list().catch(() => ({ data: [] })),
+        adminAPI.books.list().catch(() => ({ data: [] })),
+      ]);
+
+      // Handle different response formats for institutions
+      let institutionsData = [];
+      if (institutionsRes.data?.institutions) {
+        institutionsData = institutionsRes.data.institutions;
+      } else if (institutionsRes.data && Array.isArray(institutionsRes.data)) {
+        institutionsData = institutionsRes.data;
+      } else if (Array.isArray(institutionsRes)) {
+        institutionsData = institutionsRes;
+      }
+
+      // Handle different response formats for books
+      let booksData = [];
+      if (booksRes.data?.books) {
+        booksData = booksRes.data.books;
+      } else if (booksRes.data && Array.isArray(booksRes.data)) {
+        booksData = booksRes.data;
+      } else if (Array.isArray(booksRes)) {
+        booksData = booksRes;
+      }
+
+      setInstitutions(Array.isArray(institutionsData) ? institutionsData : []);
+      setBooks(Array.isArray(booksData) ? booksData : []);
+    } catch (error) {
+      console.error('Failed to fetch data:', error);
+      toast.error('Failed to load institutions and books');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   useEffect(() => {
     // Initialize local assignments state
     const assignments = {};
     institutions.forEach((inst) => {
-      assignments[inst.id] = new Set(inst.assignedBooks);
+      assignments[inst.id] = new Set(inst.assignedBooks || []);
     });
     setLocalAssignments(assignments);
   }, [institutions]);
@@ -75,16 +88,16 @@ export function Institutions() {
   const handleSaveAssignments = async (instId) => {
     setSavingId(instId);
     try {
-      const newAssignments = localAssignments[instId] || new Set();
+      const newAssignments = Array.from(localAssignments[instId] || new Set());
 
-      // In real implementation, would call:
-      // await adminAPI.institutions.updateBooks(instId, Array.from(newAssignments));
+      // Call API to save book assignments
+      await adminAPI.institutions.assignBooks(instId, newAssignments);
 
-      // For now, update local state with mock success
+      // Update local state on success
       setInstitutions((prev) =>
         prev.map((inst) =>
           inst.id === instId
-            ? { ...inst, assignedBooks: Array.from(newAssignments) }
+            ? { ...inst, assignedBooks: newAssignments }
             : inst
         )
       );
@@ -96,10 +109,12 @@ export function Institutions() {
       setLocalAssignments((prev) => ({
         ...prev,
         [instId]: new Set(
-          institutions.find((i) => i.id === instId).assignedBooks
+          institutions.find((i) => i.id === instId)?.assignedBooks || []
         ),
       }));
-      toast.error(error.message || 'Failed to update assignments');
+      const errorMsg = error.response?.data?.message || error.message || 'Failed to update assignments';
+      toast.error(errorMsg);
+      console.error('Save assignments error:', error);
     } finally {
       setSavingId(null);
     }
@@ -118,9 +133,7 @@ export function Institutions() {
 
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold text-gray-900">Institutions Manager</h1>
-        <p className="text-sm text-amber-600 bg-amber-50 px-3 py-2 rounded">
-          📌 Backend integration flagged for post-sprint
-        </p>
+        {loading && <p className="text-sm text-blue-600">Loading institutions...</p>}
       </div>
 
       {/* Institutions Grid */}
