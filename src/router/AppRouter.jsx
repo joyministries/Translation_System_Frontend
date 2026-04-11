@@ -10,6 +10,8 @@ import { AnswerKeys } from '../pages/admin/AnswerKeys';
 import { Languages } from '../pages/admin/Languages';
 import { Stats } from '../pages/admin/Stats';
 import { Institutions } from '../pages/admin/Institutions';
+import { Users } from '../pages/admin/Users';
+import { ContentLibrary } from '../pages/admin/ContentLibrary';
 import { StudentDashboard } from '../pages/student/StudentDashbboard';
 import { BookDetails } from '../pages/student/BookDetails';
 import { BrowseBooks } from '../pages/student/BrowseBooks';
@@ -42,6 +44,8 @@ export function AppRouter() {
           <Route path="languages" element={<Languages />} />
           <Route path="stats" element={<Stats />} />
           <Route path="institutions" element={<Institutions />} />
+          <Route path="users" element={<Users />} />
+          <Route path="content-library" element={<ContentLibrary />} />
           {/* FE2 Routes: Additional pages will be added here */}
         </Route>
 

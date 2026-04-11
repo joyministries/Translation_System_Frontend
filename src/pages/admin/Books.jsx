@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MdArrowBack } from 'react-icons/md';
-import { adminAPI } from '../../api/admin.api.js';
+import { adminAPI } from '../../api/admin.jsx';
 import { BookUploadForm } from '../../components/admin/BookUploadForm';
 import { BookTable } from '../../components/admin/BookTable';
 import toast from 'react-hot-toast';
@@ -16,40 +16,25 @@ export function Books() {
     setLoading(true);
     try {
       const response = await adminAPI.books.list(1, 100);
-      setBooks(response.books || []);
+      console.log('Books response:', response); // Debug log
+      
+      // Handle different response formats
+      let booksData = [];
+      if (response.data?.books) {
+        booksData = response.data.books;
+      } else if (response.data && Array.isArray(response.data)) {
+        booksData = response.data;
+      } else if (response.books) {
+        booksData = response.books;
+      } else if (Array.isArray(response)) {
+        booksData = response;
+      }
+      
+      console.log('Extracted books data:', booksData); // Debug log
+      setBooks(Array.isArray(booksData) ? booksData : []);
     } catch (error) {
       console.error('Failed to fetch books:', error);
-      toast.error('Failed to load books');
-      // Mock data for testing
-      setBooks([
-        {
-          id: 1,
-          title: 'Mathematics Grade 9',
-          subject: 'Mathematics',
-          gradeLevel: '9',
-          extractionStatus: 'done',
-          uploadedBy: 'Admin',
-          uploadedAt: new Date(Date.now() - 86400000).toISOString(),
-        },
-        {
-          id: 2,
-          title: 'English Literature',
-          subject: 'English',
-          gradeLevel: '10',
-          extractionStatus: 'pending',
-          uploadedBy: 'Admin',
-          uploadedAt: new Date().toISOString(),
-        },
-        {
-          id: 3,
-          title: 'Biology Fundamentals',
-          subject: 'Science',
-          gradeLevel: '9',
-          extractionStatus: 'failed',
-          uploadedBy: 'Admin',
-          uploadedAt: new Date(Date.now() - 172800000).toISOString(),
-        },
-      ]);
+      toast.error('Failed to load books: ' + (error.message || 'Unknown error'));
     } finally {
       setLoading(false);
     }
@@ -67,7 +52,20 @@ export function Books() {
       const interval = setInterval(async () => {
         try {
           const response = await adminAPI.books.list(1, 100);
-          const updatedBook = response.books?.find((b) => b.id === book.id);
+          
+          // Handle different response formats
+          let booksData = [];
+          if (response.data?.books) {
+            booksData = response.data.books;
+          } else if (response.data && Array.isArray(response.data)) {
+            booksData = response.data;
+          } else if (response.books) {
+            booksData = response.books;
+          } else if (Array.isArray(response)) {
+            booksData = response;
+          }
+          
+          const updatedBook = Array.isArray(booksData) ? booksData.find((b) => b.id === book.id) : null;
 
           if (updatedBook) {
             setBooks((prevBooks) =>

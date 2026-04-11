@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import { Button } from '../shared/Button';
 import { Spinner } from '../shared/Spinner';
 import toast from 'react-hot-toast';
-import { adminAPI } from '../../api/admin.api.js';
+import { adminAPI } from '../../api/admin.jsx';
 
 export function BookUploadForm({ onBookUploaded }) {
   const [isDragging, setIsDragging] = useState(false);

@@ -3,79 +3,190 @@ import { axiosInstance } from "./baseapi"
 export const adminEndpoints = {
     stats: '/admin/stats',
     books: '/admin/books',
+    booksUpload: '/admin/books/upload',
     translations: '/admin/translations',
+    translationStats: '/admin/translations/stats',
+    translationTranslate: '/admin/translations/translate',
     exams: '/admin/exams',
+    examsImport: '/admin/exams/import',
     answerkeys: '/admin/answer-keys',
+    answerkeyImport: '/admin/answer-keys/import',
     languages: '/admin/languages',
+    languagesActivate: '/admin/languages/{language_id}/activate',
+    languagesDeactivate: '/admin/languages/{language_id}/deactivate',
     jobs: '/admin/jobs',
+    users: '/admin/users',
+    institutions: '/admin/institutions',
 }
 
+// Helper function to trigger translations to all active languages
+const triggerTranslationForContent = async (contentId, contentType) => {
+    try {
+        // Get all active languages
+        const languagesResponse = await axiosInstance.get(adminEndpoints.languages);
+        const activeLanguages = languagesResponse.data?.filter(lang => lang.isActive) || [];
+        
+        // Trigger translation for each active language
+        const translationPromises = activeLanguages.map(lang =>
+            axiosInstance.post(adminEndpoints.translationTranslate, {
+                contentId,
+                contentType, // 'book', 'exam', or 'answerKey'
+                targetLanguage: lang.isoCode
+            }).catch(err => {
+                console.warn(`Translation to ${lang.name} failed:`, err.message);
+                return null;
+            })
+        );
+        
+        await Promise.all(translationPromises);
+        console.log(`Translation triggered for ${contentType} ${contentId} to ${activeLanguages.length} languages`);
+    } catch (error) {
+        console.warn('Failed to trigger automatic translation:', error.message);
+        // Don't throw - translation is a secondary process
+    }
+};
+
 export const adminAPI = {
+    // Stats
     stats: {
-        get: async () => {
-            try {
-                const response = await axiosInstance.get(adminEndpoints.stats)
-                return response.data
-            } catch (error) {
-                console.error('Error fetching admin stats:', error)
-                throw error
-            }
-        },
+        get: () => axiosInstance.get(adminEndpoints.stats),
     },
+
+    // Books
     books: {
-        get: async () => {
-            // TODO: Implement get books
+        list: (page = 1, limit = 100) =>
+            axiosInstance.get(adminEndpoints.books, {
+                params: { page, limit }
+            }),
+        upload: async (file) => {
+            const formData = new FormData();
+            formData.append('file', file);
+            const response = await axiosInstance.post(adminEndpoints.booksUpload, formData);
+            
+            // Trigger translation for the uploaded book
+            if (response.data?.id) {
+                await triggerTranslationForContent(response.data.id, 'book');
+            }
+            
+            return response.data;
         },
-        create: async (data) => {
-            // TODO: Implement create book
-        },
-        update: async (id, data) => {
-            // TODO: Implement update book
-        },
-        delete: async (id) => {
-            // TODO: Implement delete book
+        delete: (bookId) => axiosInstance.delete(`${adminEndpoints.books}/${bookId}`),
+    },
+
+    // Exams
+    exams: {
+        list: (page = 1, limit = 100) =>
+            axiosInstance.get(adminEndpoints.exams, {
+                params: { page, limit }
+            }),
+        import: async (file) => {
+            const formData = new FormData();
+            formData.append('file', file);
+            const response = await axiosInstance.post(adminEndpoints.examsImport, formData);
+            
+            // Trigger translation for imported exams
+            if (response.data?.ids && Array.isArray(response.data.ids)) {
+                for (const examId of response.data.ids) {
+                    await triggerTranslationForContent(examId, 'exam').catch(() => {});
+                }
+            } else if (response.data?.id) {
+                await triggerTranslationForContent(response.data.id, 'exam');
+            }
+            
+            return response.data;
         },
     },
-    translations: {
-        get: async () => {
-            // TODO: Implement get translations
-        },
-        create: async (data) => {
-            // TODO: Implement create translation
-        },
-        update: async (id, data) => {
-            // TODO: Implement update translation
-        },
-        delete: async (id) => {
-            // TODO: Implement delete translation
+
+    // Answer Keys
+    answerKeys: {
+        list: (page = 1, limit = 100) =>
+            axiosInstance.get(adminEndpoints.answerkeys, {
+                params: { page, limit }
+            }),
+        import: async (file) => {
+            const formData = new FormData();
+            formData.append('file', file);
+            const response = await axiosInstance.post(adminEndpoints.answerkeyImport, formData);
+            
+            // Trigger translation for imported answer keys
+            if (response.data?.ids && Array.isArray(response.data.ids)) {
+                for (const keyId of response.data.ids) {
+                    await triggerTranslationForContent(keyId, 'answerKey').catch(() => {});
+                }
+            } else if (response.data?.id) {
+                await triggerTranslationForContent(response.data.id, 'answerKey');
+            }
+            
+            return response.data;
         },
     },
+
+    // Languages
     languages: {
-        get: async () => {
-            // TODO: Implement get languages
-        },
-        create: async (data) => {
-            // TODO: Implement create language
-        },
-        update: async (id, data) => {
-            // TODO: Implement update language
-        },
-        delete: async (id) => {
-            // TODO: Implement delete language
+        list: () => axiosInstance.get(adminEndpoints.languages),
+        create: (languageData) => axiosInstance.post(adminEndpoints.languages, languageData),
+        get: (languageId) => axiosInstance.get(`${adminEndpoints.languages}/${languageId}`),
+        update: (languageId, languageData) => axiosInstance.patch(`${adminEndpoints.languages}/${languageId}`, languageData),
+        activate: (languageId) => axiosInstance.post(`${adminEndpoints.languages}/${languageId}/activate`),
+        deactivate: (languageId) => axiosInstance.post(`${adminEndpoints.languages}/${languageId}/deactivate`),
+        toggle: (languageId) => {
+            // This will determine whether to activate or deactivate based on current state
+            return axiosInstance.post(`${adminEndpoints.languages}/${languageId}/toggle`);
         },
     },
+
+    // Translations
+    translations: {
+        list: () => axiosInstance.get(adminEndpoints.translations),
+        getStats: () => axiosInstance.get(adminEndpoints.translationStats),
+        trigger: (translationData) => axiosInstance.post(adminEndpoints.translationTranslate, translationData),
+    },
+
+    // Jobs
     jobs: {
-        get: async () => {
-            // TODO: Implement get jobs
-        },
-        create: async (data) => {
-            // TODO: Implement create job
-        },
-        update: async (id, data) => {
-            // TODO: Implement update job
-        },
-        delete: async (id) => {
-            // TODO: Implement delete job
-        },
+        list: () => axiosInstance.get(adminEndpoints.jobs),
+    },
+
+    // Legacy methods for backward compatibility
+    getStats: () => axiosInstance.get(adminEndpoints.stats),
+    getBooks: () => axiosInstance.get(adminEndpoints.books),
+    uploadBook: async (file) => adminAPI.books.upload(file),
+    deleteBook: (bookId) => adminAPI.books.delete(bookId),
+    getExams: () => axiosInstance.get(adminEndpoints.exams),
+    importExam: async (file) => adminAPI.exams.import(file),
+    getAnswerKeys: () => axiosInstance.get(adminEndpoints.answerkeys),
+    importAnswerKey: async (file) => adminAPI.answerKeys.import(file),
+    getLanguages: () => axiosInstance.get(adminEndpoints.languages),
+    createLanguage: (languageData) => axiosInstance.post(adminEndpoints.languages, languageData),
+    getLanguage: (languageId) => axiosInstance.get(`${adminEndpoints.languages}/${languageId}`),
+    updateLanguage: (languageId, languageData) => axiosInstance.patch(`${adminEndpoints.languages}/${languageId}`, languageData),
+    activateLanguage: (languageId) => axiosInstance.post(`${adminEndpoints.languages}/${languageId}/activate`),
+    deactivateLanguage: (languageId) => axiosInstance.post(`${adminEndpoints.languages}/${languageId}/deactivate`),
+    getTranslations: () => axiosInstance.get(adminEndpoints.translations),
+    getTranslationStats: () => axiosInstance.get(adminEndpoints.translationStats),
+    triggerTranslation: (translationData) => axiosInstance.post(adminEndpoints.translationTranslate, translationData),
+    getJobs: () => axiosInstance.get(adminEndpoints.jobs),
+
+    // Users
+    users: {
+        list: (page = 1, limit = 100) =>
+            axiosInstance.get(adminEndpoints.users, {
+                params: { page, limit }
+            }),
+        create: (userData) => axiosInstance.post(adminEndpoints.users, userData),
+        delete: (userId) => axiosInstance.delete(`${adminEndpoints.users}/${userId}`),
+        update: (userId, userData) => axiosInstance.put(`${adminEndpoints.users}/${userId}`, userData),
+    },
+
+    // Institutions
+    institutions: {
+        list: (page = 1, limit = 100) =>
+            axiosInstance.get(adminEndpoints.institutions, {
+                params: { page, limit }
+            }),
+        create: (institutionData) => axiosInstance.post(adminEndpoints.institutions, institutionData),
+        update: (institutionId, institutionData) => axiosInstance.put(`${adminEndpoints.institutions}/${institutionId}`, institutionData),
+        delete: (institutionId) => axiosInstance.delete(`${adminEndpoints.institutions}/${institutionId}`),
+        assignBooks: (institutionId, bookIds) => axiosInstance.post(`${adminEndpoints.institutions}/${institutionId}/books`, { bookIds }),
     },
 }

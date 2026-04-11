@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
-import { useAuthStore } from '../../store/auth.store';
+import { useAuthStore } from '../../store/auth_store.js';
 import toast from 'react-hot-toast';
 
 export function AdminLayout() {

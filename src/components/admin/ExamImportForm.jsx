@@ -3,7 +3,7 @@ import { Button } from '../shared/Button';
 import { Modal } from '../shared/Modal';
 import { Spinner } from '../shared/Spinner';
 import toast from 'react-hot-toast';
-import { adminAPI } from '../../api/admin.api.js';
+import { adminAPI } from '../../api/admin.jsx';
 
 export function ExamImportForm({ onImportSuccess }) {
   const [file, setFile] = useState(null);

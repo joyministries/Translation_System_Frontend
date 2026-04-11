@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
-import { adminAPI } from '../../api/admin.api.js';
+import { adminAPI } from '../../api/admin.jsx';
 import { Skeleton } from '../../components/shared/Spinner';
 import { useNavigate } from 'react-router-dom';
 import { MdArrowBack } from 'react-icons/md';
 import toast from 'react-hot-toast';
-import { useAuthStore } from '../../store/auth.store';
+import { useAuthStore } from '../../store/auth_store.js';
 
 function StatCard({ title, value, icon, loading }) {
   return (
@@ -72,21 +72,28 @@ export function Dashboard() {
     try {
       setLoading(true);
       const response = await adminAPI.stats.get();
+      
+      console.log('Dashboard stats response:', response);
+
+      // Handle different response formats
+      let statsData = response.data || response;
+
       setStats({
-        totalBooks: response.totalBooks || 0,
-        totalTranslationJobs: response.totalTranslationJobs || 0,
-        activeLanguages: response.activeLanguages || 0,
-        jobsToday: response.jobsToday || 0,
+        totalBooks: statsData.totalBooks || 0,
+        totalTranslationJobs: statsData.totalTranslationJobs || 0,
+        activeLanguages: statsData.activeLanguages || 0,
+        jobsToday: statsData.jobsToday || 0,
       });
     } catch (error) {
       console.error('Failed to fetch stats:', error);
-      // Mock data for demo
+      // Don't use mock data - show 0 values and error message
       setStats({
-        totalBooks: 143,
-        totalTranslationJobs: 1247,
-        activeLanguages: 10,
-        jobsToday: 23,
+        totalBooks: 0,
+        totalTranslationJobs: 0,
+        activeLanguages: 0,
+        jobsToday: 0,
       });
+      toast.error('Failed to load statistics');
     } finally {
       setLoading(false);
     }
@@ -150,7 +157,7 @@ export function Dashboard() {
       {/* Quick Actions */}
       <div className="bg-white rounded-lg shadow p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
           <QuickActionButton
             label="Upload Book"
             icon="📤"
@@ -165,6 +172,16 @@ export function Dashboard() {
             label="Import Answer Keys"
             icon="🔑"
             onClick={() => navigate('/admin/answer-keys')}
+          />
+          <QuickActionButton
+            label="Content Library"
+            icon="📚"
+            onClick={() => navigate('/admin/content-library')}
+          />
+          <QuickActionButton
+            label="Manage Users"
+            icon="👥"
+            onClick={() => navigate('/admin/users')}
           />
           <QuickActionButton
             label="Manage Languages"
