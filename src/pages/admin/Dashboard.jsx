@@ -72,7 +72,6 @@ export function Dashboard() {
     try {
       setLoading(true);
       const response = await adminAPI.getStats();
-      
       console.log('Dashboard stats response:', response);
 
       // Handle different response formats
