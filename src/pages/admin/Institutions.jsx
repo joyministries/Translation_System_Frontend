@@ -1,10 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MdArrowBack } from 'react-icons/md';
+import { MdArrowBack, MdExpandMore, MdExpandLess } from 'react-icons/md';
 import { Button } from '../../components/shared/Button';
 import { ConfirmModal } from '../../components/shared/ConfirmModal';
 import { adminAPI } from '../../api/admin.jsx';
 import toast from 'react-hot-toast';
+import { Spinner } from '../../components/shared/Spinner';
+import { EmptyState } from '../../components/shared/EmptyState';
 
 export function Institutions() {
   const navigate = useNavigate();
@@ -13,81 +15,60 @@ export function Institutions() {
   const [expandedId, setExpandedId] = useState(null);
   const [savingId, setSavingId] = useState(null);
   const [localAssignments, setLocalAssignments] = useState({});
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 5, // Lower limit for this page as it has more content per item
+    total: 0,
+    totalPages: 1,
+  });
 
-  // Default institutions to display
-  const defaultInstitutions = [
-    {
-      id: 1,
-      name: 'Lambton Christian School',
-      code: 'LCS',
-      contact: 'info@lambtoncristian.edu',
-      assignedBooks: [],
-    },
-    {
-      id: 2,
-      name: 'New Haven Academy',
-      code: 'NHA',
-      contact: 'contact@newhavencademy.edu',
-      assignedBooks: [],
-    },
-  ];
-
-  // Fetch institutions and books from API
-  const fetchData = useCallback(async () => {
+  const fetchInstitutions = useCallback(async (page) => {
     setLoading(true);
     try {
-      const [institutionsRes, booksRes] = await Promise.all([
-        adminAPI.institutions.list().catch(() => ({ data: [] })),
-        adminAPI.books.list().catch(() => ({ data: [] })),
-      ]);
-
-      // Handle different response formats for institutions
-      let institutionsData = [];
-      if (institutionsRes.data?.institutions) {
-        institutionsData = institutionsRes.data.institutions;
-      } else if (institutionsRes.data && Array.isArray(institutionsRes.data)) {
-        institutionsData = institutionsRes.data;
-      } else if (Array.isArray(institutionsRes)) {
-        institutionsData = institutionsRes;
-      }
-
-      // Use default institutions if API returns empty
-      if (institutionsData.length === 0) {
-        institutionsData = defaultInstitutions;
-      }
-
-      // Handle different response formats for books
-      let booksData = [];
-      if (booksRes.data?.books) {
-        booksData = booksRes.data.books;
-      } else if (booksRes.data && Array.isArray(booksRes.data)) {
-        booksData = booksRes.data;
-      } else if (Array.isArray(booksRes)) {
-        booksData = booksRes;
-      }
-
-      setInstitutions(Array.isArray(institutionsData) ? institutionsData : []);
-      setBooks(Array.isArray(booksData) ? booksData : []);
+      const response = await adminAPI.institutions.list(page, pagination.limit);
+      const data = response.data;
+      setInstitutions(data.items || []);
+      setPagination(prev => ({
+        ...prev,
+        total: data.total || 0,
+        totalPages: data.pages || 1,
+        page: data.page || 1,
+      }));
     } catch (error) {
-      console.error('Failed to fetch data:', error);
-      // Use default institutions on error
-      setInstitutions(defaultInstitutions);
-      toast.error('Failed to load institutions and books');
+      console.error('Failed to fetch institutions:', error);
+      toast.error('Failed to load institutions.');
+      setInstitutions([]); // Clear institutions on error
     } finally {
       setLoading(false);
     }
-  }, [defaultInstitutions]);
+  }, [pagination.limit]);
+
+  const fetchBooks = useCallback(async () => {
+    try {
+      // Fetch all books - assuming the list isn't excessively long
+      const response = await adminAPI.books.list(1, 1000); 
+      setBooks(response.data?.items || []);
+    } catch (error) {
+      console.error('Failed to fetch books:', error);
+      toast.error('Failed to load books for assignment.');
+    }
+  }, []);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    fetchInstitutions(pagination.page);
+  }, [fetchInstitutions, pagination.page]);
 
   useEffect(() => {
-    // Initialize local assignments state
+    fetchBooks();
+  }, [fetchBooks]);
+
+  useEffect(() => {
+    // Initialize local assignments state when institutions change
     const assignments = {};
     institutions.forEach((inst) => {
-      assignments[inst.id] = new Set(inst.assignedBooks || []);
+      // Assuming `assignedBooks` is an array of book IDs
+      assignments[inst.id] = new Set(inst.assigned_books || []);
     });
     setLocalAssignments(assignments);
   }, [institutions]);
@@ -98,205 +79,154 @@ export function Institutions() {
       if (!updated[instId]) {
         updated[instId] = new Set();
       }
-
-      const newSet = new Set(updated[instId]);
-      if (newSet.has(bookId)) {
-        newSet.delete(bookId);
+      const bookSet = updated[instId];
+      if (bookSet.has(bookId)) {
+        bookSet.delete(bookId);
       } else {
-        newSet.add(bookId);
+        bookSet.add(bookId);
       }
-      updated[instId] = newSet;
       return updated;
     });
   };
 
-  const handleSaveAssignments = async (instId) => {
-    setSavingId(instId);
+  const handleSaveAssignments = async (institutionId) => {
+    setSavingId(institutionId);
+    const bookIds = Array.from(localAssignments[institutionId] || []);
     try {
-      const newAssignments = Array.from(localAssignments[instId] || new Set());
-
-      // Call API to save book assignments
-      await adminAPI.institutions.assignBooks(instId, newAssignments);
-
-      // Update local state on success
-      setInstitutions((prev) =>
-        prev.map((inst) =>
-          inst.id === instId
-            ? { ...inst, assignedBooks: newAssignments }
-            : inst
-        )
-      );
-
-      toast.success('Book assignments updated successfully');
-      setExpandedId(null);
+      await adminAPI.institutions.assignBooks(institutionId, bookIds);
+      toast.success('Book assignments updated successfully!');
+      // Refresh data for the current institution to get updated state
+      await fetchInstitutions(pagination.page);
+      setExpandedId(null); // Collapse on save
     } catch (error) {
-      // Revert changes on error
-      setLocalAssignments((prev) => ({
-        ...prev,
-        [instId]: new Set(
-          institutions.find((i) => i.id === instId)?.assignedBooks || []
-        ),
-      }));
-      const errorMsg = error.response?.data?.message || error.message || 'Failed to update assignments';
-      toast.error(errorMsg);
-      console.error('Save assignments error:', error);
+      console.error('Failed to save assignments:', error);
+      toast.error('Failed to save book assignments.');
     } finally {
       setSavingId(null);
     }
   };
 
-  return (
-    <div className="space-y-6">
-      {/* Back Button */}
-      <button
-        onClick={() => navigate(-1)}
-        className="flex items-center gap-2 px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors font-medium"
-      >
-        <MdArrowBack className="w-5 h-5" />
-        Back
-      </button>
+  const handlePageChange = (newPage) => {
+    if (newPage > 0 && newPage <= pagination.totalPages) {
+      setPagination(prev => ({ ...prev, page: newPage }));
+    }
+  };
 
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-gray-900">Institutions Manager</h1>
-        {loading && <p className="text-sm text-blue-600">Loading institutions...</p>}
+  const toggleExpand = (id) => {
+    setExpandedId(expandedId === id ? null : id);
+  };
+
+  return (
+    <div className="container mx-auto p-4 md:p-8">
+      <div className="flex items-center mb-8">
+        <Button onClick={() => navigate(-1)} variant="icon" className="mr-4">
+          <MdArrowBack size={24} />
+        </Button>
+        <div>
+          <h1 className="text-3xl font-bold text-gray-800">Manage Institutions</h1>
+          <p className="text-gray-600 mt-2">
+            Assign available books to different institutions.
+          </p>
+        </div>
       </div>
 
-      {/* Institutions Grid */}
-      <div className="grid grid-cols-1 gap-6">
-        {institutions.map((institution) => (
-          <div key={institution.id} className="bg-white rounded-lg shadow">
-            {/* Institution Header */}
-            <div className="p-6 border-b border-gray-200">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <h2 className="text-lg font-semibold text-gray-900">
-                      {institution.name}
-                    </h2>
-                    <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded">
-                      {institution.code}
-                    </span>
-                  </div>
-                  <p className="text-sm text-gray-600">
-                    📧{' '}
-                    <a href={`mailto:${institution.contact}`} className="text-blue-600 hover:underline">
-                      {institution.contact}
-                    </a>
-                  </p>
+      {loading ? (
+        <div className="text-center p-8">
+          <Spinner size="lg" />
+          <p className="mt-4 text-gray-600">Loading Institutions...</p>
+        </div>
+      ) : institutions.length === 0 ? (
+        <EmptyState
+          title="No Institutions Found"
+          message="There are no institutions to display. Contact support to add a new institution."
+        />
+      ) : (
+        <div className="space-y-4">
+          {institutions.map((inst) => (
+            <div key={inst.id} className="bg-white rounded-lg shadow-md overflow-hidden">
+              <div
+                className="p-4 flex justify-between items-center cursor-pointer hover:bg-gray-50"
+                onClick={() => toggleExpand(inst.id)}
+              >
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-800">{inst.name}</h2>
+                  <p className="text-sm text-gray-500">{inst.code}</p>
                 </div>
-                <div className="text-right">
-                  <p className="text-sm text-gray-600 mb-1">Assigned Books</p>
-                  <p className="text-xl font-bold text-blue-600">
-                    {institution.assignedBooks.length}/{books.length}
-                  </p>
+                <div className="flex items-center">
+                  <span className="text-sm text-gray-600 mr-4">
+                    {localAssignments[inst.id]?.size || 0} / {books.length} books assigned
+                  </span>
+                  {expandedId === inst.id ? <MdExpandLess size={24} /> : <MdExpandMore size={24} />}
                 </div>
               </div>
-            </div>
 
-            {/* Current Assignments */}
-            <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
-              <p className="text-sm font-medium text-gray-700 mb-2">Currently Assigned:</p>
-              {institution.assignedBooks.length > 0 ? (
-                <div className="flex flex-wrap gap-2">
-                  {institution.assignedBooks.map((bookId) => {
-                    const book = books.find((b) => b.id === bookId);
-                    return (
-                      <span
-                        key={bookId}
-                        className="px-3 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full"
-                      >
-                        {book?.title || `Book ${bookId}`}
-                      </span>
-                    );
-                  })}
-                </div>
-              ) : (
-                <p className="text-sm text-gray-500 italic">No books assigned yet</p>
-              )}
-            </div>
-
-            {/* Expand/Collapse Section */}
-            <div className="p-6">
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => setExpandedId(expandedId === institution.id ? null : institution.id)}
-              >
-                {expandedId === institution.id ? '▼ Hide' : '▶ Manage'} Assignments
-              </Button>
-
-              {/* Book Assignment Checkboxes */}
-              {expandedId === institution.id && (
-                <div className="mt-6 border-t border-gray-200 pt-6">
-                  <p className="text-sm font-medium text-gray-900 mb-4">Select Books to Assign:</p>
-                  <div className="space-y-3 max-h-64 overflow-y-auto">
-                    {books.map((book) => {
-                      const isAssigned =
-                        localAssignments[institution.id]?.has(book.id) || false;
-                      return (
-                        <label
+              {expandedId === inst.id && (
+                <div className="p-4 border-t border-gray-200">
+                  <h3 className="text-lg font-semibold mb-4 text-gray-700">Assign Books</h3>
+                  {books.length > 0 ? (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                      {books.map((book) => (
+                        <div
                           key={book.id}
-                          className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
+                          className={`p-3 rounded-lg border-2 cursor-pointer transition-all duration-200 ${
+                            localAssignments[inst.id]?.has(book.id)
+                              ? 'bg-blue-100 border-blue-500'
+                              : 'bg-gray-100 border-gray-200 hover:border-gray-400'
+                          }`}
+                          onClick={() => handleToggleBook(inst.id, book.id)}
                         >
-                          <input
-                            type="checkbox"
-                            checked={isAssigned}
-                            onChange={() => handleToggleBook(institution.id, book.id)}
-                            disabled={savingId === institution.id}
-                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
-                          />
-                          <div className="ml-3 flex-1">
-                            <p className="font-medium text-gray-900">{book.title}</p>
-                            <p className="text-xs text-gray-500">{book.subject}</p>
-                          </div>
-                        </label>
-                      );
-                    })}
-                  </div>
-
-                  {/* Save/Cancel Buttons */}
-                  <div className="mt-6 flex gap-3 justify-end pt-4 border-t border-gray-200">
+                          <p className="font-medium text-sm text-gray-800 truncate">{book.title}</p>
+                          <p className="text-xs text-gray-500">{book.grade_level}</p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-500">No books available to assign. Please upload books first.</p>
+                  )}
+                  <div className="mt-6 flex justify-end">
                     <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => {
-                        setLocalAssignments((prev) => ({
-                          ...prev,
-                          [institution.id]: new Set(institution.assignedBooks),
-                        }));
-                        setExpandedId(null);
-                      }}
-                      disabled={savingId === institution.id}
+                      onClick={() => handleSaveAssignments(inst.id)}
+                      disabled={savingId === inst.id}
                     >
-                      Cancel
-                    </Button>
-                    <Button
-                      variant="primary"
-                      size="sm"
-                      onClick={() => handleSaveAssignments(institution.id)}
-                      disabled={savingId === institution.id}
-                    >
-                      {savingId === institution.id ? 'Saving...' : 'Save Changes'}
+                      {savingId === inst.id ? 'Saving...' : 'Save Assignments'}
                     </Button>
                   </div>
                 </div>
               )}
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
-      {/* Post-Sprint Integration Note */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-        <h3 className="font-semibold text-blue-900 mb-2">📋 Frontend Status: Ready for Backend Integration</h3>
-        <ul className="text-sm text-blue-800 space-y-1">
-          <li>✅ Institution list with details (code, contact)</li>
-          <li>✅ Book assignment UI with checkboxes</li>
-          <li>✅ Mock data fully functional for demo</li>
-          <li>⏳ Backend endpoints required (POST/PUT for book assignments)</li>
-          <li>📌 Note: Saturday deadline may require post-sprint backend wiring</li>
-        </ul>
-      </div>
+      {/* Pagination Controls */}
+      {!loading && institutions.length > 0 && (
+        <div className="mt-8 flex items-center justify-between">
+           <div>
+              <p className="text-sm text-gray-700">
+                Showing <span className="font-medium">{(pagination.page - 1) * pagination.limit + 1}</span> to <span className="font-medium">{Math.min(pagination.page * pagination.limit, pagination.total)}</span> of{' '}
+                <span className="font-medium">{pagination.total}</span> results
+              </p>
+            </div>
+            <div>
+              <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                <Button
+                  onClick={() => handlePageChange(pagination.page - 1)}
+                  disabled={pagination.page <= 1}
+                  className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+                >
+                  Previous
+                </Button>
+                <Button
+                  onClick={() => handlePageChange(pagination.page + 1)}
+                  disabled={pagination.page >= pagination.totalPages}
+                  className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+                >
+                  Next
+                </Button>
+              </nav>
+            </div>
+        </div>
+      )}
     </div>
   );
 }
