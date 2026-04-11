@@ -1,10 +1,8 @@
-import { useState } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
-import { useAuthStore } from '../../store/auth_store.js';
+import { useAuthStore } from '../../store/auth_store.jsx';
 import toast from 'react-hot-toast';
 
 export function AdminLayout() {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
 

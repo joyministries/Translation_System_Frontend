@@ -3,8 +3,7 @@ import { adminAPI } from '../../api/admin.jsx';
 import { Skeleton } from '../../components/shared/Spinner';
 import { useNavigate } from 'react-router-dom';
 import { MdArrowBack } from 'react-icons/md';
-import toast from 'react-hot-toast';
-import { useAuthStore } from '../../store/auth_store.js';
+import { useAuthStore } from '../../store/auth_store.jsx';
 
 function StatCard({ title, value, icon, loading }) {
   return (
@@ -36,7 +35,7 @@ function QuickActionButton({ label, icon, onClick }) {
   );
 }
 
-function ActivityItem({ title, subtitle, status, bgColor }) {
+function ActivityItem({ title, subtitle, status }) {
   const statusColors = {
     completed: 'bg-emerald-100 text-emerald-800',
     processing: 'bg-blue-100 text-blue-800',
