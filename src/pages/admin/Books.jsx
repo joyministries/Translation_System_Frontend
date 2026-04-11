@@ -1,10 +1,12 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MdArrowBack } from 'react-icons/md';
 import { adminAPI } from '../../api/admin.jsx';
 import { BookUploadForm } from '../../components/admin/BookUploadForm';
 import { BookTable } from '../../components/admin/BookTable';
 import toast from 'react-hot-toast';
+import { Button } from '../../components/shared/Button.jsx';
+import { Spinner } from '../../components/shared/Spinner.jsx';
 
 export function Books() {
   const navigate = useNavigate();
@@ -13,32 +15,23 @@ export function Books() {
   const [loading, setLoading] = useState(false);
   const [pollIntervals, setPollIntervals] = useState({});
 
-  const fetchBooks = useCallback(async () => {
-    setLoading(true);
-    try {
-      const response = await adminAPI.books.list(1, 100);
-      console.log('Books response:', response); // Debug log
-      
-      // Handle different response formats
-      let booksData = [];
-      if (response.data?.books) {
-        booksData = response.data.books;
-      } else if (response.data && Array.isArray(response.data)) {
-        booksData = response.data;
-      } else if (response.books) {
-        booksData = response.books;
-      } else if (Array.isArray(response)) {
-        booksData = response;
+
+  useEffect(() => {
+    const fetchBooks = async () => {
+      setLoading(true);
+      try {
+        const res = await adminAPI.books.list(1, 100);
+        setBooks(res.data?.books || res.books || res.data || []);
+      } catch (error) {
+        console.error('Failed to fetch books:', error);
+        toast.error('Failed to load books');
+        setBooks([]); // Clear books on error
+      } finally {
+        setLoading(false);
       }
+      };
       
-      console.log('Extracted books data:', booksData); // Debug log
-      setBooks(Array.isArray(booksData) ? booksData : []);
-    } catch (error) {
-      console.error('Failed to fetch books:', error);
-      toast.error('Failed to load books: ' + (error.message || 'Unknown error'));
-    } finally {
-      setLoading(false);
-    }
+      fetchBooks();
   }, []);
 
   // Poll for status updates on pending books
@@ -102,13 +95,15 @@ export function Books() {
     };
   }, [books, pollIntervals]);
 
-  useEffect(() => {
-    fetchBooks();
-  }, [fetchBooks]);
-
   const handleBookUploaded = () => {
     setShowUploadForm(false);
-    fetchBooks();
+    setLoading(true);
+    // Refetch books after upload
+    adminAPI.books.list(1, 100).then((res) => {
+      setBooks(res.data?.books || res.books || res.data || []);
+      setLoading(false);
+    });
+
   };
 
   return (

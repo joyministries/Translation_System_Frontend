@@ -51,86 +51,123 @@ const triggerTranslationForContent = async (contentId, contentType) => {
 };
 
 export const adminAPI = {
-    // Stats
-    stats: {
-        get: () => axiosInstance.get(adminEndpoints.stats),
+    getStats: async () => {
+        const response = await axiosInstance.get(adminEndpoints.stats);
+        return response.data;
     },
-
-    // Books
     books: {
-        list: (page = 1, limit = 100) => {
-            const skip = (page - 1) * limit;
-            return axiosInstance.get(adminEndpoints.books, {
-                params: { skip, limit }
+        list: async (page = 1, limit = 10) => {
+            const response = await axiosInstance.get(adminEndpoints.books, {
+                params: { page, limit }
             });
-        },
-        upload: async (file, metadata) => {
-            const formData = new FormData();
-            formData.append('file', file);
-            const response = await axiosInstance.post(adminEndpoints.booksUpload, formData, {
-                params: metadata,
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
-            });
-
-            return response;
-        },
-        delete: (bookId) => axiosInstance.delete(`${adminEndpoints.books}/${bookId}`),
-    },
-
-    // Exams
-    exams: {
-        list: (page = 1, limit = 100) => {
-            const skip = (page - 1) * limit;
-            return axiosInstance.get(adminEndpoints.exams, {
-                params: { skip, limit }
-            });
-        },
-        import: async (file, metadata) => {
-            const formData = new FormData();
-            formData.append('file', file);
-            const response = await axiosInstance.post(adminEndpoints.examsImport, formData, {
-                params: metadata,
-            });
-            
-            // Trigger translation for imported exams
-            if (response.data?.ids && Array.isArray(response.data.ids)) {
-                for (const examId of response.data.ids) {
-                    await triggerTranslationForContent(examId, 'exam').catch(() => {});
-                }
-            } else if (response.data?.id) {
-                await triggerTranslationForContent(response.data.id, 'exam');
-            }
-            
             return response.data;
         },
-    },
-
-    // Answer Keys
-    answerKeys: {
-        list: (page = 1, limit = 100) => {
-            const skip = (page - 1) * limit;
-            return axiosInstance.get(adminEndpoints.answerkeys, {
-                params: { skip, limit }
-            });
-        },
-        import: async (file, metadata) => {
+        upload: async (file, metadata, onProgress) => {
             const formData = new FormData();
             formData.append('file', file);
-            const response = await axiosInstance.post(adminEndpoints.answerkeyImport, formData, {
-                params: metadata,
+            Object.keys(metadata).forEach(key => {
+                formData.append(key, metadata[key]);
             });
+
+            const config = {
+                headers: { 'Content-Type': 'multipart/form-data' },
+                onUploadProgress: (progressEvent) => {
+                    if (onProgress) {
+                        const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                        onProgress({
+                            progress,
+                            loaded: progressEvent.loaded,
+                            total: progressEvent.total,
+                        });
+                    }
+                },
+            };
+
+            const response = await axiosInstance.post(adminEndpoints.booksUpload, formData, config);
             
-            // Trigger translation for imported answer keys
-            if (response.data?.ids && Array.isArray(response.data.ids)) {
-                for (const keyId of response.data.ids) {
-                    await triggerTranslationForContent(keyId, 'answerKey').catch(() => {});
-                }
-            } else if (response.data?.id) {
+            // Trigger translation after successful upload
+            if (response.data?.id) {
+                await triggerTranslationForContent(response.data.id, 'book');
+            }
+
+            return response.data;
+        },
+        delete: (id) => axiosInstance.delete(`${adminEndpoints.books}/${id}`),
+    },
+    exams: {
+        list: async (page = 1, limit = 10) => {
+            const response = await axiosInstance.get(adminEndpoints.exams, {
+                params: { page, limit }
+            });
+            return response.data;
+        },
+        upload: async (file, metadata, onProgress) => {
+            const formData = new FormData();
+            formData.append('file', file);
+            Object.keys(metadata).forEach(key => {
+                formData.append(key, metadata[key]);
+            });
+
+            const config = {
+                headers: { 'Content-Type': 'multipart/form-data' },
+                onUploadProgress: (progressEvent) => {
+                    if (onProgress) {
+                        const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                        onProgress({
+                            progress,
+                            loaded: progressEvent.loaded,
+                            total: progressEvent.total,
+                        });
+                    }
+                },
+            };
+
+            const response = await axiosInstance.post(adminEndpoints.examsImport, formData, config);
+            
+            // Trigger translation after successful upload
+            if (response.data?.id) {
+                await triggerTranslationForContent(response.data.id, 'exam');
+            }
+
+            return response.data;
+        },
+        delete: (id) => axiosInstance.delete(`${adminEndpoints.exams}/${id}`),
+    },
+    answerkeys: {
+        list: async (page = 1, limit = 10) => {
+            const response = await axiosInstance.get(adminEndpoints.answerkeys, {
+                params: { page, limit }
+            });
+            return response.data;
+        },
+        upload: async (file, metadata, onProgress) => {
+            const formData = new FormData();
+            formData.append('file', file);
+            Object.keys(metadata).forEach(key => {
+                formData.append(key, metadata[key]);
+            });
+
+            const config = {
+                headers: { 'Content-Type': 'multipart/form-data' },
+                onUploadProgress: (progressEvent) => {
+                    if (onProgress) {
+                        const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                        onProgress({
+                            progress,
+                            loaded: progressEvent.loaded,
+                            total: progressEvent.total,
+                        });
+                    }
+                },
+            };
+
+            const response = await axiosInstance.post(adminEndpoints.answerkeyImport, formData, config);
+            
+            // Trigger translation after successful upload
+            if (response.data?.id) {
                 await triggerTranslationForContent(response.data.id, 'answerKey');
             }
-            
+
             return response.data;
         },
     },
@@ -223,4 +260,4 @@ export const adminAPI = {
         delete: (institutionId) => axiosInstance.delete(`${adminEndpoints.institutions}/${institutionId}`),
         assignBooks: (institutionId, bookIds) => axiosInstance.post(`${adminEndpoints.institutions}/${institutionId}/books`, { bookIds }),
     },
-}
+};

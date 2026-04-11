@@ -1,46 +1,19 @@
-import { useRef, useState, useEffect, useCallback } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { Button } from '../shared/Button';
-import { Spinner } from '../shared/Spinner';
 import toast from 'react-hot-toast';
 import { adminAPI } from '../../api/admin.jsx';
-import { Input } from '../shared/Input.jsx';
 
 export function AnswerKeyImportForm({ onImportSuccess }) {
   const [file, setFile] = useState(null);
   const [importing, setImporting] = useState(false);
   const [errors, setErrors] = useState({});
-
-  const [books, setBooks] = useState([]);
-  const [exams, setExams] = useState([]);
-  const [filteredExams, setFilteredExams] = useState([]);
-
   const [metadata, setMetadata] = useState({
     title: '',
-    book_id: '',
-    exam_id: '',
   });
   const fileInputRef = useRef(null);
 
   const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
   const VALID_EXTENSIONS = ['.xlsx', '.xls', '.csv'];
-
-  const fetchData = useCallback(async () => {
-    try {
-      const [booksRes, examsRes] = await Promise.all([
-        adminAPI.books.list(1, 1000),
-        adminAPI.exams.list(1, 1000)
-      ]);
-      setBooks(booksRes.data?.items || []);
-      setExams(examsRes.data?.items || []);
-    } catch (error) {
-      console.error("Failed to fetch books and exams", error);
-      toast.error("Could not load books and exams for selection.");
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
 
   useEffect(() => {
     if (file) {
@@ -48,21 +21,6 @@ export function AnswerKeyImportForm({ onImportSuccess }) {
       setMetadata(prev => ({ ...prev, title: `${fileName} - Answer Key` }));
     }
   }, [file]);
-
-  useEffect(() => {
-    // Filter exams when a book is selected
-    if (metadata.book_id) {
-      const relevantExams = exams.filter(exam => exam.book_id === metadata.book_id);
-      setFilteredExams(relevantExams);
-      // If the currently selected exam doesn't belong to the new book, reset it
-      if (metadata.exam_id && !relevantExams.some(e => e.id === metadata.exam_id)) {
-        setMetadata(prev => ({ ...prev, exam_id: '' }));
-      }
-    } else {
-      setFilteredExams([]);
-      setMetadata(prev => ({ ...prev, exam_id: '' }));
-    }
-  }, [metadata.book_id, exams]);
 
   const validate = () => {
     const newErrors = {};
@@ -80,8 +38,6 @@ export function AnswerKeyImportForm({ onImportSuccess }) {
     }
 
     if (!metadata.title.trim()) newErrors.title = 'Answer key title is required.';
-    if (!metadata.book_id) newErrors.book_id = 'You must select a book.';
-    if (!metadata.exam_id) newErrors.exam_id = 'You must select an exam.';
 
     return newErrors;
   };
@@ -144,7 +100,7 @@ export function AnswerKeyImportForm({ onImportSuccess }) {
 
   const clearFile = () => {
     setFile(null);
-    setMetadata({ title: '', book_id: '', exam_id: '' });
+    setMetadata({ title: '' });
     setErrors({});
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
@@ -186,58 +142,18 @@ export function AnswerKeyImportForm({ onImportSuccess }) {
             </Button>
           </div>
           <div className="space-y-4">
-            <Input
-              label="Answer Key Title"
-              name="title"
-              value={metadata.title}
-              onChange={handleMetadataChange}
-              error={errors.title}
-              required
-            />
             <div>
-              <label htmlFor="book_id" className="block text-sm font-medium text-gray-700 mb-1">
-                Associated Book <span className="text-red-500">*</span>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Answer Key Title
               </label>
-              <select
-                id="book_id"
-                name="book_id"
-                value={metadata.book_id}
+              <input
+                type="text"
+                name="title"
+                value={metadata.title}
                 onChange={handleMetadataChange}
-                className={`w-full p-3 border rounded-md bg-white ${errors.book_id ? 'border-red-500' : 'border-gray-300'}`}
-                required
-              >
-                <option value="" disabled>Select a book</option>
-                {books.map(book => (
-                  <option key={book.id} value={book.id}>
-                    {book.title}
-                  </option>
-                ))}
-              </select>
-              {errors.book_id && <p className="text-red-500 text-sm mt-1">{errors.book_id}</p>}
-            </div>
-            <div>
-              <label htmlFor="exam_id" className="block text-sm font-medium text-gray-700 mb-1">
-                Associated Exam <span className="text-red-500">*</span>
-              </label>
-              <select
-                id="exam_id"
-                name="exam_id"
-                value={metadata.exam_id}
-                onChange={handleMetadataChange}
-                className={`w-full p-3 border rounded-md bg-white ${errors.exam_id ? 'border-red-500' : 'border-gray-300'}`}
-                required
-                disabled={!metadata.book_id || filteredExams.length === 0}
-              >
-                <option value="" disabled>
-                  {metadata.book_id ? (filteredExams.length > 0 ? 'Select an exam' : 'No exams for this book') : 'Select a book first'}
-                </option>
-                {filteredExams.map(exam => (
-                  <option key={exam.id} value={exam.id}>
-                    {exam.title}
-                  </option>
-                ))}
-              </select>
-              {errors.exam_id && <p className="text-red-500 text-sm mt-1">{errors.exam_id}</p>}
+                className={`w-full p-2 border rounded-md ${errors.title ? 'border-red-500' : 'border-gray-300'}`}
+              />
+              {errors.title && <p className="text-red-500 text-xs mt-1">{errors.title}</p>}
             </div>
           </div>
         </div>
@@ -251,7 +167,7 @@ export function AnswerKeyImportForm({ onImportSuccess }) {
           disabled={importing || !file}
           className="w-full"
         >
-          {importing ? <Spinner /> : 'Import Answer Key'}
+          {importing ? 'Importing...' : 'Import Answer Key'}
         </Button>
       </div>
     </div>
