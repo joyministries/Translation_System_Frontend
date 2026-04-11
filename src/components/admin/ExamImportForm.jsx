@@ -1,71 +1,57 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { Button } from '../shared/Button';
-import { Modal } from '../shared/Modal';
-import { Spinner } from '../shared/Spinner';
 import toast from 'react-hot-toast';
 import { adminAPI } from '../../api/admin.jsx';
 
 export function ExamImportForm({ onImportSuccess }) {
   const [file, setFile] = useState(null);
   const [importing, setImporting] = useState(false);
-  const [preview, setPreview] = useState(null);
-  const [showMapping, setShowMapping] = useState(false);
   const [errors, setErrors] = useState({});
-  const [columnMapping, setColumnMapping] = useState({
-    title: 0,
-    subject: 1,
-    gradeLevel: 2,
+  const [metadata, setMetadata] = useState({
+    title: '',
   });
   const fileInputRef = useRef(null);
 
   const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
   const VALID_EXTENSIONS = ['.xlsx', '.xls', '.csv'];
-  const availableColumns = ['Title', 'Subject', 'Grade Level', 'Duration', 'Total Questions'];
 
-  const validateFile = (file) => {
+  useEffect(() => {
+    if (file) {
+      // Pre-fill title from filename, removing extension
+      const fileName = file.name.replace(/\.(xlsx|xls|csv)$/i, '');
+      setMetadata(prev => ({ ...prev, title: fileName }));
+    }
+  }, [file]);
+
+  const validate = () => {
     const newErrors = {};
 
-    // Check file type
-    const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
-    if (!VALID_EXTENSIONS.includes(fileExtension)) {
-      newErrors.fileType = 'Only Excel (.xlsx, .xls) and CSV files are supported';
-      return newErrors;
+    // File validation
+    if (!file) {
+      newErrors.file = 'Please select a file to import.';
+    } else {
+      const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
+      if (!VALID_EXTENSIONS.includes(fileExtension)) {
+        newErrors.file = 'Only Excel (.xlsx, .xls) and CSV files are supported';
+      }
+      if (file.size > MAX_FILE_SIZE) {
+        newErrors.file = `File size must be less than 10MB.`;
+      }
     }
 
-    // Check file size
-    if (file.size > MAX_FILE_SIZE) {
-      newErrors.fileSize = `File size must be less than 10MB (actual: ${(file.size / (1024 * 1024)).toFixed(2)}MB)`;
-      return newErrors;
+    // Metadata validation
+    if (!metadata.title.trim()) {
+      newErrors.title = 'Exam title is required.';
     }
 
     return newErrors;
   };
 
-  const handleFileSelect = async (e) => {
+  const handleFileSelect = (e) => {
     const selectedFile = e.target.files?.[0];
     if (!selectedFile) return;
-
-    const validationErrors = validateFile(selectedFile);
-    
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
-      setFile(null);
-      setPreview(null);
-      Object.values(validationErrors).forEach((error) => toast.error(error));
-      return;
-    }
-
     setErrors({});
     setFile(selectedFile);
-    
-    // Simulate reading file preview
-    const mockPreview = [
-      { title: 'Mathematics Final Exam', subject: 'Mathematics', gradeLevel: '10' },
-      { title: 'Physics Midterm', subject: 'Science', gradeLevel: '9' },
-      { title: 'Chemistry Quiz', subject: 'Science', gradeLevel: '10' },
-    ];
-    setPreview(mockPreview);
-    setShowMapping(true);
   };
 
   const handleDragOver = (e) => {
@@ -78,234 +64,119 @@ export function ExamImportForm({ onImportSuccess }) {
     e.stopPropagation();
     const files = e.dataTransfer.files;
     if (files.length > 0) {
-      // Create a synthetic event object
-      handleFileSelect({ target: { files } });
+      setErrors({});
+      setFile(files[0]);
+    }
+  };
+
+  const handleMetadataChange = (e) => {
+    const { name, value } = e.target;
+    setMetadata(prev => ({ ...prev, [name]: value }));
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: null }));
     }
   };
 
   const handleImport = async () => {
-    if (!file) {
-      setErrors({ file: 'Please select a file' });
-      toast.error('Please select a file');
-      return;
-    }
-
-    const validationErrors = validateFile(file);
+    const validationErrors = validate();
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
-      Object.values(validationErrors).forEach((error) => toast.error(error));
+      Object.values(validationErrors).forEach(error => toast.error(error));
       return;
     }
 
     setErrors({});
     setImporting(true);
-    
-    try {
-      const response = await adminAPI.exams.import(file);
-      
-      toast.success(`✅ Imported ${response.successCount || 0} exams successfully`);
-      
-      if (response.errors && response.errors.length > 0) {
-        toast.error(`⚠️ ${response.errors.length} rows had validation errors`);
-      }
 
+    try {
+      await adminAPI.exams.upload(file, metadata);
+      toast.success(`Exam "${metadata.title}" imported successfully!`);
       setFile(null);
-      setPreview(null);
-      setShowMapping(false);
-      onImportSuccess?.();
+      setMetadata({ title: '', book_id: '' });
+      if (onImportSuccess) {
+        onImportSuccess();
+      }
     } catch (error) {
-      const errorMessage = error.message || 'Import failed';
-      setErrors({ import: errorMessage });
-      toast.error(errorMessage);
+      toast.error(error.message || 'Import failed. Please try again.');
     } finally {
       setImporting(false);
     }
   };
 
+  const clearFile = () => {
+    setFile(null);
+    setMetadata({ title: '' });
+    setErrors({});
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   return (
-    <>
-      <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Import Exams</h2>
+    <div className="w-full bg-white p-6 rounded-lg shadow-md">
+      <h2 className="text-2xl font-bold text-gray-800 mb-4">Import New Exam</h2>
 
-        {/* Inline Validation Errors */}
-        {(errors.fileType || errors.fileSize) && (
-          <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-sm font-medium text-red-900">Validation Error</p>
-            {errors.fileType && <p className="text-sm text-red-700 mt-1">• {errors.fileType}</p>}
-            {errors.fileSize && <p className="text-sm text-red-700 mt-1">• {errors.fileSize}</p>}
-          </div>
-        )}
-
-        {/* File Upload Area */}
+      {!file ? (
         <div
           onDragOver={handleDragOver}
           onDrop={handleDrop}
-          className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-            errors.fileType || errors.fileSize
-              ? 'border-red-300 bg-red-50'
-              : 'border-gray-300 bg-gray-50 hover:border-blue-500'
-          }`}
+          onClick={() => fileInputRef.current?.click()}
+          className={`flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-lg cursor-pointer transition-colors
+            ${errors.file ? 'border-red-500' : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'}`}
         >
           <input
-            ref={fileInputRef}
             type="file"
-            accept=".xlsx,.xls,.csv"
+            ref={fileInputRef}
             onChange={handleFileSelect}
+            accept={VALID_EXTENSIONS.join(',')}
             className="hidden"
           />
-
-          <svg className="w-12 h-12 mx-auto text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
-
-          <p className="text-gray-600 mb-2">
-            <strong>Click to upload</strong> or drag and drop
-          </p>
-          <p className="text-sm text-gray-500 mb-4">Excel (.xlsx, .xls) or CSV • Max 10MB</p>
-
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => fileInputRef.current?.click()}
-          >
-            Select File
-          </Button>
-        </div>
-
-        {/* Selected File Info */}
-        {file && (
-          <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <p className="text-sm font-medium text-gray-900">
-              📄 {file.name}
+          <div className="text-center">
+            <p className="text-gray-500">
+              <span className="font-semibold">Click to upload</span> or drag and drop
             </p>
-            <p className="text-xs text-gray-600 mt-1">
-              {(file.size / 1024).toFixed(2)} KB
-            </p>
+            <p className="text-xs text-gray-400 mt-1">Excel or CSV, max 10MB</p>
           </div>
-        )}
-
-        {/* Import Error */}
-        {errors.import && (
-          <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-sm font-medium text-red-900">Import Error</p>
-            <p className="text-sm text-red-700 mt-1">{errors.import}</p>
-          </div>
-        )}
-
-        {/* Action Buttons */}
-        <div className="mt-6 flex gap-3 justify-end">
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={() => {
-              setFile(null);
-              setPreview(null);
-              setShowMapping(false);
-              setErrors({});
-            }}
-            disabled={!file}
-          >
-            Clear
-          </Button>
-          <Button
-            type="button"
-            variant="primary"
-            onClick={() => setShowMapping(true)}
-            disabled={!file}
-          >
-            Configure & Preview
-          </Button>
         </div>
+      ) : (
+        <div className="p-4 border border-gray-200 rounded-lg bg-gray-50">
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-medium text-gray-700 truncate">{file.name}</p>
+            <Button variant="danger" size="sm" onClick={clearFile}>
+              Clear
+            </Button>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Exam Title
+              </label>
+              <input
+                type="text"
+                name="title"
+                value={metadata.title}
+                onChange={handleMetadataChange}
+                placeholder="Enter exam title"
+                className={`w-full p-2 border rounded-md ${errors.title ? 'border-red-500' : 'border-gray-300'}`}
+              />
+              {errors.title && <p className="text-red-500 text-xs mt-1">{errors.title}</p>}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {errors.file && <p className="text-red-500 text-sm mt-2">{errors.file}</p>}
+
+      <div className="mt-6">
+        <Button
+          onClick={handleImport}
+          disabled={importing || !file}
+          className="w-full"
+        >
+          {importing ? 'Importing...' : 'Import Exam'}
+        </Button>
       </div>
-
-      {/* Column Mapping Modal */}
-      <Modal
-        isOpen={showMapping && !!preview}
-        title="Configure Column Mapping"
-        actions={
-          <div className="flex gap-2">
-            <Button
-              variant="secondary"
-              onClick={() => setShowMapping(false)}
-              disabled={importing}
-            >
-              Back
-            </Button>
-            <Button
-              variant="primary"
-              onClick={handleImport}
-              disabled={importing}
-            >
-              {importing ? 'Importing...' : 'Confirm & Import'}
-            </Button>
-          </div>
-        }
-      >
-        <div className="space-y-6">
-          {/* Column Mapping */}
-          <div className="space-y-3">
-            <h3 className="font-semibold text-gray-900">Map Columns</h3>
-            {Object.entries(columnMapping).map(([key, colIndex]) => (
-              <div key={key} className="flex items-center gap-3">
-                <label className="w-28 text-sm font-medium text-gray-700 capitalize">
-                  {key}:
-                </label>
-                <select
-                  value={colIndex}
-                  onChange={(e) =>
-                    setColumnMapping({ ...columnMapping, [key]: parseInt(e.target.value) })
-                  }
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg"
-                >
-                  {availableColumns.map((col, idx) => (
-                    <option key={idx} value={idx}>
-                      Column {idx + 1}: {col}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            ))}
-          </div>
-
-          {/* Preview */}
-          <div>
-            <h3 className="font-semibold text-gray-900 mb-2">Preview (First {Math.min(3, preview?.length || 0)} rows)</h3>
-            <div className="overflow-x-auto border border-gray-200 rounded-lg">
-              <table className="w-full text-sm">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-4 py-2 text-left font-medium text-gray-700">Title</th>
-                    <th className="px-4 py-2 text-left font-medium text-gray-700">Subject</th>
-                    <th className="px-4 py-2 text-left font-medium text-gray-700">Grade</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {preview?.slice(0, 3).map((row, idx) => (
-                    <tr key={idx} className="border-t border-gray-200 hover:bg-gray-50">
-                      <td className="px-4 py-2">{row.title}</td>
-                      <td className="px-4 py-2">{row.subject}</td>
-                      <td className="px-4 py-2">{row.gradeLevel}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <p className="text-xs text-gray-600 mt-2">
-              Total rows to import: {preview?.length || 0}
-            </p>
-          </div>
-
-          {/* Loading State */}
-          {importing && (
-            <div className="flex items-center justify-center gap-2 py-4">
-              <Spinner size="sm" />
-              <span className="text-gray-600">Importing exams...</span>
-            </div>
-          )}
-        </div>
-      </Modal>
-    </>
+    </div>
   );
 }
 

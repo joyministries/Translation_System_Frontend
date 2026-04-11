@@ -22,9 +22,9 @@ export function ContentLibrary() {
     setLoading(true);
     try {
       const [booksRes, examsRes, keysRes] = await Promise.all([
-        adminAPI.books.list().catch(() => ({ data: [] })),
-        adminAPI.exams.list().catch(() => ({ data: [] })),
-        adminAPI.answerKeys.list().catch(() => ({ data: [] })),
+        adminAPI.getBooks().catch(() => ({ data: [] })),
+        adminAPI.getExams().catch(() => ({ data: [] })),
+        adminAPI.getAnswerKeys().catch(() => ({ data: [] })),
       ]);
 
       console.log('Books response:', booksRes);

@@ -8,6 +8,7 @@ import toast from 'react-hot-toast';
 
 export function Books() {
   const navigate = useNavigate();
+  const [showUploadForm, setShowUploadForm] = useState(false);
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(false);
   const [pollIntervals, setPollIntervals] = useState({});
@@ -106,6 +107,7 @@ export function Books() {
   }, [fetchBooks]);
 
   const handleBookUploaded = () => {
+    setShowUploadForm(false);
     fetchBooks();
   };
 
@@ -120,20 +122,31 @@ export function Books() {
         Back
       </button>
 
-      <h1 className="text-3xl font-bold text-gray-900">Books Manager</h1>
+      <h1 className="text-3xl font-bold text-gray-900">Book Management</h1>
+      <p className="text-gray-600 mt-1">Upload new books and manage existing ones.</p>
 
-      {/* Upload Form */}
-      <BookUploadForm onBookUploaded={handleBookUploaded} />
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Books Manager</h1>
+          <p className="text-gray-600 mt-1">Upload new books and manage existing ones.</p>
+        </div>
+        <Button
+          variant="primary"
+          onClick={() => setShowUploadForm(true)}
+        >
+          Upload Book
+        </Button>
+      </div>
 
-      {/* Books List */}
-      <div>
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Uploaded Books</h2>
+      {showUploadForm ? (
+        <BookUploadForm onBookUploaded={handleBookUploaded} />
+      ) : (
         <BookTable
           books={books}
           loading={loading}
           onBooksChanged={handleBookUploaded}
         />
-      </div>
+      )}
     </div>
   );
 }
