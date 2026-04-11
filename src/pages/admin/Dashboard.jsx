@@ -4,6 +4,7 @@ import { Skeleton } from '../../components/shared/Spinner';
 import { useNavigate } from 'react-router-dom';
 import { MdArrowBack } from 'react-icons/md';
 import { useAuthStore } from '../../store/auth_store.jsx';
+import toast from 'react-hot-toast';
 
 function StatCard({ title, value, icon, loading }) {
   return (
