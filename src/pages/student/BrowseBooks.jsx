@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MdSearch, MdArrowBack } from 'react-icons/md';
-import { BookCard } from '../../components/student/BookCard';
+import { BookCard } from '../../components/student/BookCard.jsx';
 import { studentAPI } from '../../api/student.jsx';
 
 export function BrowseBooks() {
@@ -14,9 +14,7 @@ export function BrowseBooks() {
     const fetchBooks = async () => {
       try {
         const response = await studentAPI.getBooks();
-        const booksArray = response.books || response.data || [];
-        // Ensure each book has the required properties
-        const books = booksArray.map(book => ({
+        const books = response.map(book => ({
           id: book.id || '',
           title: book.title || 'Untitled',
           author: book.author || 'Unknown Author',

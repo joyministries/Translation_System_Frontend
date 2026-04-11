@@ -46,7 +46,7 @@ export const studentAPI = {
     getTranslation: async (translationId) => {
         try {
             const response = await axiosInstance.get(`${studentEndpoints.getTranslation}/${translationId}`);
-            return response.data; // Returns { id, job_id, download_url, ... }
+            return response.data; 
         } catch (error) {
             console.error('Get translation error:', error);
             throw error;
@@ -106,9 +106,7 @@ export const studentAPI = {
     getBooks: async () => {
         try {
             const response = await axiosInstance.get(studentEndpoints.books);
-            // Handle various response formats: direct array, { books: [...] }, { data: [...] }
-            const booksArray = Array.isArray(response.data) ? response.data : (response.data?.books || response.data?.data || []);
-            return booksArray;
+            return response.data.books;
         } catch (error) {
             console.error('Get books error:', error);
             return []; // Return empty array on error
@@ -130,9 +128,8 @@ export const studentAPI = {
     getExams: async () => {
         try {
             const response = await axiosInstance.get(studentEndpoints.exams);
-            // Handle various response formats: direct array, { exams: [...] }, { data: [...] }
-            const examsArray = Array.isArray(response.data) ? response.data : (response.data?.exams || response.data?.data || []);
-            return examsArray;
+            
+            return response.data?.exams || response.data?.data || response.data || []; // Handle various response formats
         } catch (error) {
             console.error('Get exams error:', error);
             return []; // Return empty array on error
@@ -177,7 +174,7 @@ export const studentAPI = {
     getAvailableLanguages: async () => {
         try {
             const response = await axiosInstance.get(studentEndpoints.languages);
-            return response.data; // Returns array of languages
+            return response.data.languages; // Returns array of languages
         } catch (error) {
             console.error('Get available languages error:', error);
             return []; // Return empty array on error

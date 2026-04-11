@@ -1,5 +1,5 @@
 // Reusable spinner/loading component
-export function Spinner({ size = 'md' }) {
+export const Spinner = ({ size = 'md' }) => {
   const sizes = {
     sm: 'w-4 h-4',
     md: 'w-8 h-8',
