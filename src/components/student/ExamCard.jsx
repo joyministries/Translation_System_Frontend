@@ -1,15 +1,6 @@
-import { useNavigate } from 'react-router-dom';
 import { MdCalendarToday } from 'react-icons/md';
 
 export function ExamCard({ exam, actionButton }) {
-  const navigate = useNavigate();
-
-  const handleCardClick = () => {
-    if (exam?.id) {
-      navigate(`/student/exam/${exam.id}`);
-    }
-  };
-
   // Format date to readable format (e.g., "Apr 10, 2026")
   const formatDate = (dateString) => {
     try {
@@ -26,11 +17,9 @@ export function ExamCard({ exam, actionButton }) {
 
   return (
     <div
-      onClick={handleCardClick}
       className={`
         bg-white border border-slate-200 rounded-lg shadow-sm
         hover:shadow-md transition-shadow duration-200
-        ${exam?.id ? 'cursor-pointer hover:border-blue-300' : ''}
         overflow-hidden h-full flex flex-col
       `}
     >
@@ -64,13 +53,8 @@ export function ExamCard({ exam, actionButton }) {
       {/* Footer CTA */}
       {exam?.id && (
         <div className="px-4 py-3 bg-slate-50 border-t border-slate-100 flex gap-2">
-          <button
-            className="flex-1 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors"
-          >
-            View Details →
-          </button>
           {actionButton && (
-            <div className="flex-1">
+            <div className="flex-1 w-full">
               {actionButton}
             </div>
           )}

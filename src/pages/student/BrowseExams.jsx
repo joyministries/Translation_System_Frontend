@@ -7,35 +7,43 @@ import { useNavigate } from 'react-router-dom';
 export function BrowseExams() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
-  const [userExamLibrary, setUserExamLibrary] = useState(
-    JSON.parse(localStorage.getItem('userExamLibrary')) || []
-  );
   const [allExams, setAllExams] = useState([]);
+  const [answerKeys, setAnswerKeys] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
-  // Fetch exams from API
+  // Fetch exams and answer keys from API
   useEffect(() => {
-    const fetchExams = async () => {
+    const fetchData = async () => {
       try {
-        const exams = await studentAPI.getExams();
+        const [exams, keys] = await Promise.all([
+          studentAPI.getExams(),
+          studentAPI.getAnswerKeys()
+        ]);
 
-        const formattedExams = (exams || []).map(exam => ({
-          id: exam.id || '',
-          title: exam.title || 'Untitled',
-          subject: exam.title || 'Exam', // Use title as subject
-          dateUploaded: exam.created_at || new Date().toISOString(),
-          file_path: exam.file_path || '',
-        }));
+        const formattedExams = (exams || []).map(exam => {
+          // Find the associated answer key document
+          const associatedKey = (keys || []).find(k => k.exam_id === exam.id || k.title?.includes(exam.title));
+          
+          return {
+            id: exam.id || '',
+            title: exam.title || 'Untitled',
+            subject: exam.title || 'Exam', // Use title as subject
+            dateUploaded: exam.created_at || new Date().toISOString(),
+            file_path: exam.file_path || '',
+            answerKey: associatedKey || null
+          };
+        });
         setAllExams(formattedExams);
+        setAnswerKeys(keys || []);
       } catch (error) {
-        console.error('Error fetching exams:', error);
+        console.error('Error fetching data:', error);
         setAllExams([]); // Empty state on error
       } finally {
         setIsLoading(false);
       }
     };
-    fetchExams();
+    fetchData();
   }, []);
 
   const categories = ['All', ...new Set(allExams.map(exam => exam.subject))];
@@ -48,22 +56,6 @@ export function BrowseExams() {
     return matchesSearch && matchesCategory;
   });
 
-  const handleAddToLibrary = (exam) => {
-    if (!userExamLibrary.find(e => e.id === exam.id)) {
-      const updatedLibrary = [...userExamLibrary, exam];
-      setUserExamLibrary(updatedLibrary);
-      localStorage.setItem('userExamLibrary', JSON.stringify(updatedLibrary));
-    }
-  };
-
-  const handleRemoveFromLibrary = (examId) => {
-    const updatedLibrary = userExamLibrary.filter(e => e.id !== examId);
-    setUserExamLibrary(updatedLibrary);
-    localStorage.setItem('userExamLibrary', JSON.stringify(updatedLibrary));
-  };
-
-  const isInLibrary = (examId) => userExamLibrary.some(e => e.id === examId);
-
   return (
     <div>      {/* Back Button */}
       <button
@@ -75,8 +67,8 @@ export function BrowseExams() {
       </button>
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-slate-900 mb-2">Browse & Add Exams</h1>
-        <p className="text-slate-600">Search for exams and add them to your library</p>
+        <h1 className="text-3xl font-bold text-slate-900 mb-2">Browse Exams</h1>
+        <p className="text-slate-600">Search for exams</p>
       </div>
 
       {/* Search Section */}
@@ -127,24 +119,22 @@ export function BrowseExams() {
               key={exam.id}
               exam={exam}
               actionButton={
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (isInLibrary(exam.id)) {
-                      handleRemoveFromLibrary(exam.id);
-                    } else {
-                      handleAddToLibrary(exam);
-                    }
-                  }}
-                  className={`w-full px-4 py-2 rounded-md text-sm font-medium transition-all ${
-                    isInLibrary(exam.id)
-                      ? 'bg-green-600 text-white hover:bg-green-700'
-                      : 'bg-slate-200 text-slate-700 hover:bg-blue-600 hover:text-white'
-                  }`}
-                  title={isInLibrary(exam.id) ? 'Remove from library' : 'Add to library'}
-                >
-                  {isInLibrary(exam.id) ? 'Added ✓' : 'Add'}
-                </button>
+                exam.answerKey ? (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (exam.answerKey.file_path) {
+                        window.open(exam.answerKey.file_path, '_blank');
+                      } else {
+                        alert('Answer key document not available');
+                      }
+                    }}
+                    className="w-full px-4 py-2 rounded-md text-sm font-medium transition-all bg-green-600 text-white hover:bg-green-700"
+                    title="View Answer Key"
+                  >
+                    Answer Key
+                  </button>
+                ) : null
               }
             />
           ))}
