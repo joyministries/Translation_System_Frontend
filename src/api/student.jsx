@@ -117,7 +117,7 @@ export const studentAPI = {
     getBook: async (bookId) => {
         try {
             const response = await axiosInstance.get(`${studentEndpoints.books}/${bookId}`);
-            return response.data; // Returns { id, title, author, ... }
+            return response.data;
         } catch (error) {
             console.error('Get book error:', error);
             return null; // Return null if book not found
