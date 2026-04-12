@@ -10,23 +10,38 @@ import toast from 'react-hot-toast';
 export function Users() {
   const navigate = useNavigate();
   const [users, setUsers] = useState([]);
+  const [institutions, setInstitutions] = useState([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
-    name: '',
     role: 'student',
     institution: '',
   });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const institutions = [
-    'Team Impact University',
-    'Lambton Christian School',
-    'New Haven Academy',
-  ];
+  // Fetch institutions
+  const fetchInstitutions = useCallback(async () => {
+    try {
+      const response = await adminAPI.institutions.list();
+      console.log("Institutions response:", response);
+      // Handle different response formats
+      let institutionsData = [];
+      if (response.data?.items) {
+        institutionsData = response.data.items;
+      } else if (response.data && Array.isArray(response.data)) {
+        institutionsData = response.data;
+      } else if (Array.isArray(response)) {
+        institutionsData = response;
+      }
+      
+      setInstitutions(Array.isArray(institutionsData) ? institutionsData : []);
+    } catch (error) {
+      console.error('Failed to fetch institutions:', error);
+    }
+  }, []);
 
   // Fetch users from API
   const fetchUsers = useCallback(async () => {
@@ -36,12 +51,14 @@ export function Users() {
       console.log("Users response:", response);
       // Handle different response formats
       let usersData = [];
-      if (response.data?.users) {
-        usersData = response.data.users;
+      if (response.data?.items) {
+        usersData = response.data.items;
       } else if (response.data && Array.isArray(response.data)) {
         usersData = response.data;
       } else if (Array.isArray(response)) {
         usersData = response;
+      } else if (response.items && Array.isArray(response.items)) {
+        usersData = response.items;
       }
       
       setUsers(Array.isArray(usersData) ? usersData : []);
@@ -52,6 +69,10 @@ export function Users() {
       setLoading(false);
     }
   }, []);
+
+  useEffect(() => {
+    fetchInstitutions();
+  }, [fetchInstitutions]);
 
   useEffect(() => {
     fetchUsers();
@@ -66,10 +87,6 @@ export function Users() {
       newErrors.email = 'Invalid email format';
     } else if (users.some(u => u.email === formData.email)) {
       newErrors.email = 'Email already exists';
-    }
-
-    if (!formData.name.trim()) {
-      newErrors.name = 'Name is required';
     }
 
     if (!formData.institution) {
@@ -91,9 +108,8 @@ export function Users() {
     try {
       const userData = {
         email: formData.email,
-        name: formData.name,
         role: formData.role,
-        institution: formData.institution,
+        institution_id: formData.institution,
       };
       
       const response = await adminAPI.users.create(userData);
@@ -106,7 +122,6 @@ export function Users() {
       setShowCreateModal(false);
       setFormData({
         email: '',
-        name: '',
         role: 'student',
         institution: '',
       });
@@ -184,71 +199,63 @@ export function Users() {
             </tr>
           </thead>
           <tbody>
-            {users.map((user) => (
-              <tr key={user.id} className="border-b border-gray-200 hover:bg-gray-50">
-                <td className="px-6 py-4 text-sm font-medium text-gray-900">{user.name}</td>
-                <td className="px-6 py-4 text-sm text-gray-600">{user.email}</td>
-                <td className="px-6 py-4 text-sm">
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                    user.role === 'admin'
-                      ? 'bg-purple-100 text-purple-800'
-                      : 'bg-blue-100 text-blue-800'
-                  }`}>
-                    {user.role === 'admin' ? '👨‍💼 Admin' : '👤 Student'}
-                  </span>
-                </td>
-                <td className="px-6 py-4 text-sm text-gray-600">{user.institution}</td>
-                <td className="px-6 py-4 text-sm text-gray-600">{user.createdAt}</td>
-                <td className="px-6 py-4 text-sm">
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => toast.info('Edit functionality coming soon')}
-                      className="p-2 text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                      title="Edit user"
-                    >
-                      <MdEdit className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => setShowDeleteConfirm(user.id)}
-                      className="p-2 text-red-600 hover:bg-red-50 rounded transition-colors"
-                      title="Delete user"
-                    >
-                      <MdDelete className="w-4 h-4" />
-                    </button>
-                  </div>
+            {loading ? (
+              <tr>
+                <td colSpan="6" className="p-8 text-center text-gray-500">
+                  Loading users...
                 </td>
               </tr>
-            ))}
+            ) : users.length > 0 ? (
+              users.map((user) => (
+                <tr key={user.id} className="border-b border-gray-200 hover:bg-gray-50">
+                  <td className="px-6 py-4 text-sm font-medium text-gray-900">{user.name}</td>
+                  <td className="px-6 py-4 text-sm text-gray-600">{user.email}</td>
+                  <td className="px-6 py-4 text-sm">
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                      user.role === 'admin'
+                        ? 'bg-purple-100 text-purple-800'
+                        : 'bg-blue-100 text-blue-800'
+                    }`}>
+                      {user.role === 'admin' ? '👨‍💼 Admin' : '👤 Student'}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-600">{user.institution}</td>
+                  <td className="px-6 py-4 text-sm text-gray-600">{new Date(user.createdAt).toLocaleDateString()}</td>
+                  <td className="px-6 py-4 text-sm">
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => toast.info('Edit functionality coming soon')}
+                        className="p-2 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                        title="Edit user"
+                      >
+                        <MdEdit className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => setShowDeleteConfirm(user.id)}
+                        className="p-2 text-red-600 hover:bg-red-50 rounded transition-colors"
+                        title="Delete user"
+                      >
+                        <MdDelete className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="6" className="p-8 text-center">
+                  <p className="text-gray-500 text-lg">No users created yet</p>
+                  <p className="text-gray-400 text-sm mt-1">Click "Create User" to add your first user</p>
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
-
-        {users.length === 0 && (
-          <div className="p-8 text-center">
-            <p className="text-gray-500 text-lg">No users created yet</p>
-            <p className="text-gray-400 text-sm mt-1">Click "Create User" to add your first user</p>
-          </div>
-        )}
       </div>
 
       {/* Create User Modal */}
       <Modal isOpen={showCreateModal} onClose={() => setShowCreateModal(false)} title="Create New User">
         <div className="space-y-4">
-          {/* Name */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-            <input
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleInputChange}
-              placeholder="Enter full name"
-              className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                errors.name ? 'border-red-500' : 'border-gray-300'
-              }`}
-            />
-            {errors.name && <p className="text-red-600 text-sm mt-1">{errors.name}</p>}
-          </div>
-
           {/* Email */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
@@ -292,7 +299,7 @@ export function Users() {
             >
               <option value="">Select institution</option>
               {institutions.map(inst => (
-                <option key={inst} value={inst}>{inst}</option>
+                <option key={inst.id} value={inst.id}>{inst.name}</option>
               ))}
             </select>
             {errors.institution && <p className="text-red-600 text-sm mt-1">{errors.institution}</p>}

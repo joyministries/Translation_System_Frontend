@@ -17,43 +17,56 @@ export function ContentLibrary() {
   const [deletingId, setDeletingId] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(null);
 
-  // Fetch all content
-  const fetchContent = useCallback(async () => {
-    setLoading(true);
-    try {
-      const [booksRes, examsRes, keysRes] = await Promise.all([
-        adminAPI.books.list().catch(() => ({ data: [] })),
-        adminAPI.exams.list().catch(() => ({ data: [] })),
-        adminAPI.answerKeys.list().catch(() => ({ data: [] })),
-      ]);
-
-      console.log('Books response:', booksRes);
-      console.log('Exams response:', examsRes);
-      console.log('Answer keys response:', keysRes);
-
-      // Handle different response formats
-      const extractData = (response) => {
-        if (response?.data?.books) return response.data.books;
-        if (response?.data && Array.isArray(response.data)) return response.data;
-        if (Array.isArray(response?.data)) return response.data;
-        if (Array.isArray(response)) return response;
-        return [];
-      };
-
-      setBooks(extractData(booksRes) || []);
-      setExams(extractData(examsRes) || []);
-      setAnswerKeys(extractData(keysRes) || []);
-    } catch (error) {
-      console.error('Failed to fetch content:', error);
-      toast.error('Failed to load content');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
   useEffect(() => {
+    const fetchContent = async () => {
+      setLoading(true);
+      try {
+        const [booksRes, examsRes, answerkeyRes] = await Promise.all([
+          adminAPI.books.list(1, 1000),
+          adminAPI.exams.list(1, 1000),
+          adminAPI.answerkeys.list(1, 1000)
+        ]);
+
+        // Extract data from responses - adminAPI methods return response.data directly
+        let booksData = [];
+        if (booksRes?.items) {
+          booksData = booksRes.items;
+        } else if (Array.isArray(booksRes)) {
+          booksData = booksRes;
+        } else if (booksRes?.data && Array.isArray(booksRes.data)) {
+          booksData = booksRes.data;
+        }
+
+        let examsData = [];
+        if (examsRes?.items) {
+          examsData = examsRes.items;
+        } else if (Array.isArray(examsRes)) {
+          examsData = examsRes;
+        } else if (examsRes?.data && Array.isArray(examsRes.data)) {
+          examsData = examsRes.data;
+        }
+
+        let answerkeyData = [];
+        if (answerkeyRes?.items) {
+          answerkeyData = answerkeyRes.items;
+        } else if (Array.isArray(answerkeyRes)) {
+          answerkeyData = answerkeyRes;
+        } else if (answerkeyRes?.data && Array.isArray(answerkeyRes.data)) {
+          answerkeyData = answerkeyRes.data;
+        }
+
+        setBooks(Array.isArray(booksData) ? booksData : []);
+        setExams(Array.isArray(examsData) ? examsData : []);
+        setAnswerKeys(Array.isArray(answerkeyData) ? answerkeyData : []);
+      } catch (error) {
+        console.error('Failed to fetch content:', error);
+        toast.error('Failed to load content');
+      } finally {
+        setLoading(false);
+      }
+    };
     fetchContent();
-  }, [fetchContent]);
+  }, []);
 
   // Delete handlers
   const handleDeleteBook = async (bookId) => {
@@ -111,16 +124,10 @@ export function ContentLibrary() {
 
       <div className="grid grid-cols-2 gap-2 mb-4 text-sm">
         {type === 'book' && (
-          <>
-            <div>
-              <span className="text-gray-600">Subject:</span>
-              <p className="font-medium">{item.subject || 'N/A'}</p>
-            </div>
-            <div>
-              <span className="text-gray-600">Grade Level:</span>
-              <p className="font-medium">{item.gradeLevel || 'N/A'}</p>
-            </div>
-          </>
+          <div>
+            <span className="text-gray-600">Subject:</span>
+            <p className="font-medium">{item.subject || 'N/A'}</p>
+          </div>
         )}
 
         {type === 'exam' && (
@@ -148,34 +155,6 @@ export function ContentLibrary() {
             </div>
           </>
         )}
-      </div>
-
-      {/* Status Badge */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex gap-2">
-          {item.extractionStatus && (
-            <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-              item.extractionStatus === 'completed'
-                ? 'bg-green-100 text-green-800'
-                : item.extractionStatus === 'processing'
-                ? 'bg-yellow-100 text-yellow-800'
-                : 'bg-red-100 text-red-800'
-            }`}>
-              {item.extractionStatus}
-            </span>
-          )}
-          {item.translationStatus && (
-            <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-              item.translationStatus === 'completed'
-                ? 'bg-blue-100 text-blue-800'
-                : item.translationStatus === 'processing'
-                ? 'bg-yellow-100 text-yellow-800'
-                : 'bg-gray-100 text-gray-800'
-            }`}>
-              {item.translationStatus}
-            </span>
-          )}
-        </div>
       </div>
 
       {/* Upload Date */}
@@ -208,20 +187,23 @@ export function ContentLibrary() {
   );
 
   // Empty state
-  const EmptyState = ({ type }) => (
-    <div className="text-center py-12">
-      <div className="text-gray-400 mb-4">
-        {type === 'books' && <MdBook className="w-16 h-16 mx-auto opacity-30" />}
-        {type === 'exams' && <MdQuiz className="w-16 h-16 mx-auto opacity-30" />}
-        {type === 'answerKeys' && <MdKeyboardArrowRight className="w-16 h-16 mx-auto opacity-30" />}
+  const EmptyState = ({ type }) => {
+    const routeMap = { books: 'books', exams: 'exams', answerKeys: 'answer-keys' };
+    return (
+      <div className="text-center py-12">
+        <div className="text-gray-400 mb-4">
+          {type === 'books' && <MdBook className="w-16 h-16 mx-auto opacity-30" />}
+          {type === 'exams' && <MdQuiz className="w-16 h-16 mx-auto opacity-30" />}
+          {type === 'answerKeys' && <MdKeyboardArrowRight className="w-16 h-16 mx-auto opacity-30" />}
+        </div>
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">No {type} uploaded yet</h3>
+        <p className="text-gray-600 mb-6">Start by uploading your first {type.slice(0, -1)}</p>
+        <Button onClick={() => navigate(`/admin/${routeMap[type]}`)}>
+          Go to {type.charAt(0).toUpperCase() + type.slice(1)} Manager
+        </Button>
       </div>
-      <h3 className="text-lg font-semibold text-gray-900 mb-2">No {type} uploaded yet</h3>
-      <p className="text-gray-600 mb-6">Start by uploading your first {type.slice(0, -1)}</p>
-      <Button onClick={() => navigate(`/admin/${type.slice(0, -1)}`)}>
-        Go to {type.charAt(0).toUpperCase() + type.slice(1)} Manager
-      </Button>
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="space-y-6">
@@ -233,18 +215,6 @@ export function ContentLibrary() {
         <MdArrowBack className="w-5 h-5" />
         Back
       </button>
-
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-gray-900">Content Library</h1>
-        <button
-          onClick={fetchContent}
-          disabled={loading}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 rounded-lg transition-colors font-medium disabled:opacity-50"
-        >
-          <MdRefresh className="w-5 h-5" />
-          Refresh
-        </button>
-      </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

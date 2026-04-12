@@ -1,36 +1,117 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MdArrowBack } from 'react-icons/md';
+import { adminAPI } from '../../api/admin';
+import { AnswerKeyTable } from '../../components/admin/AnswerKeyTable';
 import { AnswerKeyImportForm } from '../../components/admin/AnswerKeyImportForm';
+import { Button } from '../../components/shared/Button';
+import { Spinner } from '../../components/shared/Spinner';
+import { EmptyState } from '../../components/shared/EmptyState';
+import { Modal } from '../../components/shared/Modal';
 
 export function AnswerKeys() {
   const navigate = useNavigate();
-  const [refreshKey, setRefreshKey] = useState(0);
+  const [answerKeys, setAnswerKeys] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [showImportModal, setShowImportModal] = useState(false);
+
+  const fetchAnswerKeys = async () => {
+    try {
+      setLoading(true);
+      const response = await adminAPI.answerkeys.list();
+      // Handle different response formats
+      let answerKeysData = [];
+      if (response?.items) {
+        answerKeysData = response.items;
+      } else if (Array.isArray(response)) {
+        answerKeysData = response;
+      } else if (response?.data && Array.isArray(response.data)) {
+        answerKeysData = response.data;
+      } else if (response?.answer_keys) {
+        answerKeysData = response.answer_keys;
+      }
+      setAnswerKeys(Array.isArray(answerKeysData) ? answerKeysData : []);
+      setError(null);
+    } catch (err) {
+      setError(err.message || 'Failed to fetch answer keys.');
+      setAnswerKeys([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchAnswerKeys();
+  }, []);
 
   const handleImportSuccess = () => {
-    setRefreshKey((prev) => prev + 1);
+    setShowImportModal(false);
+    fetchAnswerKeys();
+  };
+
+  const renderContent = () => {
+    if (loading) {
+      return <div className="flex justify-center items-center h-64"><Spinner /></div>;
+    }
+
+    if (error) {
+      return (
+        <EmptyState
+          title="Error"
+          message={error}
+          onRetry={fetchAnswerKeys}
+        />
+      );
+    }
+
+    if (answerKeys.length === 0) {
+      return (
+        <EmptyState
+          title="No Answer Keys Found"
+          message="Get started by importing a new answer key."
+        >
+            <Button onClick={() => setShowImportModal(true)}>Import Answer Key</Button>
+        </EmptyState>
+      );
+    }
+
+    return (
+      <AnswerKeyTable 
+        answerKeys={answerKeys} 
+        onSelectAnswerKey={(answerKey) => {
+            // Logic to handle viewing an answer key can be added here
+            console.log("Selected answer key:", answerKey);
+        }}
+      />
+    );
   };
 
   return (
-    <div className="space-y-6">
-      {/* Back Button */}
-      <button
-        onClick={() => navigate(-1)}
-        className="flex items-center gap-2 px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors font-medium"
-      >
-        <MdArrowBack className="w-5 h-5" />
-        Back
-      </button>
-
-      <h1 className="text-3xl font-bold text-gray-900">Answer Keys Manager</h1>
-
-      <AnswerKeyImportForm key={refreshKey} onImportSuccess={handleImportSuccess} />
-
-      {/* Answer Keys List Placeholder */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Imported Answer Keys</h2>
-        <p className="text-gray-600">Answer keys list will display here after import (coming soon)</p>
+    <div className="container mx-auto p-6">
+      <div className="flex justify-between items-center mb-6">
+        <div className="flex items-center gap-4">
+            <Button onClick={() => navigate('/admin/dashboard')} variant="secondary" size="sm">
+                <MdArrowBack />
+            </Button>
+            <h1 className="text-3xl font-bold text-gray-800">Answer Keys</h1>
+        </div>
+        <Button onClick={() => setShowImportModal(true)}>Import Answer Key</Button>
       </div>
+
+      {renderContent()}
+
+      <Modal 
+        isOpen={showImportModal} 
+        title="Import Answer Key"
+        actions={
+            <Button variant="secondary" onClick={() => setShowImportModal(false)}>
+              Cancel
+            </Button>
+        }
+        >
+        <AnswerKeyImportForm onImportSuccess={handleImportSuccess} />
+      </Modal>
     </div>
   );
 }

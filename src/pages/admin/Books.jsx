@@ -1,43 +1,48 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MdArrowBack } from 'react-icons/md';
 import { adminAPI } from '../../api/admin.jsx';
 import { BookUploadForm } from '../../components/admin/BookUploadForm';
 import { BookTable } from '../../components/admin/BookTable';
 import toast from 'react-hot-toast';
+import { Button } from '../../components/shared/Button.jsx';
+import { Spinner } from '../../components/shared/Spinner.jsx';
 
 export function Books() {
   const navigate = useNavigate();
+  const [showUploadForm, setShowUploadForm] = useState(false);
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(false);
   const [pollIntervals, setPollIntervals] = useState({});
 
-  const fetchBooks = useCallback(async () => {
+
+  const fetchBooks = async () => {
     setLoading(true);
     try {
-      const response = await adminAPI.books.list(1, 100);
-      console.log('Books response:', response); // Debug log
-      
+      const res = await adminAPI.books.list(1, 100);
       // Handle different response formats
       let booksData = [];
-      if (response.data?.books) {
-        booksData = response.data.books;
-      } else if (response.data && Array.isArray(response.data)) {
-        booksData = response.data;
-      } else if (response.books) {
-        booksData = response.books;
-      } else if (Array.isArray(response)) {
-        booksData = response;
+      if (res.data?.items) {
+        booksData = res.data.items;
+      } else if (res.data && Array.isArray(res.data)) {
+        booksData = res.data;
+      } else if (res.books) {
+        booksData = res.books;
+      } else if (Array.isArray(res)) {
+        booksData = res;
       }
-      
-      console.log('Extracted books data:', booksData); // Debug log
       setBooks(Array.isArray(booksData) ? booksData : []);
     } catch (error) {
       console.error('Failed to fetch books:', error);
-      toast.error('Failed to load books: ' + (error.message || 'Unknown error'));
+      toast.error('Failed to load books');
+      setBooks([]); // Clear books on error
     } finally {
       setLoading(false);
     }
+  };
+
+  useEffect(() => {
+    fetchBooks();
   }, []);
 
   // Poll for status updates on pending books
@@ -101,39 +106,47 @@ export function Books() {
     };
   }, [books, pollIntervals]);
 
-  useEffect(() => {
-    fetchBooks();
-  }, [fetchBooks]);
-
   const handleBookUploaded = () => {
+    setShowUploadForm(false);
     fetchBooks();
   };
 
+  const handleBookDeleted = () => {
+    fetchBooks();
+  };
+
+  if (showUploadForm) {
+    return (
+        <div className="container mx-auto p-6">
+            <Button onClick={() => setShowUploadForm(false)} variant="secondary" className="mb-4">
+                <MdArrowBack className="inline-block mr-2" />
+                Back to Library
+            </Button>
+            <BookUploadForm onBookUploaded={handleBookUploaded} />
+        </div>
+    );
+  }
+
   return (
-    <div className="space-y-6">
-      {/* Back Button */}
-      <button
-        onClick={() => navigate(-1)}
-        className="flex items-center gap-2 px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors font-medium"
-      >
-        <MdArrowBack className="w-5 h-5" />
-        Back
-      </button>
-
-      <h1 className="text-3xl font-bold text-gray-900">Books Manager</h1>
-
-      {/* Upload Form */}
-      <BookUploadForm onBookUploaded={handleBookUploaded} />
-
-      {/* Books List */}
-      <div>
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Uploaded Books</h2>
-        <BookTable
-          books={books}
-          loading={loading}
-          onBooksChanged={handleBookUploaded}
-        />
+    <div className="container mx-auto p-6">
+      <div className="flex justify-between items-center mb-6">
+        <div className="flex items-center gap-4">
+            <Button onClick={() => navigate('/admin/dashboard')} variant="secondary" size="sm">
+                <MdArrowBack />
+            </Button>
+            <h1 className="text-3xl font-bold text-gray-800">Content Library</h1>
+        </div>
+        <Button onClick={() => setShowUploadForm(true)}>Upload Book</Button>
       </div>
+
+      {loading && books.length === 0 ? (
+        <div className="flex justify-center items-center h-64">
+          <Spinner />
+        </div>
+      ) : (
+        <BookTable books={books} onBookDeleted={handleBookDeleted} />
+      )}
     </div>
   );
 }
+    

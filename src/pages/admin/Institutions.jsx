@@ -26,8 +26,22 @@ export function Institutions() {
   const fetchInstitutions = useCallback(async (page) => {
     setLoading(true);
     try {
-      const response = await adminAPI.institutions.list(page, pagination.limit);
-      const data = response.data;
+      // Mocked data
+      const mockInstitutions = [
+        { id: 1, name: 'Lambton Christian School', code: 'LCS', assigned_books: [1, 2] },
+        { id: 2, name: 'New Haven Academy', code: 'NHA', assigned_books: [3] },
+        { id: 3, name: 'Team Impact University', code: 'TIU', assigned_books: [] },
+      ];
+      const mockResponse = {
+        data: {
+          items: mockInstitutions,
+          total: mockInstitutions.length,
+          pages: 1,
+          page: 1,
+        }
+      };
+      
+      const data = mockResponse.data;
       setInstitutions(data.items || []);
       setPagination(prev => ({
         ...prev,

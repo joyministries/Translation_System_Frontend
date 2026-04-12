@@ -71,8 +71,7 @@ export function Dashboard() {
   const fetchStats = async () => {
     try {
       setLoading(true);
-      const response = await adminAPI.stats.get();
-      
+      const response = await adminAPI.getStats();
       console.log('Dashboard stats response:', response);
 
       // Handle different response formats
@@ -123,7 +122,7 @@ export function Dashboard() {
       {/* Welcome Section */}
       <div className="bg-white rounded-lg border-l-4 border-blue-500 shadow p-6">
         <h2 className="text-2xl font-bold text-gray-900">Welcome back, {user?.name?.split(' ')[0] || 'Admin'}</h2>
-        <p className="text-gray-600 mt-2">Monitor and manage educational content across 3 institutions</p>
+        <p className="text-gray-600 mt-2">Here's a summary of your system.</p>
       </div>
 
       {/* Stats Cards */}
@@ -207,21 +206,8 @@ export function Dashboard() {
         <div className="bg-white rounded-lg shadow p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Uploads</h3>
           <div className="space-y-1">
-            <ActivityItem
-              title="Introduction to Biology"
-              subtitle="Book"
-              status="completed"
-            />
-            <ActivityItem
-              title="Mathematics Final Exam"
-              subtitle="Exam"
-              status="processing"
-            />
-            <ActivityItem
-              title="Chemistry Essentials"
-              subtitle="Book"
-              status="completed"
-            />
+            {/* This will be replaced with real data */}
+            <p className="text-gray-500">Recent uploads will be displayed here.</p>
           </div>
         </div>
 
@@ -229,21 +215,8 @@ export function Dashboard() {
         <div className="bg-white rounded-lg shadow p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Translation Activity</h3>
           <div className="space-y-1">
-            <ActivityItem
-              title="Swahili"
-              subtitle="45 translations"
-              status="completed"
-            />
-            <ActivityItem
-              title="Yoruba"
-              subtitle="23 translations"
-              status="processing"
-            />
-            <ActivityItem
-              title="Hausa"
-              subtitle="31 translations"
-              status="completed"
-            />
+            {/* This will be replaced with real data */}
+            <p className="text-gray-500">Translation activity will be displayed here.</p>
           </div>
         </div>
       </div>
