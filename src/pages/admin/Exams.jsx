@@ -20,10 +20,22 @@ export function Exams() {
     try {
       setLoading(true);
       const response = await adminAPI.exams.list();
-      setExams(response.exams);
+      // Handle different response formats
+      let examsData = [];
+      if (response?.items) {
+        examsData = response.items;
+      } else if (Array.isArray(response)) {
+        examsData = response;
+      } else if (response?.data && Array.isArray(response.data)) {
+        examsData = response.data;
+      } else if (response?.exams) {
+        examsData = response.exams;
+      }
+      setExams(Array.isArray(examsData) ? examsData : []);
       setError(null);
     } catch (err) {
       setError(err.message || 'Failed to fetch exams.');
+      setExams([]);
     } finally {
       setLoading(false);
     }

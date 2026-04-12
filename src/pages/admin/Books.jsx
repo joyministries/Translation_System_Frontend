@@ -20,7 +20,18 @@ export function Books() {
     setLoading(true);
     try {
       const res = await adminAPI.books.list(1, 100);
-      setBooks(res.books);
+      // Handle different response formats
+      let booksData = [];
+      if (res.data?.items) {
+        booksData = res.data.items;
+      } else if (res.data && Array.isArray(res.data)) {
+        booksData = res.data;
+      } else if (res.books) {
+        booksData = res.books;
+      } else if (Array.isArray(res)) {
+        booksData = res;
+      }
+      setBooks(Array.isArray(booksData) ? booksData : []);
     } catch (error) {
       console.error('Failed to fetch books:', error);
       toast.error('Failed to load books');

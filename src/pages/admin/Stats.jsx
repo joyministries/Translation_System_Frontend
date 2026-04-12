@@ -22,6 +22,9 @@ export function Stats() {
   const [dailyData, setDailyData] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const [translationStats, setTranslationStats] = useState(null);
+  const [jobStats, setJobStats] = useState(null);
+
   useEffect(() => {
     const fetchStatsData = async () => {
       try {
@@ -31,32 +34,38 @@ export function Stats() {
 
         console.log('Stats response:', response);
 
-        // Handle different response formats
-        let langStats = [];
-        let dailyStats = [];
+        // The API returns data structure directly
+        const data = response?.data || response;
 
-        if (response.data) {
-          // axios response format
-          if (response.data.languageStats) langStats = response.data.languageStats;
-          if (response.data.dailyStats) dailyStats = response.data.dailyStats;
-        } else {
-          // Direct response format
-          if (response.languageStats) langStats = response.languageStats;
-          if (response.dailyStats) dailyStats = response.dailyStats;
+        // Extract translations stats
+        const translations = data.translations || null;
+        const jobs = data.jobs || null;
+
+        setTranslationStats(translations);
+        setJobStats(jobs);
+
+        // For backward compatibility with charts, create chart data
+        const langStats = [];
+        const dailyStats = [];
+
+        if (translations) {
+          Object.entries(translations).forEach(([key, value]) => {
+            if (key !== 'total') {
+              langStats.push({ language: key, translations: value });
+            }
+          });
         }
 
-        setLanguageData(Array.isArray(langStats) ? langStats : []);
-        setDailyData(Array.isArray(dailyStats) ? dailyStats : []);
-
-        if (langStats.length === 0 || dailyStats.length === 0) {
-          console.warn('No stats data returned from API');
-        }
+        setLanguageData(langStats);
+        setDailyData(dailyStats);
       } catch (error) {
         console.error('Failed to fetch stats:', error);
         toast.error('Failed to load statistics');
-        // Set empty arrays on error instead of using mock data
+        // Set empty values on error
         setLanguageData([]);
         setDailyData([]);
+        setTranslationStats(null);
+        setJobStats(null);
       } finally {
         setLoading(false);
       }
@@ -65,7 +74,7 @@ export function Stats() {
     fetchStatsData();
   }, []);
 
-  const hasLanguageData = languageData && languageData.length > 0;
+  const hasLanguageData = translationStats && (translationStats.completed > 0 || translationStats.failed > 0 || translationStats.pending > 0);
   const hasDailyData = dailyData && dailyData.length > 0;
 
   return (
@@ -84,19 +93,23 @@ export function Stats() {
       {/* Language Distribution Chart */}
       <div className="bg-white rounded-lg shadow p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">
-          Top 10 Languages by Translation Count
+          Translation Status Overview
         </h2>
 
-        {!loading && hasLanguageData ? (
+        {!loading && translationStats ? (
           <div className="w-full h-96">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
-                data={languageData}
+                data={[
+                  { status: 'Completed', count: translationStats.completed || 0 },
+                  { status: 'Failed', count: translationStats.failed || 0 },
+                  { status: 'Pending', count: translationStats.pending || 0 },
+                ]}
                 margin={{ top: 20, right: 30, left: 0, bottom: 60 }}
               >
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                 <XAxis
-                  dataKey="language"
+                  dataKey="status"
                   angle={-45}
                   textAnchor="end"
                   height={100}
@@ -109,15 +122,15 @@ export function Stats() {
                     border: '1px solid #e5e7eb',
                     borderRadius: '8px',
                   }}
-                  formatter={(value) => [value, 'Translations']}
+                  formatter={(value) => [value, 'Count']}
                   labelStyle={{ color: '#111827' }}
                 />
                 <Legend />
                 <Bar
-                  dataKey="translations"
+                  dataKey="count"
                   fill="#3b82f6"
                   radius={[8, 8, 0, 0]}
-                  name="Translations"
+                  name="Translation Count"
                 />
               </BarChart>
             </ResponsiveContainer>
@@ -132,16 +145,17 @@ export function Stats() {
         ) : (
           <div className="flex items-center justify-center h-96">
             <div className="text-center">
-              <p className="text-gray-500 text-lg">No translation activity yet.</p>
+              <p className="text-gray-500 text-lg">No translation data available.</p>
               <p className="text-gray-400 text-sm mt-1">
-                Start translating to see language statistics.
+                Start translating to see statistics.
               </p>
             </div>
           </div>
         )}
       </div>
 
-      {/* Daily Translation Trend Chart */}
+      {/* Daily Translation Trend Chart - Hidden if no daily data */}
+      {hasDailyData && (
       <div className="bg-white rounded-lg shadow p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">
           Translation Activity (Last 14 Days)
@@ -203,19 +217,38 @@ export function Stats() {
           </div>
         )}
       </div>
+      )}
 
       {/* Summary Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white rounded-lg shadow p-6">
           <p className="text-gray-600 text-sm">Total Translations</p>
           <p className="text-3xl font-bold text-blue-600 mt-2">
-            {languageData.reduce((sum, item) => sum + (item.translations || 0), 0)}
+            {translationStats?.total || 0}
           </p>
         </div>
         <div className="bg-white rounded-lg shadow p-6">
-          <p className="text-gray-600 text-sm">Languages Supported</p>
+          <p className="text-gray-600 text-sm">Completed</p>
           <p className="text-3xl font-bold text-green-600 mt-2">
-            {languageData.length}
+            {translationStats?.completed || 0}
+          </p>
+        </div>
+        <div className="bg-white rounded-lg shadow p-6">
+          <p className="text-gray-600 text-sm">Failed</p>
+          <p className="text-3xl font-bold text-red-600 mt-2">
+            {translationStats?.failed || 0}
+          </p>
+        </div>
+        <div className="bg-white rounded-lg shadow p-6">
+          <p className="text-gray-600 text-sm">Pending</p>
+          <p className="text-3xl font-bold text-yellow-600 mt-2">
+            {translationStats?.pending || 0}
+          </p>
+        </div>
+        <div className="bg-white rounded-lg shadow p-6">
+          <p className="text-gray-600 text-sm">Total Jobs</p>
+          <p className="text-3xl font-bold text-purple-600 mt-2">
+            {jobStats?.total || 0}
           </p>
         </div>
       </div>

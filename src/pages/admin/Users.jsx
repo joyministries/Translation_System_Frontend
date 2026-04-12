@@ -25,8 +25,19 @@ export function Users() {
   // Fetch institutions
   const fetchInstitutions = useCallback(async () => {
     try {
-      const response = await adminAPI.institutions.list(1, 100);
-      setInstitutions(response.data?.items || []);
+      const response = await adminAPI.institutions.list();
+      console.log("Institutions response:", response);
+      // Handle different response formats
+      let institutionsData = [];
+      if (response.data?.items) {
+        institutionsData = response.data.items;
+      } else if (response.data && Array.isArray(response.data)) {
+        institutionsData = response.data;
+      } else if (Array.isArray(response)) {
+        institutionsData = response;
+      }
+      
+      setInstitutions(Array.isArray(institutionsData) ? institutionsData : []);
     } catch (error) {
       console.error('Failed to fetch institutions:', error);
     }
@@ -40,12 +51,14 @@ export function Users() {
       console.log("Users response:", response);
       // Handle different response formats
       let usersData = [];
-      if (response.data?.users) {
-        usersData = response.data.users;
+      if (response.data?.items) {
+        usersData = response.data.items;
       } else if (response.data && Array.isArray(response.data)) {
         usersData = response.data;
       } else if (Array.isArray(response)) {
         usersData = response;
+      } else if (response.items && Array.isArray(response.items)) {
+        usersData = response.items;
       }
       
       setUsers(Array.isArray(usersData) ? usersData : []);
@@ -96,7 +109,7 @@ export function Users() {
       const userData = {
         email: formData.email,
         role: formData.role,
-        institution: formData.institution,
+        institution_id: formData.institution,
       };
       
       const response = await adminAPI.users.create(userData);
@@ -286,7 +299,7 @@ export function Users() {
             >
               <option value="">Select institution</option>
               {institutions.map(inst => (
-                <option key={inst.id} value={inst.name}>{inst.name}</option>
+                <option key={inst.id} value={inst.id}>{inst.name}</option>
               ))}
             </select>
             {errors.institution && <p className="text-red-600 text-sm mt-1">{errors.institution}</p>}

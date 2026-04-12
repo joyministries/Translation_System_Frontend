@@ -20,10 +20,22 @@ export function AnswerKeys() {
     try {
       setLoading(true);
       const response = await adminAPI.answerkeys.list();
-      setAnswerKeys(response.data.answer_keys || []);
+      // Handle different response formats
+      let answerKeysData = [];
+      if (response?.items) {
+        answerKeysData = response.items;
+      } else if (Array.isArray(response)) {
+        answerKeysData = response;
+      } else if (response?.data && Array.isArray(response.data)) {
+        answerKeysData = response.data;
+      } else if (response?.answer_keys) {
+        answerKeysData = response.answer_keys;
+      }
+      setAnswerKeys(Array.isArray(answerKeysData) ? answerKeysData : []);
       setError(null);
     } catch (err) {
       setError(err.message || 'Failed to fetch answer keys.');
+      setAnswerKeys([]);
     } finally {
       setLoading(false);
     }

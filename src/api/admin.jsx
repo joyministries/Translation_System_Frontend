@@ -184,6 +184,7 @@ export const adminAPI = {
         create: (languageData) => axiosInstance.post(adminEndpoints.languages, languageData),
         get: (languageId) => axiosInstance.get(`${adminEndpoints.languages}/${languageId}`),
         update: (languageId, languageData) => axiosInstance.patch(`${adminEndpoints.languages}/${languageId}`, languageData),
+        delete: (languageId) => axiosInstance.delete(`${adminEndpoints.languages}/${languageId}`),
         activate: (languageId) => axiosInstance.post(`${adminEndpoints.languages}/${languageId}/activate`),
         deactivate: (languageId) => axiosInstance.post(`${adminEndpoints.languages}/${languageId}/deactivate`),
         toggle: (languageId) => {
@@ -214,26 +215,23 @@ export const adminAPI = {
 
     // Users
     users: {
-        list: (page = 1, limit = 100) => {
-            const skip = (page - 1) * limit;
-            return axiosInstance.get(adminEndpoints.users, {
-                params: { skip, limit }
+        create: async (userData) => {
+            const response = await axiosInstance.post(adminEndpoints.users, userData);
+            return response.data;
+        },
+        list: async (page = 1, limit = 10, role = null, institution_id = null) => {
+            const response = await axiosInstance.get(adminEndpoints.users, {
+                params: { page, limit, role, institution_id }
             });
-        },
-        create: (userData) => {
-            const { name, ...rest } = userData; // Exclude name from the request
-            return axiosInstance.post(adminEndpoints.users, { ...rest, use_temp_password: true });
-        },
-        delete: (userId) => axiosInstance.delete(`${adminEndpoints.users}/${userId}`),
-        update: (userId, userData) => axiosInstance.put(`${adminEndpoints.users}/${userId}`, userData),
+            return response.data;
+        }
     },
 
     // Institutions
     institutions: {
-        list: (page = 1, limit = 100) => {
-            const skip = (page - 1) * limit;
+        list: async (page = 1, limit = 10) => {
             return axiosInstance.get(adminEndpoints.institutions, {
-                params: { skip, limit }
+                params: { page, limit }
             });
         },
         create: (institutionData) => axiosInstance.post(adminEndpoints.institutions, institutionData),
@@ -242,8 +240,12 @@ export const adminAPI = {
         assignBooks: (institutionId, bookIds) => axiosInstance.post(`${adminEndpoints.institutions}/${institutionId}/books`, { bookIds }),
     },
     allContent: {
-        list: (contentType, page = 1, limit = 10) => {
-            const skip = (page - 1) * limit;
+        list: async (skip = 0, limit = 100) => {
+            return axiosInstance.get(adminEndpoints.all, {
+                params: { skip, limit }
+            });
+        },
+        listByType: (contentType, skip = 0, limit = 100) => {
             return axiosInstance.get(adminEndpoints.all, {
                 params: { content_type: contentType, skip, limit }
             });
