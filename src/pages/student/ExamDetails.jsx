@@ -24,7 +24,6 @@ export function ExamDetails() {
       setIsLoading(true);
       try {
         const data = await studentAPI.getExam(examId);
-        console.log("Fetched exam data:", data);
         if (!data) {
           setNotFound(true);
         } else {
@@ -83,12 +82,13 @@ export function ExamDetails() {
 
         // 2. Download the file blob
         const fileBlob = await studentAPI.downloadTranslation(translationId);
+        console.log("Received file blob:", fileBlob);
 
         // 3. Trigger the browser download
         const url = window.URL.createObjectURL(fileBlob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = exam.title ? `${exam.title.replace(/ /g, "_")}_translated.pdf` : "translated_document.pdf";
+        a.download = exam.title ? `${exam.title.replace(/ /g, "_")}` : "translated_exam";
         document.body.appendChild(a);
         a.click();
         a.remove();

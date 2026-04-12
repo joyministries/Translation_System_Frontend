@@ -9,8 +9,10 @@ export function BrowseBooks() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [allBooks, setAllBooks] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    setLoading(true);
     const fetchBooks = async () => {
       try {
         const response = await studentAPI.getBooks();
@@ -20,9 +22,8 @@ export function BrowseBooks() {
           author: book.author || 'Unknown Author',
           subject: book.subject || 'General',
           language: book.language || 'English',
-          pages: book.pages || 0,
-          dateUploaded: book.dateUploaded || new Date().toISOString(),
-          description: book.description || ''
+          pages: book.page_count || 0,
+          grade_level: book.grade_level || 'N/A',
         }));
 
         setAllBooks(books);
@@ -30,6 +31,8 @@ export function BrowseBooks() {
         console.error('Error fetching books:', error);
         // Set empty array on error (will still work with UI)
         setAllBooks([]);
+      } finally {
+        setLoading(false);
       }
     };
     fetchBooks();
@@ -46,14 +49,6 @@ export function BrowseBooks() {
 
   return (
     <div>
-      {/* Back Button */}
-      <button
-        onClick={() => navigate(-1)}
-        className="flex items-center gap-2 mb-6 px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors font-medium"
-      >
-        <MdArrowBack className="w-5 h-5" />
-        Back
-      </button>
 
       {/* Header */}
       <div className="mb-8">
@@ -94,12 +89,18 @@ export function BrowseBooks() {
       </div>
 
       {/* Results Info */}
-      <div className="mb-6">
-        <p className="text-sm text-slate-600">
-          Showing <span className="font-semibold text-slate-900">{filteredBooks.length}</span> books
-          {searchQuery && ` matching "${searchQuery}"`}
-        </p>
-      </div>
+      {loading ? (
+        <div className="mb-6">
+          <p className="text-sm text-slate-600">Loading books...</p>
+        </div>
+      ) : (
+        <div className="mb-6">
+          <p className="text-sm text-slate-600">
+            Showing <span className="font-semibold text-slate-900">{filteredBooks.length}</span> books
+            {searchQuery && ` matching "${searchQuery}"`}
+          </p>
+        </div>
+      )}
 
       {/* Books Grid */}
       {filteredBooks.length > 0 ? (

@@ -31,7 +31,6 @@ export function BookDetails() {
       setIsLoading(true);
       try {
         const data = await studentAPI.getBook(bookId);
-        console.log("Fetched book data:", data);
         if (!data) {
           setNotFound(true);
         } else {
@@ -86,10 +85,11 @@ export function BookDetails() {
       // Check if the job was completed immediately
       if (jobResponse.status === "done" || jobResponse.status === "completed") {
         const translationId = jobResponse.translation_id || jobResponse.id;
-        toast.success("Translation complete! Preparing download...", { id: toastId });
+        toast.loading("Translation complete! Preparing download...", { id: toastId });
 
         // 2. Download the file blob
         const fileBlob = await studentAPI.downloadTranslation(translationId);
+        console.log("Received file blob:", fileBlob);
 
         // 3. Trigger the browser download
         const url = window.URL.createObjectURL(fileBlob);
