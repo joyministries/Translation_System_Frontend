@@ -24,6 +24,8 @@ export function TranslationModal({ isOpen, onClose, content, contentType }) {
     }
   }, [isOpen]);
 
+  const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
   const handleTranslate = async () => {
     if (!selectedLanguage) {
       toast.error('Please select a language.');
@@ -35,32 +37,63 @@ export function TranslationModal({ isOpen, onClose, content, contentType }) {
     }
 
     setIsTranslating(true);
-    const toastId = toast.loading('Starting translation...');
+    const toastId = toast.loading('Triggering translation on server...');
 
     try {
-      const jobResponse = await adminAPI.translations.trigger(content.id, contentType, selectedLanguage);
+      // 1. Trigger translation
+      let jobResponse = await adminAPI.translations.triggerTranslation(content.id, contentType, selectedLanguage);
+      let jobData = jobResponse.data;
 
-      if (jobResponse.data.status === 'completed' || jobResponse.data.status === 'done') {
-        const translationId = jobResponse.data.translation_id || jobResponse.data.id;
-        toast.loading('Translation complete! Preparing download...', { id: toastId });
+      // 2. Implement 2-second delay to allow backend to register the job
+      await delay(2000);
 
-        const { blob, filename } = await adminAPI.translations.download(translationId);
+      let translationId = jobData.translation_id || jobData.id;
+      let status = jobData.status;
 
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = filename || `${content.title.replace(/ /g, '_')}_translated.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        window.URL.revokeObjectURL(url);
-
-        toast.success('Download has started!', { id: toastId });
-        onClose();
-      } else {
-        toast.success('Translation job started. It may take a few moments.', { id: toastId });
-        onClose();
+      // 3. Poll until completed
+      if (status !== 'completed' && status !== 'done') {
+        toast.loading('Translating document...', { id: toastId });
+        
+        let isDone = false;
+        let attempts = 0;
+        const maxAttempts = 30; // Approx 1 minute with 2s polling
+        
+        while (!isDone && attempts < maxAttempts) {
+          await delay(2000);
+          const pollResponse = await adminAPI.translations.getTranslation(translationId);
+          jobData = pollResponse.data;
+          
+          if (jobData.status === 'completed' || jobData.status === 'done') {
+            isDone = true;
+          } else if (jobData.status === 'failed') {
+            throw new Error(jobData.failure_reason || 'Translation job failed.');
+          }
+          attempts++;
+        }
+        
+        if (!isDone) {
+          throw new Error('Translation timed out. Please check again later.');
+        }
       }
+
+      toast.loading('Translation complete! Preparing download...', { id: toastId });
+
+      // 4. Download file
+      const { blob, filename } = await adminAPI.translations.download(translationId);
+
+      // 5. Create local URL and trigger safe browser download
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename || `Translated_${content.title || contentType}`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+
+      toast.success('Download has started!', { id: toastId });
+      onClose();
+
     } catch (error) {
       console.error('Translation failed:', error);
       toast.error(error.message || 'Translation failed. Please try again.', { id: toastId });
@@ -68,6 +101,7 @@ export function TranslationModal({ isOpen, onClose, content, contentType }) {
       setIsTranslating(false);
     }
   };
+
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={`Translate ${contentType}`}>

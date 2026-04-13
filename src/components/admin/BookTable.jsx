@@ -81,7 +81,13 @@ export function BookTable({ books, loading, onBooksChanged }) {
                   <td className="px-6 py-4 whitespace-nowrap text-sm space-x-2">
                     <button
                       onClick={() => onBooksChanged?.('translate', book)}
-                      className="text-blue-600 hover:text-blue-900 font-medium"
+                      className={`font-medium ${
+                        (book.extractionStatus === 'pending' || book.extraction_status === 'pending')
+                          ? 'text-gray-400 cursor-not-allowed'
+                          : 'text-blue-600 hover:text-blue-900'
+                      }`}
+                      disabled={book.extractionStatus === 'pending' || book.extraction_status === 'pending'}
+                      title={(book.extractionStatus === 'pending' || book.extraction_status === 'pending') ? 'Book extraction is pending' : 'Translate book'}
                     >
                       Translate
                     </button>

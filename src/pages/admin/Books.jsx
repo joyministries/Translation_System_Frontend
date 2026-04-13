@@ -21,6 +21,11 @@ export function Books() {
   const fetchBooks = async () => {
     setLoading(true);
     try {
+
+      const handleBookDeleted = () => {
+    fetchBooks();
+  };
+
       const res = await adminAPI.books.list(1, 100);
       // Handle different response formats
       let booksData = [];
@@ -113,9 +118,6 @@ export function Books() {
     fetchBooks();
   };
 
-  const handleBookDeleted = () => {
-    fetchBooks();
-  };
 
   const handleTableActions = (action, book) => {
     if (action === 'translate') {

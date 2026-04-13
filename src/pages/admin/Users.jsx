@@ -1,6 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MdArrowBack, MdAdd, MdDelete, MdEdit } from 'react-icons/md';
+import { MdArrowBack, 
+        MdAdd, 
+        MdDelete, 
+        MdEdit,
+        MdEmail } from 'react-icons/md';
 import { Button } from '../../components/shared/Button';
 import { Modal } from '../../components/shared/Modal';
 import { ConfirmModal } from '../../components/shared/ConfirmModal';
@@ -137,6 +141,17 @@ export function Users() {
     }
   };
 
+  const handleResetPassword = async (userId) => {
+    try {
+      await adminAPI.users.resetPassword(userId);
+      toast.success('Password reset email sent successfully');
+    } catch (error) {
+      const errorMsg = error.response?.data?.message || error.message || 'Failed to send password reset email';
+      toast.error(errorMsg);
+      console.error('Reset password error:', error);
+    }
+  }
+
   return (
     <div className="space-y-6">
       {/* Back Button */}
@@ -215,6 +230,14 @@ export function Users() {
                         title="Delete user"
                       >
                         <MdDelete className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleResetPassword(user.id)}
+                        className="p-2 text-yellow-600 hover:bg-yellow-50 rounded transition-colors"
+                        title="Reset password"
+                        tool
+                        >
+                          <MdEmail className="w-4 h-4" />
                       </button>
                     </div>
                   </td>

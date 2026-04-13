@@ -9,14 +9,13 @@ import { Books } from '../pages/admin/Books';
 import { Exams } from '../pages/admin/Exams';
 import { AnswerKeys } from '../pages/admin/AnswerKeys';
 import { Languages } from '../pages/admin/Languages';
-import { Stats } from '../pages/admin/Stats';
 import { Institutions } from '../pages/admin/Institutions';
 import { Users } from '../pages/admin/Users';
-import { ContentLibrary } from '../pages/admin/ContentLibrary';
 import { BookDetails } from '../pages/student/BookDetails';
 import { BrowseBooks } from '../pages/student/BrowseBooks';
 import { BrowseExams } from '../pages/student/BrowseExams';
 import { ExamDetails } from '../pages/student/ExamDetails';
+import { TranslationStats } from '../pages/admin/TranslationStats';
 
 export function AppRouter() {
   return (
@@ -42,11 +41,10 @@ export function AppRouter() {
           <Route path="exams" element={<Exams />} />
           <Route path="answer-keys" element={<AnswerKeys />} />
           <Route path="languages" element={<Languages />} />
-          <Route path="stats" element={<Stats />} />
           <Route path="institutions" element={<Institutions />} />
           <Route path="users" element={<Users />} />
-          <Route path="content-library" element={<ContentLibrary />} />
-          {/* FE2 Routes: Additional pages will be added here */}
+          <Route path="translation-stats" element={<TranslationStats />} />
+
         </Route>
 
         {/* Student Routes */}
@@ -62,7 +60,6 @@ export function AppRouter() {
           <Route path="book/:bookId" element={<BookDetails />} />
           <Route path="browse-exams" element={<BrowseExams />} />
           <Route path="exam/:examId" element={<ExamDetails />} />
-          {/* FE1 Routes: Active Translations, History, Profile will be added here */}
         </Route>
 
         {/* Default redirect */}

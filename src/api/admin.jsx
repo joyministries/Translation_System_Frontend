@@ -18,6 +18,7 @@ export const adminEndpoints = {
     users: '/admin/users',
     institutions: '/admin/institutions',
     all: '/admin/content',
+    resetPassword: '/auth/reset-password',
 }
 
 // Helper function to trigger translations to all active languages
@@ -52,10 +53,16 @@ const triggerTranslationForContent = async (contentId, contentType) => {
 };
 
 export const adminAPI = {
-    getStats: async () => {
-        const response = await axiosInstance.get(adminEndpoints.stats);
-        return response.data;
+    resetPassword: async (email) => {
+        try {
+            const response = await axiosInstance.post(adminEndpoints.resetPassword, { email });
+            return response.data;
+        } catch (error) {
+            console.error('Error resetting password:', error.message);
+            throw error;
+        }
     },
+
     books: {
         list: async (page = 1, limit = 10) => {
             const response = await axiosInstance.get(adminEndpoints.books, {
@@ -206,6 +213,15 @@ export const adminAPI = {
                 },
             });
         },
+        triggerTranslation: (contentId, contentType, languageId) => {
+            return axiosInstance.post(adminEndpoints.translationTranslate, null, {
+                params: {
+                    content_id: contentId,
+                    content_type: contentType,
+                    language_id: languageId,
+                },
+            });
+        },
         download: async (translationId) => {
             const response = await axiosInstance.get(`${adminEndpoints.translations}/${translationId}/download`, {
                 responseType: 'blob',
@@ -223,7 +239,14 @@ export const adminAPI = {
                 blob: response.data,
                 filename: filename
             };
-        }
+        },
+        translation: (translation_id) =>{
+                return axiosInstance.get(`${adminEndpoints.translations}/${translation_id}`);
+        },
+        getTranslation: (translation_id) =>{
+            return axiosInstance.get(`${adminEndpoints.translations}/${translation_id}`);
+        },
+        failed: () => axiosInstance.get(`${adminEndpoints.translations}/failed`),   
     },
 
     // Jobs
