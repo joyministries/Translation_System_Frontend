@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MdArrowBack, MdAdd, MdDelete, MdEdit } from 'react-icons/md';
 import { Button } from '../../components/shared/Button';
@@ -23,60 +23,36 @@ export function Users() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Fetch institutions
-  const fetchInstitutions = useCallback(async () => {
-    try {
-      const response = await adminAPI.institutions.list();
-      console.log("Institutions response:", response);
-      // Handle different response formats
-      let institutionsData = [];
-      if (response.data?.items) {
-        institutionsData = response.data.items;
-      } else if (response.data && Array.isArray(response.data)) {
-        institutionsData = response.data;
-      } else if (Array.isArray(response)) {
-        institutionsData = response;
+  useEffect(() => {
+    const fetchInstitutions = async () => {
+      try {
+        const response = await adminAPI.institutions.list();
+        setInstitutions(response.data.institutions || []);
+      } catch (error) {
+        console.error('Failed to fetch institutions:', error);
+        toast.error('Failed to load institutions');
       }
-      
-      setInstitutions(Array.isArray(institutionsData) ? institutionsData : []);
-    } catch (error) {
-      console.error('Failed to fetch institutions:', error);
-    }
+    };
+    fetchInstitutions();
   }, []);
 
   // Fetch users from API
-  const fetchUsers = useCallback(async () => {
-    setLoading(true);
-    try {
-      const response = await adminAPI.users.list();
-      console.log("Users response:", response);
-      // Handle different response formats
-      let usersData = [];
-      if (response.data?.items) {
-        usersData = response.data.items;
-      } else if (response.data && Array.isArray(response.data)) {
-        usersData = response.data;
-      } else if (Array.isArray(response)) {
-        usersData = response;
-      } else if (response.items && Array.isArray(response.items)) {
-        usersData = response.items;
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      setLoading(true);
+      try {
+        const response = await adminAPI.users.list();
+        setUsers(response.users);
+      } catch (error) {
+        console.error('Failed to fetch users:', error);
+        toast.error('Failed to load users');
+      } finally {
+        setLoading(false);
       }
-      
-      setUsers(Array.isArray(usersData) ? usersData : []);
-    } catch (error) {
-      console.error('Failed to fetch users:', error);
-      toast.error('Failed to load users');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchInstitutions();
-  }, [fetchInstitutions]);
-
-  useEffect(() => {
+    };
     fetchUsers();
-  }, [fetchUsers]);
+  }, []);
 
   const validateForm = () => {
     const newErrors = {};
@@ -106,14 +82,17 @@ export function Users() {
 
     setIsSubmitting(true);
     try {
+      const tempPassword = Math.random().toString(36).slice(-8); // Generate a random 8-character password
       const userData = {
         email: formData.email,
         role: formData.role,
         institution_id: formData.institution,
+        password: tempPassword,
       };
+      console.log("Creating user with data:", userData);
       
       const response = await adminAPI.users.create(userData);
-      
+      console.log("Users:", response);
       // Add new user to list (or refresh the entire list)
       const newUser = response.data || response;
       setUsers([...users, newUser]);

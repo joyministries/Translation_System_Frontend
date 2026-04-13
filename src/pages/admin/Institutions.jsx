@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MdArrowBack, MdExpandMore, MdExpandLess } from 'react-icons/md';
 import { Button } from '../../components/shared/Button';
@@ -23,69 +23,30 @@ export function Institutions() {
     totalPages: 1,
   });
 
-  const fetchInstitutions = useCallback(async (page) => {
-    setLoading(true);
-    try {
-      // Mocked data
-      const mockInstitutions = [
-        { id: 1, name: 'Lambton Christian School', code: 'LCS', assigned_books: [1, 2] },
-        { id: 2, name: 'New Haven Academy', code: 'NHA', assigned_books: [3] },
-        { id: 3, name: 'Team Impact University', code: 'TIU', assigned_books: [] },
-      ];
-      const mockResponse = {
-        data: {
-          items: mockInstitutions,
-          total: mockInstitutions.length,
-          pages: 1,
-          page: 1,
-        }
-      };
-      
-      const data = mockResponse.data;
-      setInstitutions(data.items || []);
-      setPagination(prev => ({
-        ...prev,
-        total: data.total || 0,
-        totalPages: data.pages || 1,
-        page: data.page || 1,
-      }));
-    } catch (error) {
-      console.error('Failed to fetch institutions:', error);
-      toast.error('Failed to load institutions.');
-      setInstitutions([]); // Clear institutions on error
-    } finally {
+  
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const res = await adminAPI.institutions.getInstitutions(pagination.page, pagination.limit);
+        setInstitutions(res.data.institutions);
+        setPagination(prev => ({
+          ...prev,
+          total: res.total,
+          totalPages: Math.ceil(res.total / prev.limit),
+        }));
+      } catch (error) {
+        console.error('Failed to fetch institutions:', error);
+        toast.error('Failed to load institutions. Please try again later.');
+      } finally {
       setLoading(false);
-    }
-  }, [pagination.limit]);
+      }
+    };
+    fetchData();
+  }, [pagination.page]);
 
-  const fetchBooks = useCallback(async () => {
-    try {
-      // Fetch all books - assuming the list isn't excessively long
-      const response = await adminAPI.books.list(1, 1000); 
-      setBooks(response.data?.items || []);
-    } catch (error) {
-      console.error('Failed to fetch books:', error);
-      toast.error('Failed to load books for assignment.');
-    }
-  }, []);
 
-  useEffect(() => {
-    fetchInstitutions(pagination.page);
-  }, [fetchInstitutions, pagination.page]);
 
-  useEffect(() => {
-    fetchBooks();
-  }, [fetchBooks]);
-
-  useEffect(() => {
-    // Initialize local assignments state when institutions change
-    const assignments = {};
-    institutions.forEach((inst) => {
-      // Assuming `assignedBooks` is an array of book IDs
-      assignments[inst.id] = new Set(inst.assigned_books || []);
-    });
-    setLocalAssignments(assignments);
-  }, [institutions]);
 
   const handleToggleBook = (instId, bookId) => {
     setLocalAssignments((prev) => {
@@ -110,7 +71,7 @@ export function Institutions() {
       await adminAPI.institutions.assignBooks(institutionId, bookIds);
       toast.success('Book assignments updated successfully!');
       // Refresh data for the current institution to get updated state
-      await fetchInstitutions(pagination.page);
+      await adminAPI.institutions.getInstitution(institutionId);
       setExpandedId(null); // Collapse on save
     } catch (error) {
       console.error('Failed to save assignments:', error);

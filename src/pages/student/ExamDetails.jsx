@@ -59,6 +59,8 @@ export function ExamDetails() {
     setSelectedLanguageId(parseInt(e.target.value, 10));
   };
 
+  const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
   const handleTranslate = async () => {
     if (!selectedLanguageId) {
       toast.error("Please select a language first.");
@@ -75,20 +77,30 @@ export function ExamDetails() {
         selectedLanguageId
       );
 
+      console.log("Translation job response:", jobResponse);
+
+      await delay(2000);
+
+
+
       // Check if the job was completed immediately
       if (jobResponse.status === "done" || jobResponse.status === "completed") {
         const translationId = jobResponse.translation_id || jobResponse.id;
         toast.success("Translation complete! Preparing download...", { id: toastId });
 
         // 2. Download the file blob
-        const fileBlob = await studentAPI.downloadTranslation(translationId);
+        const {blob: fileBlob, filename: downloadFilename} = await studentAPI.downloadTranslation(translationId);
+        console.log("Received file blob:", fileBlob);
+        console.log("Download filename:", downloadFilename);
         console.log("Received file blob:", fileBlob);
 
         // 3. Trigger the browser download
         const url = window.URL.createObjectURL(fileBlob);
         const a = document.createElement("a");
+        console.log("Download URL:", url);
+        console.log("Exam title for filename:", exam.title);
         a.href = url;
-        a.download = exam.title ? `${exam.title.replace(/ /g, "_")}` : "translated_exam";
+        a.download = downloadFilename || `Translated_${exam.title}`;
         document.body.appendChild(a);
         a.click();
         a.remove();

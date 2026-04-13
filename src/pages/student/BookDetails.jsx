@@ -88,14 +88,14 @@ export function BookDetails() {
         toast.loading("Translation complete! Preparing download...", { id: toastId });
 
         // 2. Download the file blob
-        const fileBlob = await studentAPI.downloadTranslation(translationId);
+        const { blob: fileBlob, filename: downloadFilename } = await studentAPI.downloadTranslation(translationId);
         console.log("Received file blob:", fileBlob);
 
         // 3. Trigger the browser download
         const url = window.URL.createObjectURL(fileBlob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = book.title ? `${book.title.replace(/ /g, "_")}_translated.pdf` : "translated_document.pdf";
+        a.download = downloadFilename || `Translated_${book.title}`;
         document.body.appendChild(a);
         a.click();
         a.remove();
