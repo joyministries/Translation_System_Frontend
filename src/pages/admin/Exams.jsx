@@ -8,6 +8,7 @@ import { Button } from '../../components/shared/Button';
 import { Spinner } from '../../components/shared/Spinner';
 import { EmptyState } from '../../components/shared/EmptyState';
 import { Modal } from '../../components/shared/Modal';
+import { TranslationModal } from '../../components/admin/TranslationModal.jsx';
 
 export function Exams() {
   const navigate = useNavigate();
@@ -15,6 +16,8 @@ export function Exams() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showImportModal, setShowImportModal] = useState(false);
+  const [showTranslationModal, setShowTranslationModal] = useState(false);
+  const [selectedExam, setSelectedExam] = useState(null);
 
   const fetchExams = async () => {
     try {
@@ -50,6 +53,11 @@ export function Exams() {
     fetchExams();
   };
 
+  const handleSelectExam = (exam) => {
+    setSelectedExam(exam);
+    setShowTranslationModal(true);
+  };
+
   const renderContent = () => {
     if (loading) {
       return <div className="flex justify-center items-center h-64"><Spinner /></div>;
@@ -79,10 +87,7 @@ export function Exams() {
     return (
       <ExamTable 
         exams={exams} 
-        onSelectExam={(exam) => {
-            // Logic to handle viewing an exam can be added here
-            console.log("Selected exam:", exam);
-        }}
+        onSelectExam={handleSelectExam}
       />
     );
   };
@@ -114,6 +119,15 @@ export function Exams() {
         >
         <ExamImportForm onImportSuccess={handleImportSuccess} />
       </Modal>
+
+      {selectedExam && (
+        <TranslationModal
+            isOpen={showTranslationModal}
+            onClose={() => setShowTranslationModal(false)}
+            content={selectedExam}
+            contentType="exam"
+        />
+      )}
     </div>
   );
 }

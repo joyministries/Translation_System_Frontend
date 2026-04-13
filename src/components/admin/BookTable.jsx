@@ -1,4 +1,3 @@
-import { Badge } from '../shared/Badge';
 import { ConfirmModal } from '../shared/ConfirmModal';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
@@ -8,13 +7,6 @@ import { adminAPI } from '../../api/admin.jsx';
 export function BookTable({ books, loading, onBooksChanged }) {
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [deleting, setDeleting] = useState(false);
-
-  const statusColors = {
-    pending: 'bg-yellow-100 text-yellow-800',
-    done: 'bg-green-100 text-green-800',
-    failed: 'bg-red-100 text-red-800',
-  };
-
   const handleDelete = async () => {
     if (!deleteConfirm) return;
 
@@ -64,13 +56,7 @@ export function BookTable({ books, loading, onBooksChanged }) {
                   Grade
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Uploaded By
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Date
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Actions
@@ -89,18 +75,16 @@ export function BookTable({ books, loading, onBooksChanged }) {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                     {book.gradeLevel}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <Badge className={statusColors[book.extractionStatus] || 'bg-gray-100 text-gray-800'}>
-                      {book.extractionStatus}
-                    </Badge>
-                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                     {book.uploadedBy || 'Admin'}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                    {new Date(book.uploadedAt || book.createdAt).toLocaleDateString()}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm space-x-2">
+                    <button
+                      onClick={() => onBooksChanged?.('translate', book)}
+                      className="text-blue-600 hover:text-blue-900 font-medium"
+                    >
+                      Translate
+                    </button>
                     <button
                       onClick={() => setDeleteConfirm(book.id)}
                       className="text-red-600 hover:text-red-900 font-medium"

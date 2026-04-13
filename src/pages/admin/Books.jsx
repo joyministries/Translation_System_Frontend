@@ -7,6 +7,7 @@ import { BookTable } from '../../components/admin/BookTable';
 import toast from 'react-hot-toast';
 import { Button } from '../../components/shared/Button.jsx';
 import { Spinner } from '../../components/shared/Spinner.jsx';
+import { TranslationModal } from '../../components/admin/TranslationModal.jsx';
 
 export function Books() {
   const navigate = useNavigate();
@@ -14,7 +15,8 @@ export function Books() {
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(false);
   const [pollIntervals, setPollIntervals] = useState({});
-
+  const [showTranslationModal, setShowTranslationModal] = useState(false);
+  const [selectedBook, setSelectedBook] = useState(null);
 
   const fetchBooks = async () => {
     setLoading(true);
@@ -115,6 +117,13 @@ export function Books() {
     fetchBooks();
   };
 
+  const handleTableActions = (action, book) => {
+    if (action === 'translate') {
+      setSelectedBook(book);
+      setShowTranslationModal(true);
+    }
+  };
+
   if (showUploadForm) {
     return (
         <div className="container mx-auto p-6">
@@ -136,7 +145,7 @@ export function Books() {
             </Button>
             <h1 className="text-3xl font-bold text-gray-800">Content Library</h1>
         </div>
-        <Button onClick={() => setShowUploadForm(true)}>Upload Book</Button>
+        <Button onClick={() => setShowUploadForm(true)}> Upload Book</Button>
       </div>
 
       {loading && books.length === 0 ? (
@@ -144,9 +153,18 @@ export function Books() {
           <Spinner />
         </div>
       ) : (
-        <BookTable books={books} onBookDeleted={handleBookDeleted} />
+        <BookTable books={books} onBooksChanged={handleTableActions} />
+      )}
+
+      {selectedBook && (
+        <TranslationModal
+          isOpen={showTranslationModal}
+          onClose={() => setShowTranslationModal(false)}
+          content={selectedBook}
+          contentType="book"
+        />
       )}
     </div>
   );
 }
-    
+

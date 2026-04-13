@@ -11,10 +11,7 @@ import { EmptyState } from '../../components/shared/EmptyState';
 export function Institutions() {
   const navigate = useNavigate();
   const [institutions, setInstitutions] = useState([]);
-  const [books, setBooks] = useState([]);
   const [expandedId, setExpandedId] = useState(null);
-  const [savingId, setSavingId] = useState(null);
-  const [localAssignments, setLocalAssignments] = useState({});
   const [loading, setLoading] = useState(true);
   const [pagination, setPagination] = useState({
     page: 1,
@@ -43,43 +40,7 @@ export function Institutions() {
       }
     };
     fetchData();
-  }, [pagination.page]);
-
-
-
-
-  const handleToggleBook = (instId, bookId) => {
-    setLocalAssignments((prev) => {
-      const updated = { ...prev };
-      if (!updated[instId]) {
-        updated[instId] = new Set();
-      }
-      const bookSet = updated[instId];
-      if (bookSet.has(bookId)) {
-        bookSet.delete(bookId);
-      } else {
-        bookSet.add(bookId);
-      }
-      return updated;
-    });
-  };
-
-  const handleSaveAssignments = async (institutionId) => {
-    setSavingId(institutionId);
-    const bookIds = Array.from(localAssignments[institutionId] || []);
-    try {
-      await adminAPI.institutions.assignBooks(institutionId, bookIds);
-      toast.success('Book assignments updated successfully!');
-      // Refresh data for the current institution to get updated state
-      await adminAPI.institutions.getInstitution(institutionId);
-      setExpandedId(null); // Collapse on save
-    } catch (error) {
-      console.error('Failed to save assignments:', error);
-      toast.error('Failed to save book assignments.');
-    } finally {
-      setSavingId(null);
-    }
-  };
+  }, []);
 
   const handlePageChange = (newPage) => {
     if (newPage > 0 && newPage <= pagination.totalPages) {
@@ -127,47 +88,7 @@ export function Institutions() {
                   <h2 className="text-xl font-semibold text-gray-800">{inst.name}</h2>
                   <p className="text-sm text-gray-500">{inst.code}</p>
                 </div>
-                <div className="flex items-center">
-                  <span className="text-sm text-gray-600 mr-4">
-                    {localAssignments[inst.id]?.size || 0} / {books.length} books assigned
-                  </span>
-                  {expandedId === inst.id ? <MdExpandLess size={24} /> : <MdExpandMore size={24} />}
-                </div>
               </div>
-
-              {expandedId === inst.id && (
-                <div className="p-4 border-t border-gray-200">
-                  <h3 className="text-lg font-semibold mb-4 text-gray-700">Assign Books</h3>
-                  {books.length > 0 ? (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                      {books.map((book) => (
-                        <div
-                          key={book.id}
-                          className={`p-3 rounded-lg border-2 cursor-pointer transition-all duration-200 ${
-                            localAssignments[inst.id]?.has(book.id)
-                              ? 'bg-blue-100 border-blue-500'
-                              : 'bg-gray-100 border-gray-200 hover:border-gray-400'
-                          }`}
-                          onClick={() => handleToggleBook(inst.id, book.id)}
-                        >
-                          <p className="font-medium text-sm text-gray-800 truncate">{book.title}</p>
-                          <p className="text-xs text-gray-500">{book.grade_level}</p>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-gray-500">No books available to assign. Please upload books first.</p>
-                  )}
-                  <div className="mt-6 flex justify-end">
-                    <Button
-                      onClick={() => handleSaveAssignments(inst.id)}
-                      disabled={savingId === inst.id}
-                    >
-                      {savingId === inst.id ? 'Saving...' : 'Save Assignments'}
-                    </Button>
-                  </div>
-                </div>
-              )}
             </div>
           ))}
         </div>

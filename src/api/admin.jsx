@@ -206,6 +206,24 @@ export const adminAPI = {
                 },
             });
         },
+        download: async (translationId) => {
+            const response = await axiosInstance.get(`${adminEndpoints.translations}/${translationId}/download`, {
+                responseType: 'blob',
+            });
+            let filename = null;
+            const contentDisposition = response.headers['content-disposition'];
+            if (contentDisposition && contentDisposition.includes('attachment')) {
+                const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+                const matches = filenameRegex.exec(contentDisposition);
+                if (matches != null && matches[1]) {
+                    filename = matches[1].replace(/['"]/g, '');
+                }
+            }
+            return {
+                blob: response.data,
+                filename: filename
+            };
+        }
     },
 
     // Jobs

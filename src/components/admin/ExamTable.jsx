@@ -30,8 +30,8 @@ export function ExamTable({ exams, onSelectExam }) {
                 {new Date(exam.created_at).toLocaleDateString()}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                <Button onClick={() => onSelectExam(exam)} variant="secondary" size="sm">
-                  View
+                <Button onClick={() => onSelectExam(exam)} variant="primary" size="sm">
+                  Translate
                 </Button>
               </td>
             </tr>
