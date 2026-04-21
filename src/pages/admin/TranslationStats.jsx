@@ -51,7 +51,6 @@ export function TranslationStats() {
         setStatsByContent(data.by_content_type);
         setByStatus(data.by_status);
         const listRaw = listResponse.data;
-        console.log("listRaw", listRaw);
         const allTranslations = Array.isArray(listRaw) ? listRaw : (listRaw?.items || listRaw?.translations || []);
 
         // Filter to only show those 'done'/'completed' within the last 24 hours

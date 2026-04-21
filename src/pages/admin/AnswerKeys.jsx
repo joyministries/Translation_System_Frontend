@@ -71,17 +71,15 @@ export function AnswerKeys() {
           title="No Answer Keys Found"
           message="Get started by importing a new answer key."
         >
-            <Button onClick={() => setShowImportModal(true)}>Import Answer Key</Button>
+          <Button onClick={() => setShowImportModal(true)}>Import Answer Key</Button>
         </EmptyState>
       );
     }
 
     return (
-      <AnswerKeyTable 
-        answerKeys={answerKeys} 
+      <AnswerKeyTable
+        answerKeys={answerKeys}
         onSelectAnswerKey={(answerKey) => {
-            // Logic to handle viewing an answer key can be added here
-            console.log("Selected answer key:", answerKey);
         }}
       />
     );
@@ -91,25 +89,25 @@ export function AnswerKeys() {
     <div className="container mx-auto p-6">
       <div className="flex justify-between items-center mb-6">
         <div className="flex items-center gap-4">
-            <Button onClick={() => navigate('/admin/dashboard')} variant="secondary" size="sm">
-                <MdArrowBack />
-            </Button>
-            <h1 className="text-3xl font-bold text-gray-800">Answer Keys</h1>
+          <Button onClick={() => navigate('/admin/dashboard')} variant="secondary" size="sm">
+            <MdArrowBack />
+          </Button>
+          <h1 className="text-3xl font-bold text-gray-800">Answer Keys</h1>
         </div>
         <Button onClick={() => setShowImportModal(true)}>Import Answer Key</Button>
       </div>
 
       {renderContent()}
 
-      <Modal 
-        isOpen={showImportModal} 
+      <Modal
+        isOpen={showImportModal}
         title="Import Answer Key"
         actions={
-            <Button variant="secondary" onClick={() => setShowImportModal(false)}>
-              Cancel
-            </Button>
+          <Button variant="secondary" onClick={() => setShowImportModal(false)}>
+            Cancel
+          </Button>
         }
-        >
+      >
         <AnswerKeyImportForm onImportSuccess={handleImportSuccess} />
       </Modal>
     </div>

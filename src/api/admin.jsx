@@ -27,7 +27,7 @@ const triggerTranslationForContent = async (contentId, contentType) => {
         // Get all active languages
         const languagesResponse = await axiosInstance.get(adminEndpoints.languages);
         const activeLanguages = languagesResponse.data?.filter(lang => lang.isActive) || [];
-        
+
         // Trigger translation for each active language
         const translationPromises = activeLanguages.map(lang =>
             axiosInstance
@@ -43,9 +43,8 @@ const triggerTranslationForContent = async (contentId, contentType) => {
                     return null;
                 })
         );
-        
+
         await Promise.all(translationPromises);
-        console.log(`Translation triggered for ${contentType} ${contentId} to ${activeLanguages.length} languages`);
     } catch (error) {
         console.warn('Failed to trigger automatic translation:', error.message);
         // Don't throw - translation is a secondary process
@@ -92,7 +91,7 @@ export const adminAPI = {
             };
 
             const response = await axiosInstance.post(adminEndpoints.booksUpload, formData, config);
-            
+
             // Trigger translation after successful upload
             if (response.data?.id) {
                 await triggerTranslationForContent(response.data.id, 'book');
@@ -131,7 +130,7 @@ export const adminAPI = {
             };
 
             const response = await axiosInstance.post(adminEndpoints.examsImport, formData, config);
-            
+
             // Trigger translation after successful upload
             if (response.data?.id) {
                 await triggerTranslationForContent(response.data.id, 'exam');
@@ -170,7 +169,7 @@ export const adminAPI = {
             };
 
             const response = await axiosInstance.post(adminEndpoints.answerkeyImport, formData, config);
-            
+
             // Trigger translation after successful upload
             if (response.data?.id) {
                 await triggerTranslationForContent(response.data.id, 'answerKey');
@@ -240,13 +239,13 @@ export const adminAPI = {
                 filename: filename
             };
         },
-        translation: (translation_id) =>{
-                return axiosInstance.get(`${adminEndpoints.translations}/${translation_id}`);
-        },
-        getTranslation: (translation_id) =>{
+        translation: (translation_id) => {
             return axiosInstance.get(`${adminEndpoints.translations}/${translation_id}`);
         },
-        failed: () => axiosInstance.get(`${adminEndpoints.translations}/failed`),   
+        getTranslation: (translation_id) => {
+            return axiosInstance.get(`${adminEndpoints.translations}/${translation_id}`);
+        },
+        failed: () => axiosInstance.get(`${adminEndpoints.translations}/failed`),
     },
 
     // Jobs

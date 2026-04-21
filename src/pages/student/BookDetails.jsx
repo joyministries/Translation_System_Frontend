@@ -89,7 +89,6 @@ export function BookDetails() {
 
         // 2. Download the file blob
         const { blob: fileBlob, filename: downloadFilename } = await studentAPI.downloadTranslation(translationId);
-        console.log("Received file blob:", fileBlob);
 
         // 3. Trigger the browser download
         const url = window.URL.createObjectURL(fileBlob);
@@ -100,7 +99,7 @@ export function BookDetails() {
         a.click();
         a.remove();
         window.URL.revokeObjectURL(url);
-        
+
         toast.success("Download has started!", { id: toastId });
 
       } else {

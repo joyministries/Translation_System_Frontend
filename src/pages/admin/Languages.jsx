@@ -101,7 +101,6 @@ export function Languages() {
           native_name: formData.native_name,
           code: formData.code,
         });
-        console.log('Update response:', res);
         toast.success('Language updated successfully!');
       } else {
         const res = await adminAPI.languages.create({
@@ -109,7 +108,6 @@ export function Languages() {
           native_name: formData.native_name,
           code: formData.code,
         });
-        console.log('Create response:', res);
         toast.success('Language created successfully!');
       }
       handleCloseModal();
@@ -126,7 +124,6 @@ export function Languages() {
     try {
       if (currentStatus) {
         const res = await adminAPI.languages.deactivate(languageId);
-        console.log('Deactivate response:', res);
         toast.success('Language deactivated');
       } else {
         await adminAPI.languages.activate(languageId);
@@ -144,7 +141,6 @@ export function Languages() {
     setActionLoading(languageId);
     try {
       const res = await adminAPI.languages.delete(languageId);
-      console.log('Delete response:', res);
       toast.success('Language deleted successfully');
       fetchLanguages();
     } catch (error) {
@@ -239,11 +235,10 @@ export function Languages() {
                     <button
                       onClick={() => handleToggleLanguage(language.id, language.isActive)}
                       disabled={actionLoading === language.id}
-                      className={`px-3 py-1 rounded text-sm font-medium transition-colors disabled:opacity-50 ${
-                        language.isActive
+                      className={`px-3 py-1 rounded text-sm font-medium transition-colors disabled:opacity-50 ${language.isActive
                           ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'
                           : 'bg-green-100 text-green-800 hover:bg-green-200'
-                      }`}
+                        }`}
                     >
                       {actionLoading === language.id ? 'Loading...' : language.isActive ? 'Deactivate' : 'Activate'}
                     </button>
@@ -280,9 +275,8 @@ export function Languages() {
                 setFormErrors({ ...formErrors, name: '' });
               }}
               placeholder="e.g., French"
-              className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                formErrors.name ? 'border-red-500' : 'border-gray-300'
-              }`}
+              className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${formErrors.name ? 'border-red-500' : 'border-gray-300'
+                }`}
             />
             {formErrors.name && <p className="text-red-500 text-sm mt-1">{formErrors.name}</p>}
           </div>
@@ -309,9 +303,8 @@ export function Languages() {
               }}
               placeholder="e.g., fr"
               maxLength="2"
-              className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                formErrors.code ? 'border-red-500' : 'border-gray-300'
-              }`}
+              className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${formErrors.code ? 'border-red-500' : 'border-gray-300'
+                }`}
             />
             {formErrors.code && <p className="text-red-500 text-sm mt-1">{formErrors.code}</p>}
           </div>

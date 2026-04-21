@@ -4,7 +4,7 @@ import { MdArrowBack, MdDownload, MdCalendarToday } from "react-icons/md";
 import { studentAPI } from "../../api/student.jsx";
 import { Modal } from "../../components/shared/Modal";
 import { toast } from "react-hot-toast";
-import { Button  }from "../../components/shared/Button.jsx";
+import { Button } from "../../components/shared/Button.jsx";
 import { Spinner } from "../../components/shared/Spinner.jsx";
 
 export function ExamDetails() {
@@ -77,8 +77,6 @@ export function ExamDetails() {
         selectedLanguageId
       );
 
-      console.log("Translation job response:", jobResponse);
-
       await delay(2000);
 
 
@@ -89,23 +87,18 @@ export function ExamDetails() {
         toast.success("Translation complete! Preparing download...", { id: toastId });
 
         // 2. Download the file blob
-        const {blob: fileBlob, filename: downloadFilename} = await studentAPI.downloadTranslation(translationId);
-        console.log("Received file blob:", fileBlob);
-        console.log("Download filename:", downloadFilename);
-        console.log("Received file blob:", fileBlob);
+        const { blob: fileBlob, filename: downloadFilename } = await studentAPI.downloadTranslation(translationId);
 
         // 3. Trigger the browser download
         const url = window.URL.createObjectURL(fileBlob);
         const a = document.createElement("a");
-        console.log("Download URL:", url);
-        console.log("Exam title for filename:", exam.title);
         a.href = url;
         a.download = downloadFilename || `Translated_${exam.title}`;
         document.body.appendChild(a);
         a.click();
         a.remove();
         window.URL.revokeObjectURL(url);
-        
+
         toast.success("Download has started!", { id: toastId });
 
       } else {

@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MdArrowBack, 
-        MdAdd, 
-        MdDelete, 
-        MdEdit,
-        MdEmail } from 'react-icons/md';
+import {
+  MdArrowBack,
+  MdAdd,
+  MdDelete,
+  MdEdit,
+  MdEmail
+} from 'react-icons/md';
 import { Button } from '../../components/shared/Button';
 import { Modal } from '../../components/shared/Modal';
 import { ConfirmModal } from '../../components/shared/ConfirmModal';
@@ -93,14 +95,12 @@ export function Users() {
         institution_id: formData.institution,
         password: tempPassword,
       };
-      console.log("Creating user with data:", userData);
-      
+
       const response = await adminAPI.users.create(userData);
-      console.log("Users:", response);
       // Add new user to list (or refresh the entire list)
       const newUser = response.data || response;
       setUsers([...users, newUser]);
-      
+
       toast.success(`User ${formData.email} created successfully! They will receive an email to set their password.`);
       setShowCreateModal(false);
       setFormData({
@@ -205,11 +205,10 @@ export function Users() {
                   <td className="px-6 py-4 text-sm font-medium text-gray-900">{user.name}</td>
                   <td className="px-6 py-4 text-sm text-gray-600">{user.email}</td>
                   <td className="px-6 py-4 text-sm">
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      user.role === 'admin'
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${user.role === 'admin'
                         ? 'bg-purple-100 text-purple-800'
                         : 'bg-blue-100 text-blue-800'
-                    }`}>
+                      }`}>
                       {user.role === 'admin' ? '👨‍💼 Admin' : '👤 Student'}
                     </span>
                   </td>
@@ -236,8 +235,8 @@ export function Users() {
                         className="p-2 text-yellow-600 hover:bg-yellow-50 rounded transition-colors"
                         title="Reset password"
                         tool
-                        >
-                          <MdEmail className="w-4 h-4" />
+                      >
+                        <MdEmail className="w-4 h-4" />
                       </button>
                     </div>
                   </td>
@@ -267,9 +266,8 @@ export function Users() {
               value={formData.email}
               onChange={handleInputChange}
               placeholder="Enter email address"
-              className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                errors.email ? 'border-red-500' : 'border-gray-300'
-              }`}
+              className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.email ? 'border-red-500' : 'border-gray-300'
+                }`}
             />
             {errors.email && <p className="text-red-600 text-sm mt-1">{errors.email}</p>}
           </div>
@@ -295,9 +293,8 @@ export function Users() {
               name="institution"
               value={formData.institution}
               onChange={handleInputChange}
-              className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                errors.institution ? 'border-red-500' : 'border-gray-300'
-              }`}
+              className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.institution ? 'border-red-500' : 'border-gray-300'
+                }`}
             >
               <option value="">Select institution</option>
               {institutions.map(inst => (

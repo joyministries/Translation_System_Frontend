@@ -46,7 +46,7 @@ export const studentAPI = {
     getTranslation: async (translationId) => {
         try {
             const response = await axiosInstance.get(`${studentEndpoints.getTranslation}/${translationId}`);
-            return response.data; 
+            return response.data;
         } catch (error) {
             console.error('Get translation error:', error);
             throw error;
@@ -59,7 +59,6 @@ export const studentAPI = {
             if (!translationId) {
                 throw new Error('Translation ID is required for download');
             }
-            console.log(`Attempting to download translation with ID: ${translationId}`);
             const response = await axiosInstance.get(`${studentEndpoints.downloadTranslation}/${translationId}/download`, {
                 responseType: 'blob',
             });
@@ -95,7 +94,7 @@ export const studentAPI = {
             const checkStatus = async () => {
                 try {
                     const status = await studentAPI.getTranslationStatus(jobId);
-                    
+
                     if (status.status === 'completed') {
                         resolve(status);
                     } else if (status.status === 'failed') {
@@ -140,7 +139,7 @@ export const studentAPI = {
     getExams: async () => {
         try {
             const response = await axiosInstance.get(studentEndpoints.exams);
-            
+
             return response.data?.exams || response.data?.data || response.data || []; // Handle various response formats
         } catch (error) {
             console.error('Get exams error:', error);
