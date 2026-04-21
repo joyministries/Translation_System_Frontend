@@ -6,7 +6,7 @@ export const authEndpoints = {
     register: '/auth/register',
     refresh: '/auth/refresh',
     me: '/auth/me',
-    forgotPassword: '/auth/change-password',
+    forgotPassword: '/auth/forgot-password',
 }
 
 export const authAPI = {
@@ -56,14 +56,12 @@ export const authAPI = {
     },
     forgotPassword: async (email) => {
         try {
-            // This is a mock implementation.
-            // In a real app, this would send a request to your backend.
-            console.log(`Password reset requested for ${email}`);
-            await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate network delay
-            return { message: 'Password reset link sent.' };
+            const response = await axiosInstance.post(authEndpoints.forgotPassword, { email });
+            return response.data;
         } catch (error) {
             console.error('Forgot password error:', error);
-            throw new Error('Failed to send password reset link.');
+            const message = error.response?.data?.message || error.response?.data?.detail || 'Failed to send password reset link.';
+            throw new Error(message);
         }
     }
 }

@@ -62,7 +62,7 @@ Ensure you have a recent version of [Node.js](https://nodejs.org/) installed.
    > The application will automatically hot-reload across local endpoints (`localhost:5173`).
 
 ## 📁 Repository Structure
-\`\`\`text
+\`\`\` text
 src/
 ├── api/                  # Unified Axios boundaries and endpoint configurations
 ├── components/           # Reusable UI architecture (Tables, Modals, Auth Forms)
