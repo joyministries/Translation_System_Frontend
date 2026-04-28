@@ -19,6 +19,8 @@ export const adminEndpoints = {
     institutions: '/admin/institutions',
     all: '/admin/content',
     resetPassword: '/auth/reset-password',
+    bookTranslations: (bookId) => `/translations/book/${bookId}`,
+    examTranslations: (examId) => `/translations/exam/${examId}`,
 }
 
 // Helper function to trigger translations to all active languages
@@ -100,6 +102,17 @@ export const adminAPI = {
             return response.data;
         },
         delete: (id) => axiosInstance.delete(`${adminEndpoints.books}/${id}`),
+        // Get all completed translations for a specific book
+        getTranslations: async (bookId) => {
+            try {
+                const response = await axiosInstance.get(adminEndpoints.bookTranslations(bookId));
+                const raw = response.data;
+                return Array.isArray(raw) ? raw : (raw?.translations || raw?.items || raw?.data || []);
+            } catch (error) {
+                console.error('Get book translations error:', error);
+                return [];
+            }
+        },
     },
     exams: {
         list: async (page = 1, limit = 10) => {
@@ -139,6 +152,17 @@ export const adminAPI = {
             return response.data;
         },
         delete: (id) => axiosInstance.delete(`${adminEndpoints.exams}/${id}`),
+        // Get all completed translations for a specific exam
+        getTranslations: async (examId) => {
+            try {
+                const response = await axiosInstance.get(adminEndpoints.examTranslations(examId));
+                const raw = response.data;
+                return Array.isArray(raw) ? raw : (raw?.translations || raw?.items || raw?.data || []);
+            } catch (error) {
+                console.error('Get exam translations error:', error);
+                return [];
+            }
+        },
     },
     answerkeys: {
         list: async (page = 1, limit = 10) => {

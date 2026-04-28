@@ -11,6 +11,8 @@ export const studentEndpoints = {
     getTranslation: '/student/translate',
     downloadTranslation: '/student/translate',
     languages: '/student/content/languages',
+    bookTranslations: (bookId) => `/translations/book/${bookId}`,
+    examTranslations: (examId) => `/translations/exam/${examId}`,
 }
 
 export const studentAPI = {
@@ -83,6 +85,31 @@ export const studentAPI = {
                 data: error.response?.data,
                 config: error.config,
             });
+            throw error;
+        }
+    },
+
+    // Download translated file from a given relative URL
+    downloadFromUrl: async (url) => {
+        try {
+            const response = await axiosInstance.get(url, {
+                responseType: 'blob',
+            });
+            let filename = null;
+            const contentDisposition = response.headers['content-disposition'];
+            if (contentDisposition && contentDisposition.includes('attachment')) {
+                const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+                const matches = filenameRegex.exec(contentDisposition);
+                if (matches != null && matches[1]) {
+                    filename = matches[1].replace(/['"]/g, '');
+                }
+            }
+            return {
+                blob: response.data,
+                filename: filename
+            };
+        } catch (error) {
+            console.error('Download from URL error:', error);
             throw error;
         }
     },
@@ -190,7 +217,32 @@ export const studentAPI = {
             console.error('Get available languages error:', error);
             return []; // Return empty array on error
         }
-    }
+    },
+
+    // Get all completed translations for a specific book
+    getBookTranslations: async (bookId) => {
+        try {
+            const response = await axiosInstance.get(studentEndpoints.bookTranslations(bookId));
+            // Normalise: accept array or wrapped object
+            const raw = response.data;
+            return Array.isArray(raw) ? raw : (raw?.translations || raw?.items || raw?.data || []);
+        } catch (error) {
+            console.error('Get book translations error:', error);
+            return [];
+        }
+    },
+
+    // Get all completed translations for a specific exam
+    getExamTranslations: async (examId) => {
+        try {
+            const response = await axiosInstance.get(studentEndpoints.examTranslations(examId));
+            const raw = response.data;
+            return Array.isArray(raw) ? raw : (raw?.translations || raw?.items || raw?.data || []);
+        } catch (error) {
+            console.error('Get exam translations error:', error);
+            return [];
+        }
+    },
 }
 
 
