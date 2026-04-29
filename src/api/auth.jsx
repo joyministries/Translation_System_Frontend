@@ -13,6 +13,7 @@ export const authAPI = {
     login: async (email, password) => {
         try {
             const response = await axiosInstance.post(authEndpoints.login, { email, password });
+
             return response.data;
         } catch (error) {
             console.error('Login error:', error);
@@ -37,7 +38,7 @@ export const authAPI = {
         }
     },
     register: async (email, password, role) => {
-        try { 
+        try {
             const response = await axiosInstance.post(authEndpoints.register, { email, password, role });
             return response.data;
         } catch (error) {

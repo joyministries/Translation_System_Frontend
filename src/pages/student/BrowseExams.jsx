@@ -7,21 +7,19 @@ import { useNavigate } from 'react-router-dom';
 // Skeleton shimmer card for loading state
 function ExamCardSkeleton() {
   return (
-    <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden animate-pulse">
-      <div className="h-2 w-full bg-slate-200" />
-      <div className="px-5 pt-5 pb-3 flex items-start gap-4">
-        <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-slate-200" />
-        <div className="flex-1 space-y-2">
-          <div className="h-4 bg-slate-200 rounded w-3/4" />
-          <div className="h-5 w-20 bg-slate-100 rounded-full" />
+    <div className="bg-white border border-slate-200 rounded-xl p-5 flex flex-col h-full animate-pulse">
+      <div className="flex items-start gap-4 mb-4">
+        <div className="flex-shrink-0 w-11 h-11 rounded-lg bg-slate-100" />
+        <div className="flex-1 pt-1 space-y-2">
+          <div className="h-3.5 bg-slate-200 rounded w-full" />
+          <div className="h-5 w-20 bg-slate-100 rounded-md" />
         </div>
       </div>
-      <div className="px-5 pb-3">
-        <div className="h-6 w-36 bg-slate-100 rounded-full" />
+      <div className="mb-4">
+        <div className="h-6 w-36 bg-slate-100 rounded-md" />
       </div>
-      <div className="border-t border-slate-100 px-5 py-3 flex items-center justify-between">
+      <div className="mt-auto pt-4 border-t border-slate-50">
         <div className="h-3 bg-slate-100 rounded w-24" />
-        <div className="h-7 w-20 bg-slate-200 rounded-lg" />
       </div>
     </div>
   );

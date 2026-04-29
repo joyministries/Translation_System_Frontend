@@ -7,25 +7,21 @@ import { studentAPI } from '../../api/student.jsx';
 // Skeleton shimmer card for loading state
 function BookCardSkeleton() {
   return (
-    <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden animate-pulse">
-      <div className="h-2 w-full bg-slate-200" />
-      <div className="px-5 pt-5 pb-3 flex items-start gap-4">
-        <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-slate-200" />
-        <div className="flex-1 space-y-2">
-          <div className="h-4 bg-slate-200 rounded w-3/4" />
-          <div className="h-3 bg-slate-100 rounded w-1/2" />
+    <div className="bg-white border border-slate-200 rounded-xl p-5 flex flex-col h-full animate-pulse">
+      <div className="flex items-start gap-4 mb-4">
+        <div className="flex-shrink-0 w-11 h-11 rounded-lg bg-slate-100" />
+        <div className="flex-1 pt-1 space-y-2">
+          <div className="h-3.5 bg-slate-200 rounded w-full" />
+          <div className="h-3.5 bg-slate-100 rounded w-2/3" />
         </div>
       </div>
-      <div className="px-5 pb-3 flex gap-2">
-        <div className="h-5 w-16 bg-slate-100 rounded-full" />
-        <div className="h-5 w-14 bg-slate-100 rounded-full" />
+      <div className="flex flex-wrap gap-2 mb-5">
+        <div className="h-5 w-16 bg-slate-100 rounded-md" />
+        <div className="h-5 w-14 bg-slate-100 rounded-md" />
       </div>
-      <div className="border-t border-slate-100 px-5 py-3 flex items-center justify-between">
-        <div className="space-y-1">
-          <div className="h-3 bg-slate-100 rounded w-20" />
-          <div className="h-3 bg-slate-100 rounded w-24" />
-        </div>
-        <div className="h-7 w-20 bg-slate-200 rounded-lg" />
+      <div className="mt-auto pt-4 border-t border-slate-50 space-y-2">
+        <div className="h-3 bg-slate-100 rounded w-20" />
+        <div className="h-3 bg-slate-100 rounded w-24" />
       </div>
     </div>
   );
@@ -46,7 +42,6 @@ export function BrowseBooks() {
         const books = response.map(book => ({
           id: book.id || '',
           title: book.title || 'Untitled',
-          author: book.author || 'Unknown Author',
           subject: book.subject || 'General',
           language: book.language || 'English',
           pages: book.page_count || 0,
@@ -69,8 +64,7 @@ export function BrowseBooks() {
   const categories = ['All', ...new Set(allBooks.map(book => book.subject))];
 
   const filteredBooks = allBooks.filter(book => {
-    const matchesSearch = book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         book.author.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = book.title.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = selectedCategory === 'All' || book.subject === selectedCategory;
     return matchesSearch && matchesCategory;
   });
@@ -97,7 +91,7 @@ export function BrowseBooks() {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search by book title or author..."
+            placeholder="Search by book title..."
             className="w-full pl-12 pr-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-slate-50 transition"
           />
         </div>

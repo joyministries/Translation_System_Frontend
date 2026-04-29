@@ -126,20 +126,13 @@ export function ExamDetails() {
     } finally { setDownloadingId(null); }
   };
 
-  if (isLoading) return <div className="min-h-screen flex items-center justify-center bg-slate-50"><Spinner /></div>;
+  if (isLoading) return <div className="flex justify-center items-center py-20"><Spinner /></div>;
 
   if (notFound || !exam) return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="bg-white border-b border-slate-200 px-6 py-4">
-        <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium">
-          <MdArrowBack className="w-5 h-5" /> Back
-        </button>
-      </div>
-      <div className="max-w-lg mx-auto py-20 text-center">
-        <h1 className="text-2xl font-bold text-slate-900 mb-2">Exam Not Found</h1>
-        <p className="text-slate-500 mb-6">This exam doesn&apos;t exist or has been removed.</p>
-        <button onClick={() => navigate("/student/browse-exams")} className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium">Browse Exams</button>
-      </div>
+    <div className="py-20 text-center">
+      <h1 className="text-2xl font-bold text-slate-900 mb-2">Exam Not Found</h1>
+      <p className="text-slate-500 mb-6">This exam doesn't exist or has been removed.</p>
+      <button onClick={() => navigate("/student/browse-exams")} className="px-6 py-3 bg-violet-600 text-white rounded-lg hover:bg-violet-700 font-medium">Browse Exams</button>
     </div>
   );
 
@@ -148,9 +141,9 @@ export function ExamDetails() {
   const pageRows = doneTranslations.slice(pageStart, pageStart + PAGE_SIZE);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-slate-50">
+    <div className="flex flex-col md:flex-row gap-6">
       {/* ── SIDEBAR ── */}
-      <aside className="w-80 flex-shrink-0 bg-white border-r border-slate-200 flex flex-col overflow-y-auto">
+      <aside className="w-full md:w-80 flex-shrink-0 bg-white border border-slate-200 rounded-xl flex flex-col">
         <div className="px-6 py-5 border-b border-slate-100">
           <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-slate-500 hover:text-violet-600 font-medium transition-colors">
             <MdArrowBack className="w-5 h-5" /> Back to Browse
@@ -192,7 +185,7 @@ export function ExamDetails() {
       </aside>
 
       {/* ── MAIN ── */}
-      <main className="flex-1 min-w-0 overflow-auto p-6">
+      <main className="flex-1 min-w-0">
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-2.5">
             <MdTranslate className="w-5 h-5 text-violet-600" />
