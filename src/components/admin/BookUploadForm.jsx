@@ -346,12 +346,6 @@ export function BookUploadForm({ onBookUploaded }) {
           </div>
         </div>
 
-        {/* File Size Info */}
-        <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
-          <p className="text-sm text-blue-900">
-            File size: <span className="font-semibold">{file.size}</span>
-          </p>
-        </div>
       </div>
       )
 
