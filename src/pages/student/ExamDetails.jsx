@@ -12,10 +12,14 @@ import { Spinner } from "../../components/shared/Spinner.jsx";
 const PAGE_SIZE = 50;
 
 function saveBlob(blob, filename) {
+  let finalName = filename || "download.pdf";
+  if (!finalName.toLowerCase().endsWith('.pdf')) {
+      finalName += '.pdf';
+  }
   const objectUrl = window.URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = objectUrl;
-  a.download = filename || "download";
+  a.download = finalName;
   document.body.appendChild(a);
   a.click();
   a.remove();

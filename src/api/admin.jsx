@@ -49,7 +49,6 @@ const triggerTranslationForContent = async (contentId, contentType) => {
         await Promise.all(translationPromises);
     } catch (error) {
         console.warn('Failed to trigger automatic translation:', error.message);
-        // Don't throw - translation is a secondary process
     }
 };
 
@@ -218,7 +217,6 @@ export const adminAPI = {
         activate: (languageId) => axiosInstance.post(`${adminEndpoints.languages}/${languageId}/activate`),
         deactivate: (languageId) => axiosInstance.post(`${adminEndpoints.languages}/${languageId}/deactivate`),
         toggle: (languageId) => {
-            // This will determine whether to activate or deactivate based on current state
             return axiosInstance.post(`${adminEndpoints.languages}/${languageId}/toggle`);
         },
     },

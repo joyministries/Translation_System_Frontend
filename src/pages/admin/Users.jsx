@@ -1,17 +1,82 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   MdArrowBack,
   MdAdd,
   MdDelete,
   MdEdit,
-  MdEmail
+  MdEmail,
+  MdMoreVert
 } from 'react-icons/md';
 import { Button } from '../../components/shared/Button';
 import { Modal } from '../../components/shared/Modal';
 import { ConfirmModal } from '../../components/shared/ConfirmModal';
 import { adminAPI } from '../../api/admin.jsx';
 import toast from 'react-hot-toast';
+
+function ActionDropdown({ user, onEdit, onDelete, onResetPassword }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  return (
+    <div className="relative inline-block text-left" ref={dropdownRef}>
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="p-1.5 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+      >
+        <MdMoreVert className="w-5 h-5" />
+      </button>
+
+      {isOpen && (
+        <div className="absolute right-0 mt-1 w-44 bg-white rounded-lg shadow-lg border border-gray-100 z-10 py-1">
+          <button
+            onClick={() => {
+              setIsOpen(false);
+              onEdit(user);
+            }}
+            className="w-full text-left px-4 py-2 text-sm flex items-center gap-2 text-gray-700 hover:bg-gray-50"
+          >
+            <MdEdit className="w-4 h-4 text-blue-600" />
+            Edit User
+          </button>
+
+          <button
+            onClick={() => {
+              setIsOpen(false);
+              onResetPassword(user.id);
+            }}
+            className="w-full text-left px-4 py-2 text-sm flex items-center gap-2 text-gray-700 hover:bg-gray-50"
+          >
+            <MdEmail className="w-4 h-4 text-yellow-600" />
+            Reset Password
+          </button>
+
+          <button
+            onClick={() => {
+              setIsOpen(false);
+              onDelete(user.id);
+            }}
+            className="w-full text-left px-4 py-2 text-sm flex items-center gap-2 text-red-600 hover:bg-red-50"
+          >
+            <MdDelete className="w-4 h-4" />
+            Delete User
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export function Users() {
   const navigate = useNavigate();
@@ -184,25 +249,21 @@ export function Users() {
         <table className="w-full">
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Name</th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Email</th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Role</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Institution</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Created</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Actions</th>
+              <th className="px-6 py-3 text-right text-sm font-semibold text-gray-900">Actions</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan="6" className="p-8 text-center text-gray-500">
+                <td colSpan="3" className="p-8 text-center text-gray-500">
                   Loading users...
                 </td>
               </tr>
             ) : users.length > 0 ? (
               users.map((user) => (
                 <tr key={user.id} className="border-b border-gray-200 hover:bg-gray-50">
-                  <td className="px-6 py-4 text-sm font-medium text-gray-900">{user.name}</td>
                   <td className="px-6 py-4 text-sm text-gray-600">{user.email}</td>
                   <td className="px-6 py-4 text-sm">
                     <span className={`px-3 py-1 rounded-full text-xs font-medium ${user.role === 'admin'
@@ -212,39 +273,19 @@ export function Users() {
                       {user.role === 'admin' ? '👨‍💼 Admin' : '👤 Student'}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{user.institution}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{new Date(user.createdAt).toLocaleDateString()}</td>
-                  <td className="px-6 py-4 text-sm">
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => toast.info('Edit functionality coming soon')}
-                        className="p-2 text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                        title="Edit user"
-                      >
-                        <MdEdit className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => setShowDeleteConfirm(user.id)}
-                        className="p-2 text-red-600 hover:bg-red-50 rounded transition-colors"
-                        title="Delete user"
-                      >
-                        <MdDelete className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleResetPassword(user.id)}
-                        className="p-2 text-yellow-600 hover:bg-yellow-50 rounded transition-colors"
-                        title="Reset password"
-                        tool
-                      >
-                        <MdEmail className="w-4 h-4" />
-                      </button>
-                    </div>
+                  <td className="px-6 py-4 text-sm text-right">
+                    <ActionDropdown
+                      user={user}
+                      onEdit={() => toast.info('Edit functionality coming soon')}
+                      onDelete={(id) => setShowDeleteConfirm(id)}
+                      onResetPassword={(id) => handleResetPassword(id)}
+                    />
                   </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan="6" className="p-8 text-center">
+                <td colSpan="3" className="p-8 text-center">
                   <p className="text-gray-500 text-lg">No users created yet</p>
                   <p className="text-gray-400 text-sm mt-1">Click "Create User" to add your first user</p>
                 </td>

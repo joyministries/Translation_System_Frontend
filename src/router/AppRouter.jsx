@@ -16,6 +16,7 @@ import { BrowseBooks } from '../pages/student/BrowseBooks';
 import { BrowseExams } from '../pages/student/BrowseExams';
 import { ExamDetails } from '../pages/student/ExamDetails';
 import { TranslationStats } from '../pages/admin/TranslationStats';
+import { AdminBookDetails } from '../pages/admin/AdminBookDetails';
 
 export function AppRouter() {
   return (
@@ -44,6 +45,7 @@ export function AppRouter() {
           <Route path="institutions" element={<Institutions />} />
           <Route path="users" element={<Users />} />
           <Route path="translation-stats" element={<TranslationStats />} />
+          <Route path="book/:bookId" element={<AdminBookDetails />} />
 
         </Route>
 

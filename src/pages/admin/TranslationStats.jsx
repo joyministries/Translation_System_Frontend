@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MdArrowBack } from 'react-icons/md';
 import {
@@ -16,9 +16,10 @@ import {
 } from 'recharts';
 import { adminAPI } from '../../api/admin.jsx';
 import toast from 'react-hot-toast';
-import { CheckCircle, Activity, Globe, FileText, AlertCircle, RefreshCw, Download } from 'lucide-react';
+import { CheckCircle, Activity, Globe, FileText, AlertCircle, RefreshCw, Clock } from 'lucide-react';
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
+
 const PIE_COLORS = ['#6366f1', '#eab308'];
 
 export function TranslationStats() {
@@ -29,66 +30,58 @@ export function TranslationStats() {
   const [overview, setOverview] = useState(null);
   const [languages, setLanguages] = useState([]);
   const [recentFailures, setRecentFailures] = useState([]);
-  const [translationsList, setTranslationsList] = useState([]);
+  const [activeJobs, setActiveJobs] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchStatsData = async () => {
-      try {
-        setLoading(true);
-        const [statsResponse, listResponse] = await Promise.all([
-          adminAPI.translations.getStats(),
-          adminAPI.translations.list().catch(err => {
-            console.error('Failed to fetch translations list:', err);
-            return { data: [] };
-          })
-        ]);
+  const fetchStatsData = useCallback(async () => {
+    try {
+      setLoading(true);
+      const [statsResponse, listResponse] = await Promise.all([
+        adminAPI.translations.getStats(),
+        adminAPI.translations.list().catch(err => {
+          console.error('Failed to fetch translations list:', err);
+          return { data: [] };
+        })
+      ]);
 
-        const data = statsResponse.data;
-        setJobs(data.jobs);
-        setRecentFailures(data.recent_failures);
-        setLanguages(data.top_languages);
-        setStatsByContent(data.by_content_type);
-        setByStatus(data.by_status);
-        const listRaw = listResponse.data;
-        const allTranslations = Array.isArray(listRaw) ? listRaw : (listRaw?.items || listRaw?.translations || []);
+      const data = statsResponse.data;
+      setJobs(data.jobs);
+      setRecentFailures(data.recent_failures);
+      setLanguages(data.top_languages);
+      setStatsByContent(data.by_content_type);
+      setByStatus(data.by_status);
 
-        // Filter to only show those 'done'/'completed' within the last 24 hours
-        const oneDayAgo = new Date();
-        oneDayAgo.setDate(oneDayAgo.getDate() - 1);
-
-        const filteredTranslations = allTranslations.filter(item => {
-          const itemDate = new Date(item.created_at || new Date());
-          return itemDate >= oneDayAgo;
-        });
-
-        setTranslationsList(filteredTranslations);
-      } catch (error) {
-        console.error('Failed to fetch stats:', error);
-        toast.error('Failed to load statistics');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchStatsData();
+      const listRaw = listResponse.data;
+      const allTranslations = Array.isArray(listRaw) ? listRaw : (listRaw?.items || listRaw?.translations || []);
+      
+      const pendingAndFailed = allTranslations.filter(t => 
+        ['pending', 'processing', 'failed'].includes((t.status || '').toLowerCase())
+      );
+      setActiveJobs(pendingAndFailed);
+    } catch (error) {
+      console.error('Failed to fetch stats:', error);
+      toast.error('Failed to load statistics');
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  const handleDownload = async (translationId) => {
-    const toastId = toast.loading('Preparing download...');
+  useEffect(() => {
+    fetchStatsData();
+  }, [fetchStatsData]);
+
+  const handleRetry = async (job) => {
+    if (!job.content_id || !job.language_id) {
+      toast.error("Cannot retry: Missing job details.");
+      return;
+    }
+    const tid = toast.loading("Retrying translation...");
     try {
-      const { blob, filename } = await adminAPI.translations.download(translationId);
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename || `Translation_${translationId}`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
-      toast.success('Download started!', { id: toastId });
+      await adminAPI.translations.trigger(job.content_id, job.content_type || 'book', job.language_id);
+      toast.success("Retry triggered successfully!", { id: tid });
+      fetchStatsData();
     } catch (error) {
-      toast.error('Failed to download file.', { id: toastId });
+      toast.error("Failed to retry translation.", { id: tid });
     }
   };
 
@@ -325,19 +318,28 @@ export function TranslationStats() {
         </div>
       </div>
 
-      {/* Translations List Table */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="p-6 border-b border-gray-100 flex items-center gap-3">
-          <h2 className="text-lg font-semibold text-gray-900">Recent Translations</h2>
-          <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
-            {translationsList.length}
-          </span>
+      {/* Active Jobs Queue */}
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mt-8">
+        <div className="p-6 border-b border-gray-100 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <h2 className="text-lg font-semibold text-gray-900">Active & Failed Jobs Queue</h2>
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
+              {activeJobs.length}
+            </span>
+          </div>
+          <button 
+            onClick={() => fetchStatsData()} 
+            className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+            title="Refresh Queue"
+          >
+            <RefreshCw className="w-5 h-5" />
+          </button>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-gray-50 text-gray-500 text-sm border-b border-gray-100">
-                <th className="px-6 py-4 font-medium">ID</th>
+                <th className="px-6 py-4 font-medium">Job ID</th>
                 <th className="px-6 py-4 font-medium">Content Type</th>
                 <th className="px-6 py-4 font-medium">Language</th>
                 <th className="px-6 py-4 font-medium">Status</th>
@@ -346,35 +348,35 @@ export function TranslationStats() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {translationsList.length > 0 ? (
-                translationsList.map((item) => (
+              {activeJobs.length > 0 ? (
+                activeJobs.map((item) => (
                   <tr key={item.id} className="hover:bg-gray-50/50 transition-colors">
                     <td className="px-6 py-4 text-sm font-mono text-gray-500">#{item.id}</td>
                     <td className="px-6 py-4 text-sm text-gray-700 font-medium capitalize">{item.content_type || 'Unknown'}</td>
                     <td className="px-6 py-4 text-sm text-gray-600">{item.target_language}</td>
                     <td className="px-6 py-4 text-sm">
-                      <span className={`px-2.5 py-1 rounded-full text-xs font-medium border ${item.status === 'completed' || item.status === 'done' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                      <span className={`px-2.5 py-1 rounded-full text-xs font-medium border ${
                         item.status === 'failed' ? 'bg-red-50 text-red-700 border-red-200' :
-                          item.status === 'processing' ? 'bg-blue-50 text-blue-700 border-blue-200' :
-                            'bg-amber-50 text-amber-700 border-amber-200'
-                        }`}>
+                        'bg-amber-50 text-amber-700 border-amber-200 flex items-center gap-1.5 inline-flex'
+                      }`}>
+                        {item.status !== 'failed' && <Clock className="w-3 h-3 animate-pulse" />}
                         {item.status || 'Pending'}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-500">
-                      {new Date(item.created_at || new Date()).toLocaleDateString()}
+                      {new Date(item.created_at || new Date()).toLocaleString()}
                     </td>
-                    <td className="px-6 py-4 text-sm flex justify-end">
-                      {(item.status === 'completed' || item.status === 'done') ? (
+                    <td className="px-6 py-4 text-sm flex justify-end items-center gap-3">
+                      {item.status === 'failed' ? (
                         <button
-                          onClick={() => handleDownload(item.id || item.translation_id)}
+                          onClick={() => handleRetry(item)}
                           className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
                         >
-                          <Download className="w-4 h-4" />
-                          Download
+                          <RefreshCw className="w-4 h-4" />
+                          Retry
                         </button>
                       ) : (
-                        <span className="text-gray-400 text-sm px-3 py-1.5">Unavailable</span>
+                        <span className="text-gray-400 text-sm">Processing...</span>
                       )}
                     </td>
                   </tr>
@@ -382,7 +384,11 @@ export function TranslationStats() {
               ) : (
                 <tr>
                   <td colSpan="6" className="px-6 py-12 text-center">
-                    <p className="text-gray-500 text-sm">No translations found.</p>
+                    <div className="flex flex-col items-center justify-center text-gray-400">
+                      <CheckCircle className="w-8 h-8 text-emerald-400 mb-2" />
+                      <p className="text-gray-500 text-sm">No active or failed jobs.</p>
+                      <p className="text-xs text-gray-400 mt-1">All translations are completed.</p>
+                    </div>
                   </td>
                 </tr>
               )}
@@ -390,6 +396,7 @@ export function TranslationStats() {
           </table>
         </div>
       </div>
+
     </div>
   );
 }

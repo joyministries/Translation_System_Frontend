@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import {
   MdArrowBack, MdDownload, MdCalendarToday, MdPages,
   MdBookmark, MdTranslate, MdCheckCircle, MdMenuBook,
 } from "react-icons/md";
-import { studentAPI } from "../../api/student.jsx";
+import { adminAPI } from "../../api/admin.jsx";
 import { toast } from "react-hot-toast";
 import { Button } from "../../components/shared/Button.jsx";
 import { Spinner } from "../../components/shared/Spinner.jsx";
@@ -12,25 +12,22 @@ import { Spinner } from "../../components/shared/Spinner.jsx";
 const PAGE_SIZE = 50;
 
 function saveBlob(blob, filename) {
-  let finalName = filename || "download.pdf";
-  if (!finalName.toLowerCase().endsWith('.pdf')) {
-      finalName += '.pdf';
-  }
   const objectUrl = window.URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = objectUrl;
-  a.download = finalName;
+  a.download = filename;
   document.body.appendChild(a);
   a.click();
   a.remove();
   window.URL.revokeObjectURL(objectUrl);
 }
 
-export function BookDetails() {
+export function AdminBookDetails() {
   const { bookId } = useParams();
   const navigate = useNavigate();
-  const [book, setBook] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const location = useLocation();
+  const [book, setBook] = useState(location.state?.book || null);
+  const [isLoading, setIsLoading] = useState(!book);
   const [notFound, setNotFound] = useState(false);
   const [availableLanguages, setAvailableLanguages] = useState([]);
   const [selectedLanguageId, setSelectedLanguageId] = useState("");
@@ -41,25 +38,33 @@ export function BookDetails() {
   const [translationsPage, setTranslationsPage] = useState(1);
 
   useEffect(() => {
-    (async () => {
-      setIsLoading(true);
-      try {
-        const data = await studentAPI.getBook(bookId);
-        if (!data) setNotFound(true);
-        else setBook(data);
-      } catch (e) {
-        console.error(e);
-        toast.error("Error fetching book details.");
-        setNotFound(true);
-      } finally { setIsLoading(false); }
-    })();
-  }, [bookId]);
+    if (!book) {
+      // If we don't have the book from state, fetch it from the list
+      // Since adminAPI doesn't have a direct getBook by ID, we fetch the list and find it
+      (async () => {
+        setIsLoading(true);
+        try {
+          const response = await adminAPI.books.list(1, 1000);
+          const foundBook = (response.items || response.data || []).find(b => b.id === parseInt(bookId) || b.id === bookId);
+          if (!foundBook) setNotFound(true);
+          else setBook(foundBook);
+        } catch (e) {
+          console.error(e);
+          toast.error("Error fetching book details.");
+          setNotFound(true);
+        } finally { setIsLoading(false); }
+      })();
+    }
+  }, [book, bookId]);
 
   useEffect(() => {
     (async () => {
       try {
-        const langs = await studentAPI.getAvailableLanguages();
-        if (langs?.length) setAvailableLanguages(langs);
+        const response = await adminAPI.languages.list();
+        const langs = response.data.languages;
+        if (Array.isArray(langs)) {
+          setAvailableLanguages(langs.filter(l => l.isActive !== false));
+        }
       } catch (e) { console.error(e); }
     })();
   }, []);
@@ -67,7 +72,7 @@ export function BookDetails() {
   const loadTranslations = async () => {
     setTranslationsLoading(true);
     try {
-      const all = await studentAPI.getBookTranslations(bookId);
+      const all = await adminAPI.books.getTranslations(bookId);
       setDoneTranslations(
         all.filter((t) => t.status === "done" || t.status === "completed")
       );
@@ -78,29 +83,60 @@ export function BookDetails() {
 
   useEffect(() => { loadTranslations(); }, [bookId]);
 
+  const delay = (ms) => new Promise((r) => setTimeout(r, ms));
+
   const handleTranslate = async () => {
     if (!selectedLanguageId) { toast.error("Please select a language first."); return; }
     setIsTranslating(true);
     const tid = toast.loading("Starting translation…");
     try {
-      const job = await studentAPI.triggerTranslation("book", bookId, selectedLanguageId);
-      if (job.status === "done" || job.status === "completed") {
-        if (job.download_url) {
-          toast.loading("Preparing download…", { id: tid });
-          const { blob, filename } = await studentAPI.downloadFromUrl(job.download_url);
-          saveBlob(blob, filename || `Translated_${book?.title || "Book"}`);
-          toast.success("Download started!", { id: tid });
-        } else {
-          const translId = job.translation_id || job.id;
-          toast.loading("Preparing download…", { id: tid });
-          const { blob, filename } = await studentAPI.downloadTranslation(translId);
-          saveBlob(blob, filename || `Translated_${book?.title}`);
-          toast.success("Download started!", { id: tid });
+      const response = await adminAPI.translations.trigger(bookId, "book", selectedLanguageId);
+      const job = response.data || response;
+      const translId = job.translation_id || job.id;
+      
+      let isDone = false;
+      let finalJob = job;
+      let attempts = 0;
+      
+      while (!isDone && attempts < 60) {
+        if (finalJob.status === "done" || finalJob.status === "completed") {
+          isDone = true;
+          break;
+        } else if (finalJob.status === "failed") {
+          throw new Error("Translation failed during processing.");
         }
-        await loadTranslations();
-      } else {
-        toast.error("Translation taking longer than expected. Try again later.", { id: tid });
+        await delay(3000);
+        const statusRes = await adminAPI.translations.getTranslation(translId);
+        finalJob = statusRes.data || statusRes;
+        attempts++;
       }
+      
+      if (!isDone) {
+        toast.success("Translation is taking longer than expected. It will complete in the background.", { id: tid });
+        await loadTranslations();
+        return;
+      }
+
+      toast.loading("Preparing download…", { id: tid });
+      const { blob, filename } = await adminAPI.translations.download(translId);
+      
+      let baseName = filename || book?.title || 'Translated_Book';
+      baseName = baseName.replace(/\.[^/.]+$/, "");
+      
+      let safeExtension = "";
+      switch (blob.type) {
+        case 'application/pdf': safeExtension = '.pdf'; break;
+        case 'application/msword': safeExtension = '.doc'; break;
+        case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document': safeExtension = '.docx'; break;
+        default:
+          const originalExtMatch = filename?.match(/\.[^/.]+$/);
+          safeExtension = originalExtMatch ? originalExtMatch[0] : '';
+      }
+      const finalFileName = `${baseName}${safeExtension}`;
+      saveBlob(blob, finalFileName);
+      
+      toast.success("Download started!", { id: tid });
+      await loadTranslations();
     } catch (e) {
       toast.error(e.message || "Translation failed.", { id: tid });
     } finally { setIsTranslating(false); }
@@ -111,17 +147,29 @@ export function BookDetails() {
     setDownloadingId(id);
     const tid = toast.loading("Preparing download…");
     try {
-      const langName = t.language_name || t.target_language || "Translated";
-      const defaultName = `${book?.title}`;
-      if (t.download_url) {
-        const { blob, filename } = await studentAPI.downloadFromUrl(t.download_url);
-        saveBlob(blob, filename || defaultName);
-        toast.success("Download started!", { id: tid });
-      } else {
-        const { blob, filename } = await studentAPI.downloadTranslation(id);
-        saveBlob(blob, filename || defaultName);
-        toast.success("Download started!", { id: tid });
+      const { blob, filename } = await adminAPI.translations.download(id);
+      let baseName = filename || book?.title || 'Translated_Book';
+      baseName = baseName.replace(/\.[^/.]+$/, "");
+
+      let safeExtension = "";
+
+      switch (blob.type) {
+        case 'application/pdf':
+          safeExtension = '.pdf';
+          break;
+        case 'application/msword':
+          safeExtension = '.doc';
+          break;
+        case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
+          safeExtension = '.docx';
+          break;
+        default:
+          const originalExtMatch = filename?.match(/\.[^/.]+$/);
+          safeExtension = originalExtMatch ? originalExtMatch[0] : '';
       }
+      const finalFileName = `${baseName}${safeExtension}`;
+      saveBlob(blob, finalFileName);
+      toast.success("Download started!", { id: tid });
     } catch (e) {
       toast.error("Failed to download translation.", { id: tid });
     } finally { setDownloadingId(null); }
@@ -133,7 +181,7 @@ export function BookDetails() {
     <div className="py-20 text-center">
       <h1 className="text-2xl font-bold text-slate-900 mb-2">Book Not Found</h1>
       <p className="text-slate-500 mb-6">This book doesn't exist or has been removed.</p>
-      <button onClick={() => navigate("/student/browse")} className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium">Browse Books</button>
+      <button onClick={() => navigate("/admin/books")} className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium">Back to Books</button>
     </div>
   );
 
@@ -142,12 +190,12 @@ export function BookDetails() {
   const pageRows = doneTranslations.slice(pageStart, pageStart + PAGE_SIZE);
 
   return (
-    <div className="flex flex-col md:flex-row gap-6">
+    <div className="flex flex-col md:flex-row gap-6 p-6">
       {/* ── SIDEBAR ── */}
       <aside className="w-full md:w-80 flex-shrink-0 bg-white border border-slate-200 rounded-xl flex flex-col">
         <div className="px-6 py-5 border-b border-slate-100">
           <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-slate-500 hover:text-blue-600 font-medium transition-colors">
-            <MdArrowBack className="w-5 h-5" /> Back to Browse
+            <MdArrowBack className="w-5 h-5" /> Back to Books
           </button>
         </div>
 
@@ -177,14 +225,14 @@ export function BookDetails() {
               <select
                 id="lang-book"
                 value={selectedLanguageId}
-                onChange={(e) => setSelectedLanguageId(parseInt(e.target.value, 10))}
+                onChange={(e) => setSelectedLanguageId(e.target.value)}
                 className="w-full px-4 py-2.5 text-sm border border-blue-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 mb-4 transition-shadow"
               >
                 <option value="">Select a language…</option>
                 {availableLanguages.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
               </select>
               <Button onClick={handleTranslate} disabled={isTranslating || !selectedLanguageId} className="w-full py-2.5 shadow-sm">
-                {isTranslating ? "Translating…" : "Translate & Download"}
+                {isTranslating ? "Translating…" : "Trigger Translation"}
               </Button>
             </div>
           </div>
