@@ -7,9 +7,7 @@ import { StudentLayout } from '../components/student/StudentLayout';
 import { Dashboard } from '../pages/admin/Dashboard';
 import { Books } from '../pages/admin/Books';
 import { Exams } from '../pages/admin/Exams';
-import { AnswerKeys } from '../pages/admin/AnswerKeys';
 import { Languages } from '../pages/admin/Languages';
-import { Institutions } from '../pages/admin/Institutions';
 import { Users } from '../pages/admin/Users';
 import { BookDetails } from '../pages/student/BookDetails';
 import { BrowseBooks } from '../pages/student/BrowseBooks';
@@ -40,9 +38,7 @@ export function AppRouter() {
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="books" element={<Books />} />
           <Route path="exams" element={<Exams />} />
-          <Route path="answer-keys" element={<AnswerKeys />} />
           <Route path="languages" element={<Languages />} />
-          <Route path="institutions" element={<Institutions />} />
           <Route path="users" element={<Users />} />
           <Route path="translation-stats" element={<TranslationStats />} />
           <Route path="book/:bookId" element={<AdminBookDetails />} />

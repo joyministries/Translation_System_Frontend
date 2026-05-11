@@ -11,21 +11,17 @@ export function ExamTable({ exams, onSelectExam }) {
               Exam Title
             </th>
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Questions
-            </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Date Created
             </th>
-            <th scope="col" className="relative px-6 py-3">
+            <th scope="col" className="relative px-6 py-px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               <span className="sr-only">Actions</span>
             </th>
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
-          {exams.map((exam) => (
+          {[...exams].reverse().map((exam) => (
             <tr key={exam.id}>
               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{exam.title}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{exam.question_count}</td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                 {new Date(exam.created_at).toLocaleDateString()}
               </td>

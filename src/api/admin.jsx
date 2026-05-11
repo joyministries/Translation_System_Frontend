@@ -9,16 +9,12 @@ export const adminEndpoints = {
     translationTranslate: '/admin/translations/translate',
     exams: '/admin/content/exams',
     examsImport: '/admin/content/exams/import',
-    answerkeys: '/admin/content/answer-keys',
-    answerkeyImport: '/admin/answer-keys/import',
     languages: '/admin/content/languages',
     languagesActivate: '/admin/languages/{language_id}/activate',
     languagesDeactivate: '/admin/languages/{language_id}/deactivate',
     jobs: '/admin/jobs',
     users: '/admin/users',
-    institutions: '/admin/institutions',
     all: '/admin/content',
-    resetPassword: '/auth/reset-password',
     bookTranslations: (bookId) => `/translations/book/${bookId}`,
     examTranslations: (examId) => `/translations/exam/${examId}`,
 }
@@ -163,44 +159,6 @@ export const adminAPI = {
             }
         },
     },
-    answerkeys: {
-        list: async (page = 1, limit = 10) => {
-            const response = await axiosInstance.get(adminEndpoints.answerkeys, {
-                params: { page, limit }
-            });
-            return response.data;
-        },
-        upload: async (file, metadata, onProgress) => {
-            const formData = new FormData();
-            formData.append('file', file);
-            Object.keys(metadata).forEach(key => {
-                formData.append(key, metadata[key]);
-            });
-
-            const config = {
-                headers: { 'Content-Type': 'multipart/form-data' },
-                onUploadProgress: (progressEvent) => {
-                    if (onProgress) {
-                        const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-                        onProgress({
-                            progress,
-                            loaded: progressEvent.loaded,
-                            total: progressEvent.total,
-                        });
-                    }
-                },
-            };
-
-            const response = await axiosInstance.post(adminEndpoints.answerkeyImport, formData, config);
-
-            // Trigger translation after successful upload
-            if (response.data?.id) {
-                await triggerTranslationForContent(response.data.id, 'answerKey');
-            }
-
-            return response.data;
-        },
-    },
 
     // Languages
     languages: {
@@ -210,15 +168,8 @@ export const adminAPI = {
                 params: { skip, limit }
             });
         },
-        create: (languageData) => axiosInstance.post(adminEndpoints.languages, languageData),
-        get: (languageId) => axiosInstance.get(`${adminEndpoints.languages}/${languageId}`),
-        update: (languageId, languageData) => axiosInstance.patch(`${adminEndpoints.languages}/${languageId}`, languageData),
-        delete: (languageId) => axiosInstance.delete(`${adminEndpoints.languages}/${languageId}`),
         activate: (languageId) => axiosInstance.post(`${adminEndpoints.languages}/${languageId}/activate`),
         deactivate: (languageId) => axiosInstance.post(`${adminEndpoints.languages}/${languageId}/deactivate`),
-        toggle: (languageId) => {
-            return axiosInstance.post(`${adminEndpoints.languages}/${languageId}/toggle`);
-        },
     },
 
     // Translations
@@ -281,36 +232,19 @@ export const adminAPI = {
             const response = await axiosInstance.post(adminEndpoints.users, userData);
             return response.data;
         },
-        list: async (page = 1, limit = 10, role = null, institution_id = null) => {
+        list: async (page = 1, limit = 10, role = null) => {
             const response = await axiosInstance.get(adminEndpoints.users, {
-                params: { page, limit, role, institution_id }
+                params: { page, limit, role }
             });
             return response.data;
-        }
-    },
-
-    // Institutions
-    institutions: {
-        list: async (page = 1, limit = 10) => {
-            return axiosInstance.get(adminEndpoints.institutions, {
-                params: { page, limit }
-            });
         },
-        create: (institutionData) => axiosInstance.post(adminEndpoints.institutions, institutionData),
-        update: (institutionId, institutionData) => axiosInstance.put(`${adminEndpoints.institutions}/${institutionId}`, institutionData),
-        delete: (institutionId) => axiosInstance.delete(`${adminEndpoints.institutions}/${institutionId}`),
-        assignBooks: (institutionId, bookIds) => axiosInstance.post(`${adminEndpoints.institutions}/${institutionId}/books`, { bookIds }),
-    },
-    allContent: {
-        list: async (skip = 0, limit = 100) => {
-            return axiosInstance.get(adminEndpoints.all, {
-                params: { skip, limit }
-            });
+        update: async (userId, userData) => {
+            const response = await axiosInstance.put(`${adminEndpoints.users}/${userId}`, userData);
+            return response.data;
         },
-        listByType: (contentType, skip = 0, limit = 100) => {
-            return axiosInstance.get(adminEndpoints.all, {
-                params: { content_type: contentType, skip, limit }
-            });
+        delete: async (userId) => {
+            const response = await axiosInstance.delete(`${adminEndpoints.users}/${userId}`);
+            return response.data;
         },
     },
 };

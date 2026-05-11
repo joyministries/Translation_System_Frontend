@@ -5,11 +5,9 @@ import { adminAPI } from '../../api/admin.jsx';
 import { 
   BookUp, 
   ClipboardList, 
-  KeyRound, 
   Languages, 
   Users, 
   Globe2, 
-  Building2, 
   CheckCircle2, 
   RefreshCw,
   BarChart3
@@ -155,13 +153,6 @@ export function Dashboard() {
             onClick={() => navigate('/admin/exams')}
           />
           <QuickActionCard
-            label="Answer Keys"
-            description="Manage grading criteria and answer key data"
-            icon={KeyRound}
-            colorTheme="emerald"
-            onClick={() => navigate('/admin/answer-keys')}
-          />
-          <QuickActionCard
             label="Translations"
             description="View deep analytics and translation history"
             icon={Languages}
@@ -181,13 +172,6 @@ export function Dashboard() {
             icon={Globe2}
             colorTheme="rose"
             onClick={() => navigate('/admin/languages')}
-          />
-          <QuickActionCard
-            label="Institutions"
-            description="Map schools to their respective material"
-            icon={Building2}
-            colorTheme="sky"
-            onClick={() => navigate('/admin/institutions')}
           />
         </div>
       </section>

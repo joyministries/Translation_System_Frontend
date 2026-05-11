@@ -8,6 +8,7 @@ import toast from 'react-hot-toast';
 import { Button } from '../../components/shared/Button.jsx';
 import { Spinner } from '../../components/shared/Spinner.jsx';
 import { TranslationModal } from '../../components/admin/TranslationModal.jsx';
+import { Modal } from '../../components/shared/Modal';
 
 export function Books() {
   const navigate = useNavigate();
@@ -126,18 +127,6 @@ export function Books() {
     }
   };
 
-  if (showUploadForm) {
-    return (
-        <div className="container mx-auto p-6">
-            <Button onClick={() => setShowUploadForm(false)} variant="secondary" className="mb-4">
-                <MdArrowBack className="inline-block mr-2" />
-                Back to Library
-            </Button>
-            <BookUploadForm onBookUploaded={handleBookUploaded} />
-        </div>
-    );
-  }
-
   return (
     <div className="container mx-auto p-6">
       <div className="flex justify-between items-center mb-6">
@@ -165,6 +154,12 @@ export function Books() {
           content={selectedBook}
           contentType="book"
         />
+      )}
+
+      {showUploadForm && (
+        <Modal isOpen={showUploadForm} onClose={() => setShowUploadForm(false)} title="Upload Book">
+          <BookUploadForm onBookUploaded={handleBookUploaded} />
+        </Modal>
       )}
     </div>
   );

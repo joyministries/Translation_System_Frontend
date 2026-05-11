@@ -1,5 +1,4 @@
 import { useRef, useState, useEffect } from 'react';
-import { Button } from '../shared/Button';
 import toast from 'react-hot-toast';
 import { adminAPI } from '../../api/admin.jsx';
 import { UploadCloud, FileText, X, CheckCircle, Clock, Activity, Zap } from 'lucide-react';
@@ -14,10 +13,7 @@ export function BookUploadForm({ onBookUploaded }) {
   });
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [uploadSpeed, setUploadSpeed] = useState(0);
-  const [estimatedTime, setEstimatedTime] = useState(0);
   const [errors, setErrors] = useState({});
-  const [uploadStartTime, setUploadStartTime] = useState(null);
   const fileInputRef = useRef(null);
 
   const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
@@ -42,10 +38,6 @@ export function BookUploadForm({ onBookUploaded }) {
       }
     }
     if (!metadata.title.trim()) newErrors.title = 'Book title is required.';
-    if (!metadata.subject.trim()) newErrors.subject = 'Subject is required.';
-    if (!metadata.first_content_page || isNaN(parseInt(metadata.first_content_page, 10)) || parseInt(metadata.first_content_page, 10) < 1) {
-      newErrors.first_content_page = 'Must be a valid page number (>= 1).';
-    }
     return newErrors;
   };
 
@@ -93,12 +85,7 @@ export function BookUploadForm({ onBookUploaded }) {
     return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
   };
 
-  const formatTime = (seconds) => {
-    if (seconds < 60) return Math.round(seconds) + 's';
-    const minutes = Math.floor(seconds / 60);
-    const secs = Math.round(seconds % 60);
-    return `${minutes}m ${secs}s`;
-  };
+
 
   const handleUpload = async () => {
     const validationErrors = validate();
@@ -111,23 +98,10 @@ export function BookUploadForm({ onBookUploaded }) {
     setErrors({});
     setUploading(true);
     setUploadProgress(0);
-    setUploadSpeed(0);
-    setEstimatedTime(0);
-    setUploadStartTime(Date.now());
 
     const handleProgress = (progressData) => {
-      const { progress, loaded, total } = progressData;
+      const { progress } = progressData;
       setUploadProgress(progress);
-      const elapsedSeconds = (Date.now() - uploadStartTime) / 1000;
-      if (elapsedSeconds > 0) {
-        const speedBytesPerSecond = loaded / elapsedSeconds;
-        setUploadSpeed(speedBytesPerSecond);
-        if (speedBytesPerSecond > 0) {
-          const remainingBytes = total - loaded;
-          const estimatedSeconds = remainingBytes / speedBytesPerSecond;
-          setEstimatedTime(estimatedSeconds);
-        }
-      }
     };
 
     try {
@@ -140,9 +114,6 @@ export function BookUploadForm({ onBookUploaded }) {
     } finally {
       setUploading(false);
       setUploadProgress(0);
-      setUploadSpeed(0);
-      setEstimatedTime(0);
-      setUploadStartTime(null);
     }
   };
 
@@ -166,11 +137,10 @@ export function BookUploadForm({ onBookUploaded }) {
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
           onClick={() => fileInputRef.current?.click()}
-          className={`flex flex-col items-center justify-center w-full h-64 border-2 border-dashed rounded-2xl cursor-pointer transition-all duration-200 ${
-            isDragging 
-              ? 'border-blue-500 bg-blue-50/50 scale-[1.02]' 
-              : 'border-gray-200 hover:border-blue-400 hover:bg-gray-50'
-          } ${errors.file ? 'border-red-500 bg-red-50/50' : ''}`}
+          className={`flex flex-col items-center justify-center w-full h-64 border-2 border-dashed rounded-2xl cursor-pointer transition-all duration-200 ${isDragging
+            ? 'border-blue-500 bg-blue-50/50 scale-[1.02]'
+            : 'border-gray-200 hover:border-blue-400 hover:bg-gray-50'
+            } ${errors.file ? 'border-red-500 bg-red-50/50' : ''}`}
         >
           <input
             type="file"
@@ -221,39 +191,10 @@ export function BookUploadForm({ onBookUploaded }) {
                   value={metadata.title}
                   onChange={handleMetadataChange}
                   placeholder="Enter book title"
-                  className={`w-full px-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all ${
-                    errors.title ? 'border-red-500' : 'border-gray-200 hover:border-gray-300'
-                  }`}
+                  className={`w-full px-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all ${errors.title ? 'border-red-500' : 'border-gray-200 hover:border-gray-300'
+                    }`}
                 />
                 {errors.title && <p className="text-red-500 text-xs mt-1.5 ml-1">{errors.title}</p>}
-              </div>
-              <div className="md:col-span-8">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Subject Category</label>
-                <input
-                  type="text"
-                  name="subject"
-                  value={metadata.subject}
-                  onChange={handleMetadataChange}
-                  placeholder="e.g., Mathematics"
-                  className={`w-full px-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all ${
-                    errors.subject ? 'border-red-500' : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                />
-                {errors.subject && <p className="text-red-500 text-xs mt-1.5 ml-1">{errors.subject}</p>}
-              </div>
-              <div className="md:col-span-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">First Content Page</label>
-                <input
-                  type="number"
-                  name="first_content_page"
-                  value={metadata.first_content_page}
-                  onChange={handleMetadataChange}
-                  min="1"
-                  className={`w-full px-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all ${
-                    errors.first_content_page ? 'border-red-500' : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                />
-                {errors.first_content_page && <p className="text-red-500 text-xs mt-1.5 ml-1">{errors.first_content_page}</p>}
               </div>
             </div>
           ) : (
@@ -266,7 +207,7 @@ export function BookUploadForm({ onBookUploaded }) {
                 </div>
                 <span className="text-xl font-bold text-blue-600">{Math.round(uploadProgress)}%</span>
               </div>
-              
+
               <div className="w-full bg-gray-100 rounded-full h-3 mb-8 overflow-hidden">
                 <div
                   className="bg-blue-600 h-full rounded-full transition-all duration-300 relative overflow-hidden"
@@ -276,18 +217,8 @@ export function BookUploadForm({ onBookUploaded }) {
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-4">
-                <div className="flex flex-col items-center justify-center p-4 bg-gray-50 rounded-xl border border-gray-100">
-                  <Activity className="w-5 h-5 text-gray-400 mb-2" />
-                  <p className="text-xs text-gray-500 mb-0.5">Speed</p>
-                  <p className="text-sm font-semibold text-gray-900">{formatBytes(uploadSpeed)}/s</p>
-                </div>
-                <div className="flex flex-col items-center justify-center p-4 bg-gray-50 rounded-xl border border-gray-100">
-                  <Clock className="w-5 h-5 text-gray-400 mb-2" />
-                  <p className="text-xs text-gray-500 mb-0.5">Remaining</p>
-                  <p className="text-sm font-semibold text-gray-900">{formatTime(estimatedTime)}</p>
-                </div>
-                <div className="flex flex-col items-center justify-center p-4 bg-blue-50 rounded-xl border border-blue-100">
+              <div className="flex justify-center">
+                <div className="flex flex-col items-center justify-center p-4 bg-blue-50 rounded-xl border border-blue-100 min-w-[150px]">
                   <Zap className="w-5 h-5 text-blue-500 mb-2" />
                   <p className="text-xs text-blue-600 mb-0.5">Status</p>
                   <p className="text-sm font-semibold text-blue-700 animate-pulse">Processing</p>

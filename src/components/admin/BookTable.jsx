@@ -52,11 +52,10 @@ function ActionDropdown({ book, onTranslate, onDelete, isLast }) {
             }}
             disabled={isPending}
             title={isPending ? 'Book extraction is pending' : 'Translate book'}
-            className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 ${
-              isPending
-                ? 'text-gray-400 cursor-not-allowed'
-                : 'text-gray-700 hover:bg-gray-50'
-            }`}
+            className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 ${isPending
+              ? 'text-gray-400 cursor-not-allowed'
+              : 'text-gray-700 hover:bg-gray-50'
+              }`}
           >
             <Globe className="w-4 h-4" />
             Translate
@@ -124,12 +123,6 @@ export function BookTable({ books, loading, onBooksChanged }) {
                   Title
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Subject
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Grade
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Uploaded By
                 </th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -138,25 +131,19 @@ export function BookTable({ books, loading, onBooksChanged }) {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {books.map((book, index) => {
-                const isLast = index >= books.length - 2 && books.length > 2;
+              {[...books].reverse().map((book, index, arr) => {
+                const isLast = index >= arr.length - 2 && arr.length > 2;
                 return (
                   <tr key={book.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       {book.title}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                      {book.subject}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                      {book.gradeLevel}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                       {book.uploadedBy || 'Admin'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-right">
-                      <ActionDropdown 
-                        book={book} 
+                      <ActionDropdown
+                        book={book}
                         onTranslate={(b) => onBooksChanged?.('translate', b)}
                         onDelete={(id) => setDeleteConfirm(id)}
                         isLast={isLast}
