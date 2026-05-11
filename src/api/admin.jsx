@@ -24,7 +24,9 @@ const triggerTranslationForContent = async (contentId, contentType) => {
     try {
         // Get all active languages
         const languagesResponse = await axiosInstance.get(adminEndpoints.languages);
-        const activeLanguages = languagesResponse.data?.filter(lang => lang.isActive) || [];
+        const rawData = languagesResponse.data;
+        const languagesArray = Array.isArray(rawData) ? rawData : (rawData?.items || rawData?.languages || rawData?.data || []);
+        const activeLanguages = languagesArray.filter(lang => lang.isActive || lang.is_active) || [];
 
         // Trigger translation for each active language
         const translationPromises = activeLanguages.map(lang =>
@@ -96,7 +98,7 @@ export const adminAPI = {
 
             return response.data;
         },
-        delete: (id) => axiosInstance.delete(`${adminEndpoints.books}/${id}`),
+        delete: (id) => axiosInstance.delete(`/admin/books/${id}`),
         // Get all completed translations for a specific book
         getTranslations: async (bookId) => {
             try {

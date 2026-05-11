@@ -8,7 +8,7 @@ export const axiosInstance = axios.create({
         'Content-Type': 'application/json',
         'ngrok-skip-browser-warning': 'true',
     },
-    timeout: 30000,
+    timeout: 300000, // Increased to 5 minutes (300000ms) for heavy tasks like book uploads
     withCredentials: false, // Set to true if backend sends cookies
  });
 
