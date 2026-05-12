@@ -1,6 +1,7 @@
 import { MdCalendarToday, MdAssignment, MdKey } from "react-icons/md";
 
 export function ExamCard({ exam }) {
+  // Format date to readable format (e.g., "Apr 10, 2026")
   const formatDate = (dateString) => {
     try {
       const date = new Date(dateString);
@@ -16,44 +17,36 @@ export function ExamCard({ exam }) {
 
   return (
     <div className="bg-white border border-slate-200 rounded-xl hover:border-slate-300 hover:shadow-md transition-all duration-200 ease-in-out h-full flex flex-col group p-5">
+      {/* Icon + Title area */}
       <div className="flex items-start gap-4 mb-4">
         <div className="flex-shrink-0 w-11 h-11 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center">
-          <MdAssignment className="text-slate-400 text-xl group-hover:text-violet-500 transition-colors" />
+          <MdAssignment className="text-slate-400 text-xl group-hover:text-blue-500 transition-colors" />
         </div>
         <div className="flex-1 min-w-0 pt-0.5">
-          <h3 className="font-semibold text-slate-800 text-sm leading-snug line-clamp-2 group-hover:text-violet-600 transition-colors">
+          <h4 className="font-semibold text-slate-800 text-sm leading-snug line-clamp-2 group-hover:text-blue-600 transition-colors">
             {exam?.title || "Untitled Exam"}
-          </h3>
-          {exam?.subject && (
-            <div className="mt-2">
-              <span className="px-2 py-0.5 rounded-md text-[11px] font-medium bg-slate-50 text-slate-600 border border-slate-100">
-                {exam.subject}
-              </span>
-            </div>
-          )}
+          </h4>
         </div>
       </div>
 
-      {exam?.answerKey && (
-        <div className="mb-4">
-          <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[11px] font-medium bg-slate-50 text-slate-600 border border-slate-100">
-            <MdKey className="text-slate-400 text-sm" />
-            Answer Key Available
+      {/* Tags */}
+      <div className="flex flex-wrap gap-2 mb-5">
+        {exam?.answerKey && (
+          <span className="px-2 py-0.5 rounded-md text-[11px] font-medium bg-slate-50 text-slate-600 border border-slate-100 flex items-center gap-1">
+            <MdKey className="text-slate-400" />
+            Answer Key
           </span>
-        </div>
-      )}
+        )}
+      </div>
 
+      {/* Metadata footer */}
       <div className="mt-auto pt-4 border-t border-slate-50 flex flex-col gap-2">
-        <div className="flex items-center text-xs text-slate-400 gap-1.5">
-          {exam?.dateUploaded ? (
-            <>
-              <MdCalendarToday className="text-slate-300 flex-shrink-0 text-sm" />
-              <span>{formatDate(exam.dateUploaded)}</span>
-            </>
-          ) : (
-            <span className="text-slate-400">No date</span>
-          )}
-        </div>
+        {exam?.dateUploaded ? (
+          <div className="flex items-center text-xs text-slate-400 gap-1.5">
+            <MdCalendarToday className="text-slate-300 flex-shrink-0 text-sm" />
+            <span>{formatDate(exam.dateUploaded)}</span>
+          </div>
+        ) : null}
       </div>
     </div>
   );

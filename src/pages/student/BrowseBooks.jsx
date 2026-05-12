@@ -30,7 +30,6 @@ function BookCardSkeleton() {
 export function BrowseBooks() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All');
   const [allBooks, setAllBooks] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -42,7 +41,6 @@ export function BrowseBooks() {
         const books = response.map(book => ({
           id: book.id || '',
           title: book.title || 'Untitled',
-          subject: book.subject || 'General',
           language: book.language || 'English',
           pages: book.page_count || 0,
           grade_level: book.grade_level || 'N/A',
@@ -61,12 +59,10 @@ export function BrowseBooks() {
     fetchBooks();
   }, []);
 
-  const categories = ['All', ...new Set(allBooks.map(book => book.subject))];
 
   const filteredBooks = allBooks.filter(book => {
     const matchesSearch = book.title.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory === 'All' || book.subject === selectedCategory;
-    return matchesSearch && matchesCategory;
+    return matchesSearch;
   });
 
   return (
@@ -96,24 +92,6 @@ export function BrowseBooks() {
           />
         </div>
 
-        {/* Category Filters */}
-        {!loading && categories.length > 1 && (
-          <div className="flex flex-wrap gap-2">
-            {categories.map((category) => (
-              <button
-                key={category}
-                onClick={() => setSelectedCategory(category)}
-                className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-150 ${
-                  selectedCategory === category
-                    ? 'bg-blue-600 text-white shadow-sm'
-                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200 hover:text-slate-900'
-                }`}
-              >
-                {category}
-              </button>
-            ))}
-          </div>
-        )}
       </div>
 
       {/* Results Count */}
@@ -158,7 +136,7 @@ export function BrowseBooks() {
           </p>
           {searchQuery && (
             <button
-              onClick={() => { setSearchQuery(''); setSelectedCategory('All'); }}
+              onClick={() => { setSearchQuery(''); }}
               className="mt-4 px-4 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-lg transition"
             >
               Clear Search

@@ -29,11 +29,6 @@ export function BookCard({ book }) {
       </div>
 
       <div className="flex flex-wrap gap-2 mb-5">
-        {book?.subject && (
-          <span className="px-2 py-0.5 rounded-md text-[11px] font-medium bg-slate-50 text-slate-600 border border-slate-100">
-            {book.subject}
-          </span>
-        )}
         {book?.language && (
           <span className="px-2 py-0.5 rounded-md text-[11px] font-medium bg-slate-50 text-slate-600 border border-slate-100">
             {book.language}
