@@ -68,12 +68,19 @@ export const adminAPI = {
             });
             return response.data;
         },
-        upload: async (file, metadata, onProgress) => {
+        upload: async (file, metadata, images = [], onProgress) => {
             const formData = new FormData();
             formData.append('file', file);
             Object.keys(metadata).forEach(key => {
                 formData.append(key, metadata[key]);
             });
+
+            // Add images to form data
+            if (images && images.length > 0) {
+                images.forEach((image, index) => {
+                    formData.append(`images`, image);
+                });
+            }
 
             const config = {
                 headers: { 'Content-Type': 'multipart/form-data' },
@@ -109,6 +116,32 @@ export const adminAPI = {
                 console.error('Get book translations error:', error);
                 return [];
             }
+        },
+        // Upload reference images for a book
+        uploadReferences: async (bookId, files, onProgress) => {
+            const formData = new FormData();
+            if (files && files.length > 0) {
+                files.forEach((file) => {
+                    formData.append('images', file);
+                });
+            }
+
+            const config = {
+                headers: { 'Content-Type': 'multipart/form-data' },
+                onUploadProgress: (progressEvent) => {
+                    if (onProgress) {
+                        const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                        onProgress({
+                            progress,
+                            loaded: progressEvent.loaded,
+                            total: progressEvent.total,
+                        });
+                    }
+                },
+            };
+
+            const response = await axiosInstance.post(`/admin/books/${bookId}/images`, formData, config);
+            return response.data;
         },
     },
     exams: {

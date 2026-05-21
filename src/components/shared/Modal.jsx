@@ -1,7 +1,8 @@
 // Reusable modal/dialog component
 import { useEffect } from 'react';
+import { X } from 'lucide-react';
 
-export function Modal({ isOpen, title, children, actions }) {
+export function Modal({ isOpen, title, children, actions, onClose }) {
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -13,17 +14,35 @@ export function Modal({ isOpen, title, children, actions }) {
     };
   }, [isOpen]);
 
+  const handleBackdropClick = (e) => {
+    if (e.target === e.currentTarget && onClose) {
+      onClose();
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm">
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
-        <div className="border-b border-gray-200 px-6 py-4">
+    <div 
+      className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm p-4"
+      onClick={handleBackdropClick}
+    >
+      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] flex flex-col">
+        <div className="border-b border-gray-200 px-6 py-4 flex-shrink-0 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="p-1 hover:bg-gray-100 rounded-lg transition-colors text-gray-500 hover:text-gray-700"
+              title="Close"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          )}
         </div>
-        <div className="px-6 py-4">{children}</div>
+        <div className="overflow-y-auto flex-1 px-6 py-4">{children}</div>
         {actions && (
-          <div className="border-t border-gray-200 px-6 py-4 flex gap-2 justify-end">
+          <div className="border-t border-gray-200 px-6 py-4 flex gap-2 justify-end flex-shrink-0">
             {actions}
           </div>
         )}

@@ -27,7 +27,6 @@ function ExamCardSkeleton() {
 
 export function BrowseExams() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All');
   const [allExams, setAllExams] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
@@ -45,7 +44,6 @@ export function BrowseExams() {
           return {
             id: exam.id || '',
             title: exam.title || 'Untitled',
-            subject: exam.subject || '',
             dateUploaded: exam.created_at || new Date().toISOString(),
             file_path: exam.file_path || '',
             answerKey: associatedKey || null
@@ -62,15 +60,10 @@ export function BrowseExams() {
     fetchData();
   }, []);
 
-  const categories = ['All', ...new Set(allExams.map(exam => exam.subject).filter(Boolean))];
 
   const filteredExams = allExams.filter(exam => {
     const title = exam.title?.toLowerCase() || '';
-    const subject = exam.subject?.toLowerCase() || '';
-    const matchesSearch = title.includes(searchQuery.toLowerCase()) ||
-                         subject.includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory === 'All' || exam.subject === selectedCategory;
-    return matchesSearch && matchesCategory;
+    return title.includes(searchQuery.toLowerCase());
   });
 
   return (
@@ -95,29 +88,11 @@ export function BrowseExams() {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search by exam title or subject..."
+            placeholder="Search by exam title..."
             className="w-full pl-12 pr-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent bg-slate-50 transition"
           />
         </div>
 
-        {/* Category Filters */}
-        {!isLoading && categories.length > 1 && (
-          <div className="flex flex-wrap gap-2">
-            {categories.map((category) => (
-              <button
-                key={category}
-                onClick={() => setSelectedCategory(category)}
-                className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-150 ${
-                  selectedCategory === category
-                    ? 'bg-violet-600 text-white shadow-sm'
-                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200 hover:text-slate-900'
-                }`}
-              >
-                {category}
-              </button>
-            ))}
-          </div>
-        )}
       </div>
 
       {/* Results Count */}
@@ -162,7 +137,7 @@ export function BrowseExams() {
           </p>
           {searchQuery && (
             <button
-              onClick={() => { setSearchQuery(''); setSelectedCategory('All'); }}
+              onClick={() => { setSearchQuery(''); }}
               className="mt-4 px-4 py-2 text-sm font-medium text-violet-600 hover:bg-violet-50 rounded-lg transition"
             >
               Clear Search

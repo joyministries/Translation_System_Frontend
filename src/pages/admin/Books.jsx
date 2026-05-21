@@ -1,8 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MdArrowBack } from 'react-icons/md';
+import { ChevronDown } from 'lucide-react';
 import { adminAPI } from '../../api/admin.jsx';
 import { BookUploadForm } from '../../components/admin/BookUploadForm';
+import { ReferenceUploadForm } from '../../components/admin/ReferenceUploadForm';
 import { BookTable } from '../../components/admin/BookTable';
 import toast from 'react-hot-toast';
 import { Button } from '../../components/shared/Button.jsx';
@@ -13,11 +15,14 @@ import { Modal } from '../../components/shared/Modal';
 export function Books() {
   const navigate = useNavigate();
   const [showUploadForm, setShowUploadForm] = useState(false);
+  const [uploadType, setUploadType] = useState(null);
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(false);
   const [pollIntervals, setPollIntervals] = useState({});
   const [showTranslationModal, setShowTranslationModal] = useState(false);
   const [selectedBook, setSelectedBook] = useState(null);
+  const [showUploadMenu, setShowUploadMenu] = useState(false);
+  const dropdownRef = useRef(null);
 
   const fetchBooks = async () => {
     setLoading(true);
@@ -28,6 +33,7 @@ export function Books() {
   };
 
       const res = await adminAPI.books.list(1, 100);
+      console.log("Books response:", res);
       // Handle different response formats
       let booksData = [];
       if (res.data?.items) {
@@ -116,8 +122,26 @@ export function Books() {
 
   const handleBookUploaded = () => {
     setShowUploadForm(false);
+    setUploadType(null);
     fetchBooks();
   };
+
+  const handleUploadMenuClick = (type) => {
+    setUploadType(type);
+    setShowUploadForm(true);
+    setShowUploadMenu(false);
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowUploadMenu(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
 
   const handleTableActions = (action, book) => {
@@ -136,7 +160,34 @@ export function Books() {
             </Button>
             <h1 className="text-3xl font-bold text-gray-800">Content Library</h1>
         </div>
-        <Button onClick={() => setShowUploadForm(true)}> Upload Book</Button>
+        
+        {/* Upload Dropdown Button */}
+        <div className="relative" ref={dropdownRef}>
+          <button
+            onClick={() => setShowUploadMenu(!showUploadMenu)}
+            className="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors"
+          >
+            Upload
+            <ChevronDown className="w-4 h-4" />
+          </button>
+
+          {showUploadMenu && (
+            <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-100 z-50 py-1">
+              <button
+                onClick={() => handleUploadMenuClick('book')}
+                className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                Upload Book
+              </button>
+              <button
+                onClick={() => handleUploadMenuClick('reference')}
+                className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors border-t border-gray-100"
+              >
+                Upload Reference
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       {loading && books.length === 0 ? (
@@ -157,8 +208,12 @@ export function Books() {
       )}
 
       {showUploadForm && (
-        <Modal isOpen={showUploadForm} onClose={() => setShowUploadForm(false)} title="Upload Book">
-          <BookUploadForm onBookUploaded={handleBookUploaded} />
+        <Modal isOpen={showUploadForm} onClose={() => setShowUploadForm(false)} title={uploadType === 'book' ? 'Upload Book' : 'Upload Reference'}>
+          {uploadType === 'book' ? (
+            <BookUploadForm onBookUploaded={handleBookUploaded} onCancel={() => setShowUploadForm(false)} />
+          ) : (
+            <ReferenceUploadForm onReferenceUploaded={handleBookUploaded} onCancel={() => setShowUploadForm(false)} />
+          )}
         </Modal>
       )}
     </div>
