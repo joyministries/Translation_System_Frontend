@@ -23,7 +23,7 @@ export function BookUploadForm({ onBookUploaded, onCancel }) {
 
   useEffect(() => {
     if (file) {
-      const fileName = file.name.replace(/\.pdf$/i, '');
+      const fileName = file.name.replace(/\.(pdf|doc|docx)$/i, '');
       setMetadata(prev => ({ ...prev, title: fileName }));
     }
   }, [file]);
@@ -33,8 +33,13 @@ export function BookUploadForm({ onBookUploaded, onCancel }) {
     if (!file) {
       newErrors.file = 'Please select a file to upload.';
     } else {
-      if (file.type !== 'application/pdf') {
-        newErrors.file = 'Only PDF files are allowed';
+      const allowedTypes = [
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      ];
+      if (!allowedTypes.includes(file.type) && !file.name.match(/\.(pdf|doc|docx)$/i)) {
+        newErrors.file = 'Only PDF, DOC, and DOCX files are allowed';
       }
       if (file.size > MAX_FILE_SIZE) {
         newErrors.file = `File size must be less than 50MB.`;
@@ -143,6 +148,10 @@ export function BookUploadForm({ onBookUploaded, onCancel }) {
     };
 
     try {
+      // print the data being sent to the API for debugging
+      console.log('Uploading with metadata:', metadata);
+      console.log('Uploading with images:', images);
+      console.log('Uploading file:', file);
       await adminAPI.books.upload(file, metadata, images, handleProgress);
       toast.success(`Book "${metadata.title}" uploaded successfully!`);
       clearFile();
@@ -186,7 +195,7 @@ export function BookUploadForm({ onBookUploaded, onCancel }) {
             type="file"
             ref={fileInputRef}
             onChange={handleFileSelect}
-            accept="application/pdf"
+            accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
             className="hidden"
           />
           <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mb-4 transition-transform group-hover:scale-110">
@@ -196,7 +205,7 @@ export function BookUploadForm({ onBookUploaded, onCancel }) {
             <p className="text-gray-700 text-lg">
               <span className="font-semibold text-blue-600">Click to browse</span> or drag and drop
             </p>
-            <p className="text-sm text-gray-400 mt-2">PDF files only (Max 50MB)</p>
+            <p className="text-sm text-gray-400 mt-2">PDF, DOC, and DOCX files only (Max 50MB)</p>
           </div>
         </div>
       ) : (

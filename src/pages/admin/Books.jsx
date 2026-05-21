@@ -33,7 +33,6 @@ export function Books() {
   };
 
       const res = await adminAPI.books.list(1, 100);
-      console.log("Books response:", res);
       // Handle different response formats
       let booksData = [];
       if (res.data?.items) {

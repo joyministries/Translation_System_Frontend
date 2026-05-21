@@ -149,6 +149,7 @@ export function ReferenceUploadForm({ onReferenceUploaded, onCancel }) {
 
       setUploadProgress(100);
       toast.success(`${files.length} image(s) uploaded successfully!`);
+      console.log('References uploaded for book:', selectedBookId);
       clearFiles();
       if (onReferenceUploaded) onReferenceUploaded();
     } catch (error) {
