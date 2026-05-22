@@ -68,26 +68,30 @@ export const adminAPI = {
             });
             return response.data;
         },
-        upload: async (file, metadata, images = [], onProgress) => {
+        upload: async (file, metadata, images, handleProgress) => {
             const formData = new FormData();
             formData.append('file', file);
             Object.keys(metadata).forEach(key => {
-                formData.append(key, metadata[key]);
+                let value = metadata[key];
+                if (key === 'first_content_page') {
+                    value = parseInt(value, 10);
+                }
+                formData.append(key, value);
             });
-
-            // Add images to form data
+            
+            // Append images to FormData
             if (images && images.length > 0) {
-                images.forEach((image, index) => {
-                    formData.append(`images`, image);
+                images.forEach((image) => {
+                    formData.append('images', image);
                 });
             }
 
             const config = {
                 headers: { 'Content-Type': 'multipart/form-data' },
                 onUploadProgress: (progressEvent) => {
-                    if (onProgress) {
+                    if (handleProgress) {
                         const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-                        onProgress({
+                        handleProgress({
                             progress,
                             loaded: progressEvent.loaded,
                             total: progressEvent.total,
@@ -95,6 +99,7 @@ export const adminAPI = {
                     }
                 },
             };
+            console.log('Data sending to backend:', formData);
 
             const response = await axiosInstance.post(adminEndpoints.booksUpload, formData, config);
 

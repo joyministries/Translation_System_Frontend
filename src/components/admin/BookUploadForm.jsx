@@ -148,10 +148,6 @@ export function BookUploadForm({ onBookUploaded, onCancel }) {
     };
 
     try {
-      // print the data being sent to the API for debugging
-      console.log('Uploading with metadata:', metadata);
-      console.log('Uploading with images:', images);
-      console.log('Uploading file:', file);
       await adminAPI.books.upload(file, metadata, images, handleProgress);
       toast.success(`Book "${metadata.title}" uploaded successfully!`);
       clearFile();
