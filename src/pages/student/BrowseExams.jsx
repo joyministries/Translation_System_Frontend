@@ -39,6 +39,7 @@ export function BrowseExams() {
           studentAPI.getExams(),
           studentAPI.getAnswerKeys()
         ]);
+        console.log(exams)
         const formattedExams = (exams || []).map(exam => {
           const associatedKey = (keys || []).find(k => k.exam_id === exam.id || k.title?.includes(exam.title));
           return {

@@ -79,14 +79,14 @@ export function Exams() {
           title="No Exams Found"
           message="Get started by importing a new exam."
         >
-            <Button onClick={() => setShowImportModal(true)}>Import Exam</Button>
+          <Button onClick={() => setShowImportModal(true)}>Import Exam</Button>
         </EmptyState>
       );
     }
 
     return (
-      <ExamTable 
-        exams={exams} 
+      <ExamTable
+        exams={exams}
         onSelectExam={handleSelectExam}
       />
     );
@@ -96,36 +96,36 @@ export function Exams() {
     <div className="container mx-auto p-6">
       <div className="flex justify-between items-center mb-6">
         <div className="flex items-center gap-4">
-            <Button onClick={() => navigate('/admin/dashboard')} variant="secondary" size="sm">
-                <MdArrowBack />
-            </Button>
-            <h1 className="text-3xl font-bold text-gray-800">Exams</h1>
+          <Button onClick={() => navigate('/admin/dashboard')} variant="secondary" size="sm">
+            <MdArrowBack />
+          </Button>
+          <h1 className="text-3xl font-bold text-gray-800">Exams</h1>
         </div>
         {exams.length > 0 && !loading && (
-            <Button onClick={() => setShowImportModal(true)}>Import Exam</Button>
+          <Button onClick={() => setShowImportModal(true)}>Import Exam</Button>
         )}
       </div>
 
       {renderContent()}
 
-      <Modal 
-        isOpen={showImportModal} 
+      <Modal
+        isOpen={showImportModal}
         title="Import Exam"
         actions={
-            <Button variant="secondary" onClick={() => setShowImportModal(false)}>
-              Cancel
-            </Button>
+          <Button variant="secondary" onClick={() => setShowImportModal(false)}>
+            Cancel
+          </Button>
         }
-        >
+      >
         <ExamImportForm onImportSuccess={handleImportSuccess} />
       </Modal>
 
       {selectedExam && (
         <TranslationModal
-            isOpen={showTranslationModal}
-            onClose={() => setShowTranslationModal(false)}
-            content={selectedExam}
-            contentType="exam"
+          isOpen={showTranslationModal}
+          onClose={() => setShowTranslationModal(false)}
+          content={selectedExam}
+          contentType="exam"
         />
       )}
     </div>

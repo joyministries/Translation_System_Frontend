@@ -6,8 +6,6 @@ import { UploadCloud, FileText, X, CheckCircle, Clock, Activity, Zap } from 'luc
 export function BookUploadForm({ onBookUploaded, onCancel }) {
   const [isDragging, setIsDragging] = useState(false);
   const [file, setFile] = useState(null);
-  const [images, setImages] = useState([]);
-  const [imagesDragging, setImagesDragging] = useState(false);
   const [metadata, setMetadata] = useState({
     title: '',
     subject: '',
@@ -17,7 +15,6 @@ export function BookUploadForm({ onBookUploaded, onCancel }) {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [errors, setErrors] = useState({});
   const fileInputRef = useRef(null);
-  const imagesInputRef = useRef(null);
 
   const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
 
@@ -47,41 +44,6 @@ export function BookUploadForm({ onBookUploaded, onCancel }) {
     }
     if (!metadata.title.trim()) newErrors.title = 'Book title is required.';
     return newErrors;
-  };
-
-  const handleImageDragOver = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setImagesDragging(true);
-  };
-
-  const handleImageDragLeave = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setImagesDragging(false);
-  };
-
-  const handleImageDrop = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setImagesDragging(false);
-    const files = Array.from(e.dataTransfer.files);
-    if (files.length > 0) {
-      setErrors(prev => ({ ...prev, images: null }));
-      setImages(prev => [...prev, ...files]);
-    }
-  };
-
-  const handleImageSelect = (e) => {
-    const selectedFiles = e.target.files ? Array.from(e.target.files) : [];
-    if (selectedFiles.length > 0) {
-      setErrors(prev => ({ ...prev, images: null }));
-      setImages(prev => [...prev, ...selectedFiles]);
-    }
-  };
-
-  const removeImage = (index) => {
-    setImages(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleDragOver = (e) => {
@@ -148,7 +110,7 @@ export function BookUploadForm({ onBookUploaded, onCancel }) {
     };
 
     try {
-      await adminAPI.books.upload(file, metadata, images, handleProgress);
+      await adminAPI.books.upload(file, metadata, handleProgress);
       toast.success(`Book "${metadata.title}" uploaded successfully!`);
       clearFile();
       if (onBookUploaded) onBookUploaded();
@@ -162,11 +124,9 @@ export function BookUploadForm({ onBookUploaded, onCancel }) {
 
   const clearFile = () => {
     setFile(null);
-    setImages([]);
     setMetadata({ title: '', subject: '', first_content_page: '1' });
     setErrors({});
     if (fileInputRef.current) fileInputRef.current.value = '';
-    if (imagesInputRef.current) imagesInputRef.current.value = '';
   };
 
   return (
@@ -240,59 +200,6 @@ export function BookUploadForm({ onBookUploaded, onCancel }) {
                     }`}
                 />
                 {errors.title && <p className="text-red-500 text-xs mt-1.5 ml-1">{errors.title}</p>}
-              </div>
-
-              {/* Reference Images Upload */}
-              <div className="md:col-span-12">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Reference Images (Optional)</label>
-                <div
-                  onDragOver={handleImageDragOver}
-                  onDragLeave={handleImageDragLeave}
-                  onDrop={handleImageDrop}
-                  onClick={() => imagesInputRef.current?.click()}
-                  className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer transition-all ${
-                    imagesDragging
-                      ? 'border-blue-500 bg-blue-50/50 scale-[1.02]'
-                      : 'border-gray-200 hover:border-blue-400 hover:bg-gray-50'
-                  }`}
-                >
-                  <input
-                    type="file"
-                    ref={imagesInputRef}
-                    onChange={handleImageSelect}
-                    accept="image/jpeg,image/png,image/jpg"
-                    multiple
-                    className="hidden"
-                  />
-                  <UploadCloud className="w-6 h-6 text-gray-400 mb-2" />
-                  <p className="text-sm text-gray-600 text-center">
-                    <span className="font-semibold text-blue-600">Click</span> or drag images
-                  </p>
-                  <p className="text-xs text-gray-400 mt-1">JPEG & PNG files (Max 50MB each)</p>
-                </div>
-
-                {/* Selected Images Preview */}
-                {images.length > 0 && (
-                  <div className="mt-3">
-                    <p className="text-sm font-medium text-gray-700 mb-2">Selected Images ({images.length})</p>
-                    <div className="space-y-2">
-                      {images.map((img, idx) => (
-                        <div
-                          key={idx}
-                          className="flex items-center justify-between p-2 bg-gray-50 rounded-lg border border-gray-200"
-                        >
-                          <p className="text-sm text-gray-700 truncate">{img.name}</p>
-                          <button
-                            onClick={() => removeImage(idx)}
-                            className="p-1 text-gray-400 hover:text-red-500"
-                          >
-                            <X className="w-4 h-4" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
           ) : (

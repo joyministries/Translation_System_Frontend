@@ -77,6 +77,50 @@ function ActionDropdown({ book, onTranslate, onDelete, isLast }) {
   );
 }
 
+// Colour map for common file extensions
+const FILE_TYPE_COLORS = {
+  pdf:  { bg: '#FEE2E2', color: '#991B1B', border: '#FECACA' },
+  docx: { bg: '#DBEAFE', color: '#1E40AF', border: '#BFDBFE' },
+  doc:  { bg: '#DBEAFE', color: '#1E40AF', border: '#BFDBFE' },
+  txt:  { bg: '#F3F4F6', color: '#374151', border: '#E5E7EB' },
+  epub: { bg: '#EDE9FE', color: '#5B21B6', border: '#DDD6FE' },
+  xlsx: { bg: '#DCFCE7', color: '#166534', border: '#BBF7D0' },
+  xls:  { bg: '#DCFCE7', color: '#166534', border: '#BBF7D0' },
+};
+
+function FileTypeBadge({ book }) {
+  // Prefer an explicit field, fall back to deriving from filename
+  const raw =
+    book.file_type ||
+    book.fileType ||
+    (book.name && book.name.includes('.') ? book.name.split('.').pop() : null) ||
+    (book.file_name && book.file_name.includes('.') ? book.file_name.split('.').pop() : null) ||
+    '';
+
+  const ext = raw.toLowerCase().replace(/^\./,'');
+  const style = FILE_TYPE_COLORS[ext] || { bg: '#F9FAFB', color: '#6B7280', border: '#E5E7EB' };
+  const label = ext ? ext.toUpperCase() : 'Unknown';
+
+  return (
+    <span
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        padding: '2px 10px',
+        borderRadius: '9999px',
+        fontSize: '0.72rem',
+        fontWeight: 600,
+        letterSpacing: '0.05em',
+        background: style.bg,
+        color: style.color,
+        border: `1px solid ${style.border}`,
+      }}
+    >
+      {label}
+    </span>
+  );
+}
+
 export function BookTable({ books, loading, onBooksChanged }) {
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [deleting, setDeleting] = useState(false);
@@ -123,6 +167,9 @@ export function BookTable({ books, loading, onBooksChanged }) {
                   Title
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  File Type
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Uploaded By
                 </th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -137,6 +184,9 @@ export function BookTable({ books, loading, onBooksChanged }) {
                   <tr key={book.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       {book.title}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <FileTypeBadge book={book} />
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                       {book.uploadedBy || 'Admin'}
