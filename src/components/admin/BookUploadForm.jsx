@@ -1,15 +1,13 @@
 import { useRef, useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { adminAPI } from '../../api/admin.jsx';
-import { UploadCloud, FileText, X, CheckCircle, Clock, Activity, Zap } from 'lucide-react';
+import { UploadCloud, FileText, X, Zap } from 'lucide-react';
 
 export function BookUploadForm({ onBookUploaded, onCancel }) {
   const [isDragging, setIsDragging] = useState(false);
   const [file, setFile] = useState(null);
   const [metadata, setMetadata] = useState({
     title: '',
-    subject: '',
-    first_content_page: '1',
   });
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -124,7 +122,7 @@ export function BookUploadForm({ onBookUploaded, onCancel }) {
 
   const clearFile = () => {
     setFile(null);
-    setMetadata({ title: '', subject: '', first_content_page: '1' });
+    setMetadata({ title: '' });
     setErrors({});
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
