@@ -29,6 +29,7 @@ export function BrowseExams() {
   const [searchQuery, setSearchQuery] = useState('');
   const [allExams, setAllExams] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [sortOrder, setSortOrder] = useState('desc'); // 'desc' or 'asc'
   const navigate = useNavigate();
 
   // Fetch exams and answer keys from API
@@ -63,7 +64,16 @@ export function BrowseExams() {
 
   const filteredExams = allExams.filter(exam => {
     const title = exam.title?.toLowerCase() || '';
-    return title.includes(searchQuery.toLowerCase());
+    const matchesSearch = title.includes(searchQuery.toLowerCase());
+    return matchesSearch;
+  });
+
+  const sortedExams = [...filteredExams].sort((a, b) => {
+    const titleA = a.title || '';
+    const titleB = b.title || '';
+    return sortOrder === 'asc'
+      ? titleA.localeCompare(titleB, undefined, { numeric: true, sensitivity: 'base' })
+      : titleB.localeCompare(titleA, undefined, { numeric: true, sensitivity: 'base' });
   });
 
   return (
@@ -81,26 +91,43 @@ export function BrowseExams() {
 
       {/* Search & Filter Section */}
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-5 mb-8">
-        {/* Search Bar */}
-        <div className="relative mb-4">
-          <MdSearch className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search by exam title..."
-            className="w-full pl-12 pr-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent bg-slate-50 transition"
-          />
-        </div>
+        <div className="flex flex-col md:flex-row gap-4">
+          {/* Search Bar */}
+          <div className="relative flex-grow">
+            <MdSearch className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search by exam title..."
+              className="w-full pl-12 pr-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent bg-slate-50 transition"
+            />
+          </div>
 
+          {/* Sort Filter */}
+          <div className="flex items-center gap-3">
+            <label htmlFor="sortOrder" className="text-sm font-semibold text-slate-600 whitespace-nowrap">
+              Sort Title:
+            </label>
+            <select
+              id="sortOrder"
+              value={sortOrder}
+              onChange={(e) => setSortOrder(e.target.value)}
+              className="px-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent bg-slate-50 transition text-sm font-medium text-slate-700 cursor-pointer min-w-[140px]"
+            >
+              <option value="desc">Descending</option>
+              <option value="asc">Ascending</option>
+            </select>
+          </div>
+        </div>
       </div>
 
       {/* Results Count */}
       {!isLoading && (
         <div className="mb-5">
           <p className="text-sm text-slate-500">
-            Showing <span className="font-semibold text-slate-900">{filteredExams.length}</span>{' '}
-            {filteredExams.length === 1 ? 'exam' : 'exams'}
+            Showing <span className="font-semibold text-slate-900">{sortedExams.length}</span>{' '}
+            {sortedExams.length === 1 ? 'exam' : 'exams'}
             {searchQuery && ` matching `}
             {searchQuery && <span className="font-semibold text-violet-600">"{searchQuery}"</span>}
           </p>
@@ -112,9 +139,9 @@ export function BrowseExams() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {Array.from({ length: 6 }).map((_, i) => <ExamCardSkeleton key={i} />)}
         </div>
-      ) : filteredExams.length > 0 ? (
+      ) : sortedExams.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredExams.map((exam) => (
+          {sortedExams.map((exam) => (
             <div
               key={exam.id}
               className="cursor-pointer"
@@ -137,7 +164,10 @@ export function BrowseExams() {
           </p>
           {searchQuery && (
             <button
-              onClick={() => { setSearchQuery(''); }}
+              onClick={() => {
+                setSearchQuery('');
+                setSortOrder('desc');
+              }}
               className="mt-4 px-4 py-2 text-sm font-medium text-violet-600 hover:bg-violet-50 rounded-lg transition"
             >
               Clear Search

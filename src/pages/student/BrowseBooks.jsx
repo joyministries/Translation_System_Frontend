@@ -32,6 +32,7 @@ export function BrowseBooks() {
   const [searchQuery, setSearchQuery] = useState('');
   const [allBooks, setAllBooks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [sortOrder, setSortOrder] = useState('asc'); // 'asc' or 'desc'
 
   useEffect(() => {
     setLoading(true);
@@ -65,6 +66,14 @@ export function BrowseBooks() {
     return matchesSearch;
   });
 
+  const sortedBooks = [...filteredBooks].sort((a, b) => {
+    const titleA = a.title || '';
+    const titleB = b.title || '';
+    return sortOrder === 'asc'
+      ? titleA.localeCompare(titleB, undefined, { sensitivity: 'base' })
+      : titleB.localeCompare(titleA, undefined, { sensitivity: 'base' });
+  });
+
   return (
     <div>
       {/* Header */}
@@ -80,26 +89,42 @@ export function BrowseBooks() {
 
       {/* Search & Filter Section */}
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-5 mb-8">
-        {/* Search Bar */}
-        <div className="relative mb-4">
-          <MdSearch className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search by book title..."
-            className="w-full pl-12 pr-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-slate-50 transition"
-          />
+        <div className="flex flex-col md:flex-row gap-4">
+          {/* Search Bar */}
+          <div className="relative flex-grow">
+            <MdSearch className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search by book title..."
+              className="w-full pl-12 pr-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-slate-50 transition"
+            />
+          </div>
+          {/* Sort Filter */}
+          <div className="flex items-center gap-3">
+            <label htmlFor="sortOrder" className="text-sm font-semibold text-slate-600 whitespace-nowrap">
+              Sort by Title:
+            </label>
+            <select
+              id="sortOrder"
+              value={sortOrder}
+              onChange={(e) => setSortOrder(e.target.value)}
+              className="px-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-slate-50 transition text-sm font-medium text-slate-700 cursor-pointer min-w-[160px]"
+            >
+              <option value="asc">A to Z (Ascending)</option>
+              <option value="desc">Z to A (Descending)</option>
+            </select>
+          </div>
         </div>
-
       </div>
 
       {/* Results Count */}
       {!loading && (
         <div className="mb-5">
           <p className="text-sm text-slate-500">
-            Showing <span className="font-semibold text-slate-900">{filteredBooks.length}</span>{' '}
-            {filteredBooks.length === 1 ? 'book' : 'books'}
+            Showing <span className="font-semibold text-slate-900">{sortedBooks.length}</span>{' '}
+            {sortedBooks.length === 1 ? 'book' : 'books'}
             {searchQuery && ` matching `}
             {searchQuery && <span className="font-semibold text-blue-600">"{searchQuery}"</span>}
           </p>
@@ -111,9 +136,9 @@ export function BrowseBooks() {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {Array.from({ length: 8 }).map((_, i) => <BookCardSkeleton key={i} />)}
         </div>
-      ) : filteredBooks.length > 0 ? (
+      ) : sortedBooks.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {filteredBooks.map((book) => (
+          {sortedBooks.map((book) => (
             <div
               key={book.id}
               className="cursor-pointer"

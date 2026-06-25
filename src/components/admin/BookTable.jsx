@@ -2,7 +2,7 @@ import { ConfirmModal } from '../shared/ConfirmModal';
 import { useState, useRef, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { adminAPI } from '../../api/admin.jsx';
-import { MoreVertical, Globe, Trash2, Eye } from 'lucide-react';
+import { MoreVertical, Globe, Trash2, Eye, ChevronUp, ChevronDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 function ActionDropdown({ book, onTranslate, onDelete, isLast }) {
@@ -79,13 +79,13 @@ function ActionDropdown({ book, onTranslate, onDelete, isLast }) {
 
 // Colour map for common file extensions
 const FILE_TYPE_COLORS = {
-  pdf:  { bg: '#FEE2E2', color: '#991B1B', border: '#FECACA' },
+  pdf: { bg: '#FEE2E2', color: '#991B1B', border: '#FECACA' },
   docx: { bg: '#DBEAFE', color: '#1E40AF', border: '#BFDBFE' },
-  doc:  { bg: '#DBEAFE', color: '#1E40AF', border: '#BFDBFE' },
-  txt:  { bg: '#F3F4F6', color: '#374151', border: '#E5E7EB' },
+  doc: { bg: '#DBEAFE', color: '#1E40AF', border: '#BFDBFE' },
+  txt: { bg: '#F3F4F6', color: '#374151', border: '#E5E7EB' },
   epub: { bg: '#EDE9FE', color: '#5B21B6', border: '#DDD6FE' },
   xlsx: { bg: '#DCFCE7', color: '#166534', border: '#BBF7D0' },
-  xls:  { bg: '#DCFCE7', color: '#166534', border: '#BBF7D0' },
+  xls: { bg: '#DCFCE7', color: '#166534', border: '#BBF7D0' },
 };
 
 function FileTypeBadge({ book }) {
@@ -97,7 +97,7 @@ function FileTypeBadge({ book }) {
     (book.file_name && book.file_name.includes('.') ? book.file_name.split('.').pop() : null) ||
     '';
 
-  const ext = raw.toLowerCase().replace(/^\./,'');
+  const ext = raw.toLowerCase().replace(/^\./, '');
   const style = FILE_TYPE_COLORS[ext] || { bg: '#F9FAFB', color: '#6B7280', border: '#E5E7EB' };
   const label = ext ? ext.toUpperCase() : 'Unknown';
 
@@ -124,6 +124,7 @@ function FileTypeBadge({ book }) {
 export function BookTable({ books, loading, onBooksChanged }) {
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [deleting, setDeleting] = useState(false);
+  const [sortOrder, setSortOrder] = useState('asc'); // 'asc' or 'desc'
   const handleDelete = async () => {
     if (!deleteConfirm) return;
 
@@ -156,6 +157,14 @@ export function BookTable({ books, loading, onBooksChanged }) {
     );
   }
 
+  const sortedBooks = [...books].sort((a, b) => {
+    const titleA = a.title || '';
+    const titleB = b.title || '';
+    return sortOrder === 'asc'
+      ? titleA.localeCompare(titleB, undefined, { sensitivity: 'base' })
+      : titleB.localeCompare(titleA, undefined, { sensitivity: 'base' });
+  });
+
   return (
     <>
       <div className="bg-white rounded-lg shadow overflow-visible">
@@ -163,11 +172,22 @@ export function BookTable({ books, loading, onBooksChanged }) {
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Title
+                <th
+                  onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none transition-colors"
+                  title="Click to sort by title"
+                >
+                  <div className="flex items-center gap-1">
+                    <span>Title</span>
+                    {sortOrder === 'asc' ? (
+                      <ChevronUp className="w-4 h-4 text-gray-500" />
+                    ) : (
+                      <ChevronDown className="w-4 h-4 text-gray-500" />
+                    )}
+                  </div>
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  File Type
+                  6%z5                  File Type
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Uploaded By
@@ -178,7 +198,7 @@ export function BookTable({ books, loading, onBooksChanged }) {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {[...books].reverse().map((book, index, arr) => {
+              {sortedBooks.map((book, index, arr) => {
                 const isLast = index >= arr.length - 2 && arr.length > 2;
                 return (
                   <tr key={book.id} className="hover:bg-gray-50">
