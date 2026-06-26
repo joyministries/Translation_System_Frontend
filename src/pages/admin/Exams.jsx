@@ -9,6 +9,7 @@ import { Spinner } from '../../components/shared/Spinner';
 import { EmptyState } from '../../components/shared/EmptyState';
 import { Modal } from '../../components/shared/Modal';
 import { TranslationModal } from '../../components/admin/TranslationModal.jsx';
+import toast from 'react-hot-toast';
 
 export function Exams() {
   const navigate = useNavigate();
@@ -38,7 +39,9 @@ export function Exams() {
       setExams(Array.isArray(examsData) ? examsData : []);
       setError(null);
     } catch (err) {
-      setError(err.message || 'Failed to fetch exams.');
+      const friendlyMsg = err.message || 'Could not load exams. Please refresh the page.';
+      setError(friendlyMsg);
+      toast.error(friendlyMsg);
       setExams([]);
     } finally {
       setLoading(false);

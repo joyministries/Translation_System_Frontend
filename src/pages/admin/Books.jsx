@@ -43,8 +43,7 @@ export function Books() {
       }
       setBooks(Array.isArray(booksData) ? booksData : []);
     } catch (error) {
-      console.error('Failed to fetch books:', error);
-      toast.error('Failed to load books');
+      toast.error(error.message || 'Could not load books. Please refresh the page.');
       setBooks([]); // Clear books on error
     } finally {
       setLoading(false);

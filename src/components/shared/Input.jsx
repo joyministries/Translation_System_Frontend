@@ -19,8 +19,8 @@ export function Input({ label, error, type, showPasswordToggle, ...props }) {
         <input
           {...props}
           type={inputType}
-          className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary ${
-            error ? 'border-error' : 'border-gray-300'
+          className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+            error ? 'border-red-500' : 'border-gray-300'
           } ${isPasswordField && showPasswordToggle ? 'pr-10' : ''}`}
         />
         {isPasswordField && showPasswordToggle && (
@@ -38,7 +38,7 @@ export function Input({ label, error, type, showPasswordToggle, ...props }) {
           </button>
         )}
       </div>
-      {error && <p className="mt-1 text-sm text-error">{error}</p>}
+      {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
     </div>
   );
 }

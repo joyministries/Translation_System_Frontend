@@ -8,19 +8,10 @@ import { adminAPI } from "../../api/admin.jsx";
 import { toast } from "react-hot-toast";
 import { Button } from "../../components/shared/Button.jsx";
 import { Spinner } from "../../components/shared/Spinner.jsx";
+import { saveBlob } from "../../utils/fileUtils";
+import { delay } from "../../utils/Timer";
 
 const PAGE_SIZE = 50;
-
-function saveBlob(blob, filename) {
-  const objectUrl = window.URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = objectUrl;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  window.URL.revokeObjectURL(objectUrl);
-}
 
 export function AdminBookDetails() {
   const { bookId } = useParams();
@@ -82,8 +73,6 @@ export function AdminBookDetails() {
   };
 
   useEffect(() => { loadTranslations(); }, [bookId]);
-
-  const delay = (ms) => new Promise((r) => setTimeout(r, ms));
 
   const handleTranslate = async () => {
     if (!selectedLanguageId) { toast.error("Please select a language first."); return; }

@@ -1,73 +1,19 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   MdArrowBack,
   MdAdd,
   MdDelete,
   MdEdit,
-  MdEmail,
-  MdMoreVert
+  MdEmail
 } from 'react-icons/md';
 import { Button } from '../../components/shared/Button';
 import { Modal } from '../../components/shared/Modal';
 import { ConfirmModal } from '../../components/shared/ConfirmModal';
+import { ActionDropdown } from '../../components/shared/ActionDropdown';
 import { adminAPI } from '../../api/admin.jsx';
 import { authAPI } from '../../api/auth';
 import toast from 'react-hot-toast';
-
-function ActionDropdown({ user, onEdit, onDelete, onResetPassword, isLast }) {
-  const [isOpen, setIsOpen] = useState(false);
-  const dropdownRef = useRef(null);
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  return (
-    <div className="relative inline-block text-left" ref={dropdownRef}>
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="p-1.5 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
-      >
-        <MdMoreVert className="w-5 h-5" />
-      </button>
-
-      {isOpen && (
-        <div className={`absolute right-0 w-44 bg-white rounded-lg shadow-lg border border-gray-100 z-50 py-1 ${isLast ? 'bottom-full mb-1' : 'top-full mt-1'}`}>
-          <button
-            onClick={() => { setIsOpen(false); onEdit(user); }}
-            className="w-full text-left px-4 py-2 text-sm flex items-center gap-2 text-gray-700 hover:bg-gray-50"
-          >
-            <MdEdit className="w-4 h-4 text-blue-600" />
-            Edit User
-          </button>
-
-          <button
-            onClick={() => { setIsOpen(false); onResetPassword(user.id); }}
-            className="w-full text-left px-4 py-2 text-sm flex items-center gap-2 text-gray-700 hover:bg-gray-50"
-          >
-            <MdEmail className="w-4 h-4 text-yellow-600" />
-            Reset Password
-          </button>
-
-          <button
-            onClick={() => { setIsOpen(false); onDelete(user.id); }}
-            className="w-full text-left px-4 py-2 text-sm flex items-center gap-2 text-red-600 hover:bg-red-50"
-          >
-            <MdDelete className="w-4 h-4" />
-            Delete User
-          </button>
-        </div>
-      )}
-    </div>
-  );
-}
 
 export function Users() {
   const navigate = useNavigate();
@@ -93,8 +39,7 @@ export function Users() {
       const response = await adminAPI.users.list();
       setUsers(response.users || []);
     } catch (error) {
-      console.error('Failed to fetch users:', error);
-      toast.error('Failed to load users');
+      toast.error('Could not load users. Please refresh the page.');
     } finally {
       setLoading(false);
     }
@@ -135,7 +80,7 @@ export function Users() {
       setCreateForm({ name: '', email: '', role: 'student' });
       setCreateErrors({});
     } catch (error) {
-      toast.error(error.response?.data?.message || error.message || 'Failed to create user');
+      toast.error(error.message || 'Failed to create user. Please try again.');
     } finally {
       setIsCreating(false);
     }
@@ -176,7 +121,7 @@ export function Users() {
       toast.success('User updated successfully');
       setEditUser(null);
     } catch (error) {
-      toast.error(error.response?.data?.message || error.message || 'Failed to update user');
+      toast.error(error.message || 'Failed to update user. Please try again.');
     } finally {
       setIsSavingEdit(false);
     }
@@ -189,7 +134,7 @@ export function Users() {
       setUsers(prev => prev.filter(u => u.id !== userId));
       toast.success('User deleted successfully');
     } catch (error) {
-      toast.error(error.response?.data?.message || error.message || 'Failed to delete user');
+      toast.error(error.message || 'Failed to delete user. Please try again.');
     } finally {
       setShowDeleteConfirm(null);
     }
@@ -261,13 +206,27 @@ export function Users() {
                       {user.role === 'admin' ? '👨‍💼 Admin' : '👤 Student'}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-sm text-right">
+                  <td className="px-6 py-4 text-sm text-right font-medium">
                     <ActionDropdown
-                      user={user}
-                      onEdit={openEditModal}
-                      onDelete={(id) => setShowDeleteConfirm(id)}
-                      onResetPassword={handleResetPassword}
                       isLast={index >= arr.length - 2 && arr.length > 2}
+                      actions={[
+                        {
+                          label: 'Edit User',
+                          icon: <MdEdit className="w-4 h-4 text-blue-600" />,
+                          onClick: () => openEditModal(user)
+                        },
+                        {
+                          label: 'Reset Password',
+                          icon: <MdEmail className="w-4 h-4 text-yellow-600" />,
+                          onClick: () => handleResetPassword(user.id)
+                        },
+                        {
+                          label: 'Delete User',
+                          icon: <MdDelete className="w-4 h-4" />,
+                          isDangerous: true,
+                          onClick: () => setShowDeleteConfirm(user.id)
+                        }
+                      ]}
                     />
                   </td>
                 </tr>

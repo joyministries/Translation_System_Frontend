@@ -4,15 +4,24 @@ import { X } from 'lucide-react';
 
 export function Modal({ isOpen, title, children, actions, onClose }) {
   useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && onClose) {
+        onClose();
+      }
+    };
+
     if (isOpen) {
       document.body.style.overflow = 'hidden';
+      document.addEventListener('keydown', handleKeyDown);
     } else {
       document.body.style.overflow = 'unset';
     }
+
     return () => {
       document.body.style.overflow = 'unset';
+      document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isOpen]);
+  }, [isOpen, onClose]);
 
   const handleBackdropClick = (e) => {
     if (e.target === e.currentTarget && onClose) {
@@ -24,16 +33,20 @@ export function Modal({ isOpen, title, children, actions, onClose }) {
 
   return (
     <div 
-      className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm p-4 bg-black/40"
       onClick={handleBackdropClick}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-title"
     >
-      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] flex flex-col">
+      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] flex flex-col focus:outline-none" tabIndex="-1">
         <div className="border-b border-gray-200 px-6 py-4 flex-shrink-0 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
+          <h2 id="modal-title" className="text-lg font-semibold text-gray-900">{title}</h2>
           {onClose && (
             <button
               onClick={onClose}
-              className="p-1 hover:bg-gray-100 rounded-lg transition-colors text-gray-500 hover:text-gray-700"
+              className="p-1 hover:bg-gray-100 rounded-lg transition-colors text-gray-500 hover:text-gray-700 cursor-pointer"
+              aria-label="Close modal"
               title="Close"
             >
               <X className="w-5 h-5" />

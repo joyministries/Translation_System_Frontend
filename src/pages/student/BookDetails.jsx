@@ -8,23 +8,9 @@ import { studentAPI } from "../../api/student.jsx";
 import { toast } from "react-hot-toast";
 import { Button } from "../../components/shared/Button.jsx";
 import { Spinner } from "../../components/shared/Spinner.jsx";
+import { saveBlob } from "../../utils/fileUtils";
 
 const PAGE_SIZE = 50;
-
-function saveBlob(blob, filename) {
-  let finalName = filename || "download.pdf";
-  if (!finalName.toLowerCase().endsWith('.pdf')) {
-      finalName += '.pdf';
-  }
-  const objectUrl = window.URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = objectUrl;
-  a.download = finalName;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  window.URL.revokeObjectURL(objectUrl);
-}
 
 export function BookDetails() {
   const { bookId } = useParams();

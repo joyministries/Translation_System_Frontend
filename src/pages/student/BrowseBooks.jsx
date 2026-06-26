@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { MdSearch, MdMenuBook } from 'react-icons/md';
 import { BookCard } from '../../components/student/BookCard.jsx';
 import { studentAPI } from '../../api/student.jsx';
+import toast from 'react-hot-toast';
 
 // Skeleton shimmer card for loading state
 function BookCardSkeleton() {
@@ -51,7 +52,7 @@ export function BrowseBooks() {
 
         setAllBooks(books);
       } catch (error) {
-        console.error('Error fetching books:', error);
+        toast.error('Could not load books. Please check your connection and try again.');
         setAllBooks([]);
       } finally {
         setLoading(false);

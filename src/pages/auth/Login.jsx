@@ -12,8 +12,6 @@ export function Login() {
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
-    const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
     const [fieldErrors, setFieldErrors] = useState({});
 
     // Forgot password state
@@ -97,7 +95,6 @@ export function Login() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setError('');
         if (!validateFields()) {
             return;
         }
@@ -132,12 +129,10 @@ export function Login() {
             } else if (user.role === 'student') {
                 navigate('/student/browse');
             } else {
-                throw new Error('Invalid user role.');
+                throw new Error('Your account does not have a valid role assigned. Please contact your administrator.');
             }
         } catch (err) {
-            setError(err.message || 'Login failed. Please try again.');
-            setIsErrorModalOpen(true);
-            console.error('Login error:', err);
+            toast.error(err.message || 'Login failed. Please check your credentials and try again.');
         } finally {
             setLoading(false);
         }
@@ -270,25 +265,6 @@ export function Login() {
                         </button>
                     </form>
                 </div>
-
-                {/* Error Modal */}
-                <Modal 
-                  isOpen={isErrorModalOpen}
-                  title="Login Error"
-                  actions={
-                    <button
-                      onClick={() => {
-                        setIsErrorModalOpen(false);
-                        setError('');
-                      }}
-                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
-                    >
-                      Close
-                    </button>
-                  }
-                >
-                  <p className="text-gray-700">{error}</p>
-                </Modal>
 
                 {/* Forgot Password Modal */}
                 <Modal

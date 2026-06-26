@@ -3,6 +3,7 @@ import { Modal } from '../shared/Modal';
 import { Button } from '../shared/Button';
 import { adminAPI } from '../../api/admin';
 import toast from 'react-hot-toast';
+import { delay } from '../../utils/Timer';
 
 export function TranslationModal({ isOpen, onClose, content, contentType }) {
   const [languages, setLanguages] = useState([]);
@@ -23,8 +24,6 @@ export function TranslationModal({ isOpen, onClose, content, contentType }) {
       fetchLanguages();
     }
   }, [isOpen]);
-
-  const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
   const handleTranslate = async () => {
     if (!selectedLanguage) {

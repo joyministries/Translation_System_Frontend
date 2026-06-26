@@ -92,7 +92,6 @@ export const adminAPI = {
                     }
                 },
             };
-            console.log('Data sending to backend:', formData);
 
             const response = await axiosInstance.post(adminEndpoints.booksUpload, formData, config);
 

@@ -192,7 +192,14 @@ axiosInstance.interceptors.response.use(
                 message: 'Check if backend has CORS enabled and is running'
             });
             return Promise.reject(new Error(
-                'Network Error: The backend may not be accessible. Check CORS settings on backend.'
+                'Unable to connect to the server. Please check your internet connection and try again.'
+            ));
+        }
+
+        // Handle timeout errors
+        if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
+            return Promise.reject(new Error(
+                'The request took too long to complete. Please try again.'
             ));
         }
 
@@ -210,8 +217,92 @@ axiosInstance.interceptors.response.use(
             return Promise.reject(new Error('Session expired. Please login again.'));
         }
 
-        // Handle other errors
-        const errorMessage = error.response?.data?.message || error.message || 'An error occurred';
+        // Decipher other errors to be user-friendly and informative
+        const status = error.response?.status;
+        const data = error.response?.data;
+        
+        let serverMessage = '';
+        if (data) {
+            if (typeof data === 'string') {
+                serverMessage = data;
+            } else if (typeof data === 'object') {
+                if (typeof data.message === 'string') {
+                    serverMessage = data.message;
+                } else if (typeof data.detail === 'string') {
+                    serverMessage = data.detail;
+                } else if (Array.isArray(data.detail)) {
+                    serverMessage = data.detail.map(d => {
+                        if (typeof d === 'string') return d;
+                        if (d && typeof d === 'object') {
+                            return `${d.loc ? d.loc.join('.') + ': ' : ''}${d.msg || JSON.stringify(d)}`;
+                        }
+                        return JSON.stringify(d);
+                    }).join('; ');
+                } else if (typeof data.error === 'string') {
+                    serverMessage = data.error;
+                } else if (Array.isArray(data.non_field_errors)) {
+                    serverMessage = data.non_field_errors.join(' ');
+                } else if (typeof data.non_field_errors === 'string') {
+                    serverMessage = data.non_field_errors;
+                } else {
+                    // Extract key-value field errors
+                    const fieldErrors = [];
+                    for (const key of Object.keys(data)) {
+                        const val = data[key];
+                        if (Array.isArray(val)) {
+                            fieldErrors.push(`${key}: ${val.join(', ')}`);
+                        } else if (typeof val === 'string') {
+                            fieldErrors.push(`${key}: ${val}`);
+                        }
+                    }
+                    if (fieldErrors.length > 0) {
+                        serverMessage = fieldErrors.join('; ');
+                    } else {
+                        serverMessage = JSON.stringify(data);
+                    }
+                }
+            }
+        }
+        
+        // Ensure serverMessage is string and clean it up
+        serverMessage = typeof serverMessage === 'string' ? serverMessage.trim() : '';
+        
+        const serverMessageLower = serverMessage.toLowerCase();
+        const errorMsgLower = String(error.message).toLowerCase();
+        
+        // Check duplicate/already exists errors
+        if (status === 409 || 
+            serverMessageLower.includes('already exists') || 
+            serverMessageLower.includes('already present') || 
+            serverMessageLower.includes('already uploaded') || 
+            serverMessageLower.includes('duplicate') ||
+            serverMessageLower.includes('unique constraint') ||
+            errorMsgLower.includes('already exists') || 
+            errorMsgLower.includes('already present') || 
+            errorMsgLower.includes('already uploaded') || 
+            errorMsgLower.includes('duplicate')
+        ) {
+            return Promise.reject(new Error('The book or exam was already uploaded.'));
+        }
+
+        // HTTP specific friendly deciphering
+        if (status === 400) {
+            return Promise.reject(new Error(serverMessage || 'Invalid request. Please check the fields and try again.'));
+        }
+        if (status === 403) {
+            return Promise.reject(new Error('Access denied. You do not have permission to perform this action.'));
+        }
+        if (status === 404) {
+            return Promise.reject(new Error('The requested resource was not found.'));
+        }
+        if (status === 500) {
+            return Promise.reject(new Error('Internal server error. Please try again later or contact support.'));
+        }
+        if (status === 503 || status === 502 || status === 504) {
+            return Promise.reject(new Error('The translation service is temporarily unavailable. Please try again in a few moments.'));
+        }
+
+        const errorMessage = serverMessage || error.message || 'An unexpected error occurred. Please try again.';
         return Promise.reject(new Error(errorMessage));
     }
 );

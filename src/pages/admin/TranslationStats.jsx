@@ -45,6 +45,7 @@ export function TranslationStats() {
       ]);
 
       const data = statsResponse.data;
+      setOverview(data.overview);
       setJobs(data.jobs);
       setRecentFailures(data.recent_failures);
       setLanguages(data.top_languages);
@@ -59,8 +60,7 @@ export function TranslationStats() {
       );
       setActiveJobs(pendingAndFailed);
     } catch (error) {
-      console.error('Failed to fetch stats:', error);
-      toast.error('Failed to load statistics');
+      toast.error('Could not load translation statistics. Please refresh the page.');
     } finally {
       setLoading(false);
     }
@@ -81,7 +81,7 @@ export function TranslationStats() {
       toast.success("Retry triggered successfully!", { id: tid });
       fetchStatsData();
     } catch (error) {
-      toast.error("Failed to retry translation.", { id: tid });
+      toast.error(error.message || 'Retry failed. Please try again in a moment.', { id: tid });
     }
   };
 

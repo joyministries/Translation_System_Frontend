@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/auth_store.jsx';
 import { adminAPI } from '../../api/admin.jsx';
+import toast from 'react-hot-toast';
 import { 
   BookUp, 
   ClipboardList, 
@@ -59,7 +60,7 @@ export function Dashboard() {
           });
         }
       } catch (error) {
-        console.error('Failed to load summary stats', error);
+        toast.error('Could not load dashboard statistics. Please refresh the page.');
         if (mounted) {
           setStats(prev => ({ ...prev, loading: false }));
         }

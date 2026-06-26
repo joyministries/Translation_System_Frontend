@@ -3,6 +3,7 @@ import { MdSearch, MdAssignment } from 'react-icons/md';
 import { ExamCard } from '../../components/student/ExamCard';
 import { studentAPI } from '../../api/student.jsx';
 import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 
 // Skeleton shimmer card for loading state
 function ExamCardSkeleton() {
@@ -52,7 +53,7 @@ export function BrowseExams() {
         });
         setAllExams(formattedExams);
       } catch (error) {
-        console.error('Error fetching data:', error);
+        toast.error('Could not load exams. Please check your connection and try again.');
         setAllExams([]);
       } finally {
         setIsLoading(false);

@@ -17,8 +17,7 @@ export function BooksTranslationsView() {
                 const response = await adminAPI.books.list(1, 100);
                 setBooks(response.items || response.data || []);
             } catch (error) {
-                console.error('Failed to fetch books:', error);
-                toast.error('Failed to load books');
+                toast.error(error.message || 'Could not load books. Please refresh the page.');
             } finally {
                 setLoading(false);
             }
@@ -42,8 +41,7 @@ export function BooksTranslationsView() {
                 const response = await adminAPI.books.getTranslations(bookId);
                 setTranslations(prev => ({ ...prev, [bookId]: response }));
             } catch (error) {
-                console.error(`Failed to fetch translations for book ${bookId}:`, error);
-                toast.error('Failed to load translations for this book');
+                toast.error(error.message || 'Could not load translations for this book.');
             } finally {
                 setLoadingTranslations(prev => ({ ...prev, [bookId]: false }));
             }
@@ -68,7 +66,7 @@ export function BooksTranslationsView() {
             window.URL.revokeObjectURL(url);
             toast.success('Download started!', { id: toastId });
         } catch (error) {
-            toast.error('Failed to download file.', { id: toastId });
+            toast.error(error.message || 'Download failed. Please try again.', { id: toastId });
         }
     };
 

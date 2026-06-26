@@ -1,81 +1,10 @@
 import { ConfirmModal } from '../shared/ConfirmModal';
-import { useState, useRef, useEffect } from 'react';
+import { ActionDropdown } from '../shared/ActionDropdown';
+import { useState } from 'react';
 import toast from 'react-hot-toast';
 import { adminAPI } from '../../api/admin.jsx';
-import { MoreVertical, Globe, Trash2, Eye, ChevronUp, ChevronDown } from 'lucide-react';
+import { Globe, Trash2, Eye, ChevronUp, ChevronDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-
-function ActionDropdown({ book, onTranslate, onDelete, isLast }) {
-  const [isOpen, setIsOpen] = useState(false);
-  const dropdownRef = useRef(null);
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  const isPending = book.extractionStatus === 'pending' || book.extraction_status === 'pending';
-
-  return (
-    <div className="relative inline-block text-left" ref={dropdownRef}>
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="p-1.5 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
-      >
-        <MoreVertical className="w-5 h-5" />
-      </button>
-
-      {isOpen && (
-        <div className={`absolute right-0 w-44 bg-white rounded-lg shadow-lg border border-gray-100 z-50 py-1 ${isLast ? 'bottom-full mb-1' : 'top-full mt-1'}`}>
-          <button
-            onClick={() => {
-              setIsOpen(false);
-              navigate(`/admin/book/${book.id}`, { state: { book } });
-            }}
-            className="w-full text-left px-4 py-2 text-sm flex items-center gap-2 text-gray-700 hover:bg-gray-50"
-          >
-            <Eye className="w-4 h-4" />
-            View Translations
-          </button>
-
-          <button
-            onClick={() => {
-              setIsOpen(false);
-              if (!isPending) onTranslate(book);
-            }}
-            disabled={isPending}
-            title={isPending ? 'Book extraction is pending' : 'Translate book'}
-            className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 ${isPending
-              ? 'text-gray-400 cursor-not-allowed'
-              : 'text-gray-700 hover:bg-gray-50'
-              }`}
-          >
-            <Globe className="w-4 h-4" />
-            Translate
-          </button>
-
-          <button
-            onClick={() => {
-              setIsOpen(false);
-              onDelete(book.id);
-            }}
-            className="w-full text-left px-4 py-2 text-sm flex items-center gap-2 text-red-600 hover:bg-red-50"
-          >
-            <Trash2 className="w-4 h-4" />
-            Delete
-          </button>
-        </div>
-      )}
-    </div>
-  );
-}
 
 // Colour map for common file extensions
 const FILE_TYPE_COLORS = {
@@ -135,7 +64,7 @@ export function BookTable({ books, loading, onBooksChanged }) {
       setDeleteConfirm(null);
       onBooksChanged?.();
     } catch (error) {
-      toast.error(error.message || 'Delete failed');
+      toast.error(error.message || 'Failed to delete the book. Please try again.');
     } finally {
       setDeleting(false);
     }
@@ -200,6 +129,7 @@ export function BookTable({ books, loading, onBooksChanged }) {
             <tbody className="divide-y divide-gray-200">
               {sortedBooks.map((book, index, arr) => {
                 const isLast = index >= arr.length - 2 && arr.length > 2;
+                const isPending = book.extractionStatus === 'pending' || book.extraction_status === 'pending';
                 return (
                   <tr key={book.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
@@ -213,10 +143,27 @@ export function BookTable({ books, loading, onBooksChanged }) {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-right">
                       <ActionDropdown
-                        book={book}
-                        onTranslate={(b) => onBooksChanged?.('translate', b)}
-                        onDelete={(id) => setDeleteConfirm(id)}
                         isLast={isLast}
+                        actions={[
+                          {
+                            label: 'View Translations',
+                            icon: <Eye className="w-4 h-4" />,
+                            onClick: () => navigate(`/admin/book/${book.id}`, { state: { book } })
+                          },
+                          {
+                            label: 'Translate',
+                            icon: <Globe className="w-4 h-4" />,
+                            disabled: isPending,
+                            title: isPending ? 'Book extraction is pending' : 'Translate book',
+                            onClick: () => onBooksChanged?.('translate', book)
+                          },
+                          {
+                            label: 'Delete',
+                            icon: <Trash2 className="w-4 h-4" />,
+                            isDangerous: true,
+                            onClick: () => setDeleteConfirm(book.id)
+                          }
+                        ]}
                       />
                     </td>
                   </tr>

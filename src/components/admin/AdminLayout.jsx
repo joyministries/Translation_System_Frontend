@@ -1,15 +1,22 @@
 import { Outlet, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/auth_store.jsx';
 import toast from 'react-hot-toast';
+import { authAPI } from '../../api/auth';
 
 export function AdminLayout() {
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
 
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-    toast.success('Logged out successfully');
+  const handleLogout = async () => {
+    try {
+      await authAPI.logout();
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      logout();
+      navigate('/login');
+      toast.success('Logged out successfully');
+    }
   };
 
   return (

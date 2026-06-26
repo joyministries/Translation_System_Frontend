@@ -1,61 +1,9 @@
 import { ConfirmModal } from '../shared/ConfirmModal';
-import { useState, useRef, useEffect } from 'react';
+import { ActionDropdown } from '../shared/ActionDropdown';
+import { useState } from 'react';
 import toast from 'react-hot-toast';
 import { adminAPI } from '../../api/admin.jsx';
-import { MoreVertical, Globe, Trash2 } from 'lucide-react';
-
-function ActionDropdown({ exam, onTranslate, onDelete, isLast }) {
-  const [isOpen, setIsOpen] = useState(false);
-  const dropdownRef = useRef(null);
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  return (
-    <div className="relative inline-block text-left" ref={dropdownRef}>
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="p-1.5 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
-      >
-        <MoreVertical className="w-5 h-5" />
-      </button>
-
-      {isOpen && (
-        <div className={`absolute right-0 w-44 bg-white rounded-lg shadow-lg border border-gray-100 z-50 py-1 ${isLast ? 'bottom-full mb-1' : 'top-full mt-1'}`}>
-          <button
-            onClick={() => {
-              setIsOpen(false);
-              onTranslate(exam);
-            }}
-            className="w-full text-left px-4 py-2 text-sm flex items-center gap-2 text-gray-700 hover:bg-gray-50 cursor-pointer"
-          >
-            <Globe className="w-4 h-4" />
-            Translate
-          </button>
-
-          <button
-            onClick={() => {
-              setIsOpen(false);
-              onDelete(exam.id);
-            }}
-            className="w-full text-left px-4 py-2 text-sm flex items-center gap-2 text-red-600 hover:bg-red-50 cursor-pointer"
-          >
-            <Trash2 className="w-4 h-4" />
-            Delete
-          </button>
-        </div>
-      )}
-    </div>
-  );
-}
+import { Globe, Trash2 } from 'lucide-react';
 
 export function ExamTable({ exams, onSelectExam, onExamsChanged }) {
   const [deleteConfirm, setDeleteConfirm] = useState(null);
@@ -71,7 +19,7 @@ export function ExamTable({ exams, onSelectExam, onExamsChanged }) {
       setDeleteConfirm(null);
       onExamsChanged?.();
     } catch (error) {
-      toast.error(error.message || 'Delete failed');
+      toast.error(error.message || 'Failed to delete the exam. Please try again.');
     } finally {
       setDeleting(false);
     }
@@ -108,10 +56,20 @@ export function ExamTable({ exams, onSelectExam, onExamsChanged }) {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-medium">
                       <ActionDropdown
-                        exam={exam}
-                        onTranslate={onSelectExam}
-                        onDelete={(id) => setDeleteConfirm(id)}
                         isLast={isLast}
+                        actions={[
+                          {
+                            label: 'Translate',
+                            icon: <Globe className="w-4 h-4" />,
+                            onClick: () => onSelectExam(exam)
+                          },
+                          {
+                            label: 'Delete',
+                            icon: <Trash2 className="w-4 h-4" />,
+                            isDangerous: true,
+                            onClick: () => setDeleteConfirm(exam.id)
+                          }
+                        ]}
                       />
                     </td>
                   </tr>

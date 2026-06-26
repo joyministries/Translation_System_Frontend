@@ -20,8 +20,7 @@ export function Languages() {
       const languagesData = response.data.languages;
       setLanguages(Array.isArray(languagesData) ? languagesData : []);
     } catch (error) {
-      toast.error('Failed to fetch languages.');
-      console.error(error);
+      toast.error(error.message || 'Could not load languages. Please refresh the page.');
     } finally {
       setLoading(false);
     }
