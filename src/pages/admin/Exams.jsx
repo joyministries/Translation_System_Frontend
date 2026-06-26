@@ -18,6 +18,7 @@ export function Exams() {
   const [showImportModal, setShowImportModal] = useState(false);
   const [showTranslationModal, setShowTranslationModal] = useState(false);
   const [selectedExam, setSelectedExam] = useState(null);
+  const [selectedSection, setSelectedSection] = useState('All');
 
   const fetchExams = async () => {
     try {
@@ -58,6 +59,17 @@ export function Exams() {
     setShowTranslationModal(true);
   };
 
+  const filteredExams = exams.filter(exam => {
+    if (selectedSection === 'All') return true;
+    const title = exam.title || '';
+    const firstChar = title.trim().charAt(0).toUpperCase();
+    if (selectedSection === 'Certificate') return firstChar === 'C';
+    if (selectedSection === 'Diploma') return firstChar === 'D';
+    if (selectedSection === 'Bachelor') return firstChar === 'B';
+    if (selectedSection === 'Others') return !['C', 'D', 'B'].includes(firstChar);
+    return true;
+  });
+
   const renderContent = () => {
     if (loading) {
       return <div className="flex justify-center items-center h-64"><Spinner /></div>;
@@ -84,10 +96,19 @@ export function Exams() {
       );
     }
 
+    if (filteredExams.length === 0) {
+      return (
+        <div className="bg-white rounded-lg shadow p-8 text-center text-gray-500 font-medium">
+          No exams uploaded yet
+        </div>
+      );
+    }
+
     return (
       <ExamTable
-        exams={exams}
+        exams={filteredExams}
         onSelectExam={handleSelectExam}
+        onExamsChanged={fetchExams}
       />
     );
   };
@@ -101,9 +122,28 @@ export function Exams() {
           </Button>
           <h1 className="text-3xl font-bold text-gray-800">Exams</h1>
         </div>
-        {exams.length > 0 && !loading && (
-          <Button onClick={() => setShowImportModal(true)}>Import Exam</Button>
-        )}
+
+        <div className="flex items-center gap-3">
+          {/* Section Filter Dropdown */}
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-gray-500">Section:</span>
+            <select
+              value={selectedSection}
+              onChange={(e) => setSelectedSection(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-sm font-medium text-gray-700 cursor-pointer min-w-[150px] shadow-sm hover:border-gray-400 transition-colors"
+            >
+              <option value="All">All Sections</option>
+              <option value="Certificate">Certificate</option>
+              <option value="Diploma">Diploma</option>
+              <option value="Bachelor">Bachelor</option>
+              <option value="Others">Others</option>
+            </select>
+          </div>
+
+          {exams.length > 0 && !loading && (
+            <Button onClick={() => setShowImportModal(true)}>Import Exam</Button>
+          )}
+        </div>
       </div>
 
       {renderContent()}

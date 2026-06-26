@@ -18,6 +18,7 @@ export function Books() {
   const [pollIntervals, setPollIntervals] = useState({});
   const [showTranslationModal, setShowTranslationModal] = useState(false);
   const [selectedBook, setSelectedBook] = useState(null);
+  const [selectedSection, setSelectedSection] = useState('All');
 
   const fetchBooks = async () => {
     setLoading(true);
@@ -29,7 +30,9 @@ export function Books() {
 
       const res = await adminAPI.books.list(1, 100)
       let booksData = [];
-      if (res.data?.items) {
+      if (res?.items) {
+        booksData = res.items;
+      } else if (res.data?.items) {
         booksData = res.data.items;
       } else if (res.data && Array.isArray(res.data)) {
         booksData = res.data;
@@ -67,7 +70,9 @@ export function Books() {
 
           // Handle different response formats
           let booksData = [];
-          if (response.data?.books) {
+          if (response?.items) {
+            booksData = response.items;
+          } else if (response.data?.books) {
             booksData = response.data.books;
           } else if (response.data && Array.isArray(response.data)) {
             booksData = response.data;
@@ -125,8 +130,21 @@ export function Books() {
     if (action === 'translate') {
       setSelectedBook(book);
       setShowTranslationModal(true);
+    } else {
+      fetchBooks();
     }
   };
+
+  const filteredBooks = books.filter(book => {
+    if (selectedSection === 'All') return true;
+    const title = book.title || '';
+    const firstChar = title.trim().charAt(0).toUpperCase();
+    if (selectedSection === 'Certificate') return firstChar === 'C';
+    if (selectedSection === 'Diploma') return firstChar === 'D';
+    if (selectedSection === 'Bachelor') return firstChar === 'B';
+    if (selectedSection === 'Others') return !['C', 'D', 'B'].includes(firstChar);
+    return true;
+  });
 
   return (
     <div className="container mx-auto p-6">
@@ -138,13 +156,31 @@ export function Books() {
           <h1 className="text-3xl font-bold text-gray-800">Content Library</h1>
         </div>
 
-        {/* Upload Button */}
-        <button
-          onClick={() => setShowUploadForm(true)}
-          className="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors"
-        >
-          Upload Book
-        </button>
+        <div className="flex items-center gap-3">
+          {/* Section Filter Dropdown */}
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-gray-500">Section:</span>
+            <select
+              value={selectedSection}
+              onChange={(e) => setSelectedSection(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-sm font-medium text-gray-700 cursor-pointer min-w-[150px] shadow-sm hover:border-gray-400 transition-colors"
+            >
+              <option value="All">All Sections</option>
+              <option value="Certificate">Certificate</option>
+              <option value="Diploma">Diploma</option>
+              <option value="Bachelor">Bachelor</option>
+              <option value="Others">Others</option>
+            </select>
+          </div>
+
+          {/* Upload Button */}
+          <button
+            onClick={() => setShowUploadForm(true)}
+            className="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors"
+          >
+            Upload Book
+          </button>
+        </div>
       </div>
 
       {loading && books.length === 0 ? (
@@ -152,7 +188,7 @@ export function Books() {
           <Spinner />
         </div>
       ) : (
-        <BookTable books={books} onBooksChanged={handleTableActions} />
+        <BookTable books={filteredBooks} onBooksChanged={handleTableActions} />
       )}
 
       {selectedBook && (

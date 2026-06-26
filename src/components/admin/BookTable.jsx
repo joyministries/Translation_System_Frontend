@@ -187,7 +187,7 @@ export function BookTable({ books, loading, onBooksChanged }) {
                   </div>
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  6%z5                  File Type
+                  File Type
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Uploaded By

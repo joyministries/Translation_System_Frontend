@@ -1,6 +1,23 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL
+const API_URL = import.meta.env.VITE_API_URL;
+
+const USE_MOCKS = false;
+
+// Stateful local mocks
+let mockBooks = [
+    { id: 1, title: 'C - Certificate Biology', language: 'English', file_type: 'pdf', uploadedBy: 'Admin', extractionStatus: 'completed' },
+    { id: 2, title: 'D - Diploma Engineering', language: 'Spanish', file_type: 'docx', uploadedBy: 'Admin', extractionStatus: 'completed' },
+    { id: 3, title: 'B - Bachelor Calculus', language: 'French', file_type: 'epub', uploadedBy: 'Admin', extractionStatus: 'completed' },
+    { id: 4, title: 'Introduction to History', language: 'German', file_type: 'txt', uploadedBy: 'Admin', extractionStatus: 'completed' }
+];
+
+let mockExams = [
+    { id: 11, title: 'C - Chemistry midterm', created_at: '2026-06-25T12:00:00Z' },
+    { id: 12, title: 'D - Data Structures exam', created_at: '2026-06-24T12:00:00Z' },
+    { id: 13, title: 'B - Advanced Physics exam', created_at: '2026-06-23T12:00:00Z' },
+    { id: 14, title: 'General Knowledge quiz', created_at: '2026-06-22T12:00:00Z' }
+];
 
 export const axiosInstance = axios.create({ 
     baseURL: API_URL,
@@ -10,6 +27,136 @@ export const axiosInstance = axios.create({
     },
     timeout: 300000, // Increased to 5 minutes (300000ms) for heavy tasks like book uploads
     withCredentials: false, // Set to true if backend sends cookies
+    adapter: async (config) => {
+        if (!USE_MOCKS) {
+            // Find default adapter
+            const defaultAdapter = axios.defaults.adapter;
+            if (typeof defaultAdapter === 'function') {
+                return defaultAdapter(config);
+            }
+            // If not found, use standard adapter resolver
+            const xhrAdapter = axios.getAdapter ? axios.getAdapter('xhr') : null;
+            if (xhrAdapter) return xhrAdapter(config);
+            throw new Error('No default adapter found');
+        }
+
+        const url = config.url || '';
+        const method = config.method?.toLowerCase();
+        
+        if (url.includes('/auth/login')) {
+            return {
+                data: { access_token: 'mock-token', token: 'mock-token' },
+                status: 200,
+                statusText: 'OK',
+                headers: {},
+                config,
+            };
+        }
+        if (url.includes('/auth/me')) {
+            return {
+                data: { role: 'admin', email: 'admin@example.com', user_role: 'admin', name: 'Admin' },
+                status: 200,
+                statusText: 'OK',
+                headers: {},
+                config,
+            };
+        }
+        if (url.includes('/admin/translations/stats') || url.includes('/admin/stats')) {
+            return {
+                data: {
+                    overview: {
+                        total_translations: mockBooks.length + mockExams.length,
+                        success_rate: '100%'
+                    },
+                    jobs: {
+                        active: 0
+                    }
+                },
+                status: 200,
+                statusText: 'OK',
+                headers: {},
+                config,
+            };
+        }
+        if (url.includes('/admin/content/books') || url.includes('/admin/books/')) {
+            if (method === 'delete') {
+                const parts = url.split('/');
+                const idToDelete = parseInt(parts[parts.length - 1], 10);
+                mockBooks = mockBooks.filter(b => b.id !== idToDelete);
+                return {
+                    data: { message: 'Deleted' },
+                    status: 200,
+                    statusText: 'OK',
+                    headers: {},
+                    config,
+                };
+            }
+            return {
+                data: {
+                    items: mockBooks
+                },
+                status: 200,
+                statusText: 'OK',
+                headers: {},
+                config,
+            };
+        }
+        if (url.includes('/admin/content/exams') || url.includes('/admin/content/exams/')) {
+            if (method === 'delete') {
+                const parts = url.split('/');
+                const idToDelete = parseInt(parts[parts.length - 1], 10);
+                mockExams = mockExams.filter(e => e.id !== idToDelete);
+                return {
+                    data: { message: 'Deleted' },
+                    status: 200,
+                    statusText: 'OK',
+                    headers: {},
+                    config,
+                };
+            }
+            return {
+                data: {
+                    items: mockExams
+                },
+                status: 200,
+                statusText: 'OK',
+                headers: {},
+                config,
+            };
+        }
+        if (url.includes('/admin/content/languages')) {
+            return {
+                data: {
+                    languages: [
+                        { id: 'en', name: 'English', isActive: true },
+                        { id: 'es', name: 'Spanish', isActive: true }
+                    ]
+                },
+                status: 200,
+                statusText: 'OK',
+                headers: {},
+                config,
+            };
+        }
+        if (url.includes('/translations/book/') || url.includes('/translations/exam/')) {
+            return {
+                data: [],
+                status: 200,
+                statusText: 'OK',
+                headers: {},
+                config,
+            };
+        }
+
+        // Fallback
+        const defaultAdapter = axios.defaults.adapter;
+        if (typeof defaultAdapter === 'function') {
+            return defaultAdapter(config);
+        }
+        const xhrAdapter = axios.getAdapter ? axios.getAdapter('xhr') : null;
+        if (xhrAdapter) return xhrAdapter(config);
+        throw new Error('Default adapter not found');
+    }
  });
 
 
