@@ -8,7 +8,7 @@ export const adminEndpoints = {
     translationStats: '/admin/translations/stats',
     translationTranslate: '/admin/translations/translate',
     exams: '/admin/content/exams',
-    examsImport: '/admin/content/exams/import',
+    examsUpload: '/admin/exams',
     languages: '/admin/content/languages',
     languagesActivate: '/admin/languages/{language_id}/activate',
     languagesDeactivate: '/admin/languages/{language_id}/deactivate',
@@ -143,7 +143,7 @@ export const adminAPI = {
                 },
             };
 
-            const response = await axiosInstance.post(adminEndpoints.examsImport, formData, config);
+            const response = await axiosInstance.post(adminEndpoints.examsUpload, formData, config);
 
             // Trigger translation after successful upload
             if (response.data?.id) {
@@ -152,7 +152,7 @@ export const adminAPI = {
 
             return response.data;
         },
-        delete: (id) => axiosInstance.delete(`${adminEndpoints.exams}/${id}`),
+        delete: (id) => axiosInstance.delete(`/admin/exams/${id}`),
         // Get all completed translations for a specific exam
         getTranslations: async (examId) => {
             try {

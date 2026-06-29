@@ -101,7 +101,7 @@ export const axiosInstance = axios.create({
                 config,
             };
         }
-        if (url.includes('/admin/content/exams') || url.includes('/admin/content/exams/')) {
+        if (url.includes('/admin/content/exams') || url.includes('/admin/content/exams/') || url.includes('/admin/exams') || url.includes('/admin/exams/')) {
             if (method === 'delete') {
                 const parts = url.split('/');
                 const idToDelete = parseInt(parts[parts.length - 1], 10);
