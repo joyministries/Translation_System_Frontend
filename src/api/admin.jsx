@@ -8,7 +8,7 @@ export const adminEndpoints = {
     translationStats: '/admin/translations/stats',
     translationTranslate: '/admin/translations/translate',
     exams: '/admin/content/exams',
-    examsUpload: '/admin/exams',
+    examsUpload: '/admin/exams/import',
     languages: '/admin/content/languages',
     languagesActivate: '/admin/languages/{language_id}/activate',
     languagesDeactivate: '/admin/languages/{language_id}/deactivate',
