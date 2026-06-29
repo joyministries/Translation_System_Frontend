@@ -3,9 +3,11 @@ import { ActionDropdown } from '../shared/ActionDropdown';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
 import { adminAPI } from '../../api/admin.jsx';
-import { Globe, Trash2 } from 'lucide-react';
+import { Globe, Trash2, Eye } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export function ExamTable({ exams, onSelectExam, onExamsChanged }) {
+  const navigate = useNavigate();
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [deleting, setDeleting] = useState(false);
 
@@ -58,6 +60,11 @@ export function ExamTable({ exams, onSelectExam, onExamsChanged }) {
                       <ActionDropdown
                         isLast={isLast}
                         actions={[
+                          {
+                            label: 'View Translations',
+                            icon: <Eye className="w-4 h-4" />,
+                            onClick: () => navigate(`/admin/exam/${exam.id}`, { state: { exam } })
+                          },
                           {
                             label: 'Translate',
                             icon: <Globe className="w-4 h-4" />,

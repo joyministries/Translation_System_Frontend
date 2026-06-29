@@ -19,6 +19,7 @@ const BrowseExams = lazy(() => import('../pages/student/BrowseExams').then(m => 
 const ExamDetails = lazy(() => import('../pages/student/ExamDetails').then(m => ({ default: m.ExamDetails })));
 const TranslationStats = lazy(() => import('../pages/admin/TranslationStats').then(m => ({ default: m.TranslationStats })));
 const AdminBookDetails = lazy(() => import('../pages/admin/AdminBookDetails').then(m => ({ default: m.AdminBookDetails })));
+const AdminExamDetails = lazy(() => import('../pages/admin/AdminExamDetails').then(m => ({ default: m.AdminExamDetails })));
 
 export function AppRouter() {
   return (
@@ -47,6 +48,7 @@ export function AppRouter() {
             <Route path="users" element={<Users />} />
             <Route path="translation-stats" element={<TranslationStats />} />
             <Route path="book/:bookId" element={<AdminBookDetails />} />
+            <Route path="exam/:examId" element={<AdminExamDetails />} />
 
           </Route>
 
