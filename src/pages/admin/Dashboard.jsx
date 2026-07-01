@@ -3,13 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/auth_store.jsx';
 import { adminAPI } from '../../api/admin.jsx';
 import toast from 'react-hot-toast';
-import { 
-  BookUp, 
-  ClipboardList, 
-  Languages, 
-  Users, 
-  Globe2, 
-  CheckCircle2, 
+import {
+  BookUp,
+  ClipboardList,
+
+  Users,
+  Globe2,
+  CheckCircle2,
   RefreshCw,
   BarChart3
 } from 'lucide-react';
@@ -86,10 +86,10 @@ export function Dashboard() {
           <BarChart3 className="w-5 h-5 text-gray-400" />
           System Overview
         </h2>
-        
+
         {stats.loading ? (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-pulse">
-            {[1,2,3].map(i => <div key={i} className="h-32 bg-gray-200 rounded-2xl" />)}
+            {[1, 2, 3].map(i => <div key={i} className="h-32 bg-gray-200 rounded-2xl" />)}
           </div>
         ) : (stats.overview && stats.jobs) ? (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -131,14 +131,14 @@ export function Dashboard() {
           </div>
         ) : null}
       </section>
-      
+
       {/* Quick Actions */}
       <section>
         <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
           <ClipboardList className="w-5 h-5 text-gray-400" />
           Quick Actions
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           <QuickActionCard
             label="Upload Book"
             description="Add new books to the repository for translation"
@@ -153,11 +153,12 @@ export function Dashboard() {
             colorTheme="indigo"
             onClick={() => navigate('/admin/exams')}
           />
+
           <QuickActionCard
-            label="Translations"
+            label="Translation Stats"
             description="View deep analytics and translation history"
-            icon={Languages}
-            colorTheme="pink"
+            icon={BarChart3}
+            colorTheme="sky"
             onClick={() => navigate('/admin/translation-stats')}
           />
           <QuickActionCard

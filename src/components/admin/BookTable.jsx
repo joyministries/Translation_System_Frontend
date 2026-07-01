@@ -51,6 +51,7 @@ function FileTypeBadge({ book }) {
 }
 
 export function BookTable({ books, loading, onBooksChanged }) {
+  const navigate = useNavigate();
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [deleting, setDeleting] = useState(false);
   const [sortOrder, setSortOrder] = useState('asc'); // 'asc' or 'desc'
