@@ -13,7 +13,6 @@ export const authAPI = {
     login: async (email, password) => {
         try {
             const response = await axiosInstance.post(authEndpoints.login, { email, password });
-
             return response.data;
         } catch (error) {
             console.error('Login error:', error);

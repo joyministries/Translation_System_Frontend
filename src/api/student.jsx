@@ -78,13 +78,6 @@ export const studentAPI = {
                 filename: filename
             };
         } catch (error) {
-            console.error('Download translation error:', error);
-            console.error('Error details:', {
-                status: error.response?.status,
-                statusText: error.response?.statusText,
-                data: error.response?.data,
-                config: error.config,
-            });
             throw error;
         }
     },

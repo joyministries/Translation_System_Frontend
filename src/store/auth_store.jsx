@@ -1,5 +1,9 @@
 import { create } from 'zustand';
 
+// Tab-scoped storage — safer than localStorage; cleared automatically when the tab closes.
+const TOKEN_KEY = 'access_token';
+const USER_KEY = 'auth_user';
+
 export const useAuthStore = create((set) => ({
   token: null,
   user: null,
@@ -7,15 +11,10 @@ export const useAuthStore = create((set) => ({
   isAuthenticated: false,
   isInitializing: true,
 
-  // Set token and user info after successful login
-  setToken: (token, user) => {
-    // Handle both 'role' and 'user_role' fields from different API responses
+  setAuthData: (token, user) => {
     const userRole = user?.user_role || user?.role || null;
-
-    // Persist to localStorage
-    localStorage.setItem('token', token);
-    localStorage.setItem('user', JSON.stringify(user));
-
+    sessionStorage.setItem(TOKEN_KEY, token);
+    sessionStorage.setItem(USER_KEY, JSON.stringify(user));
     set({
       token,
       user,
@@ -25,8 +24,9 @@ export const useAuthStore = create((set) => ({
     });
   },
 
-  // Clear token on logout
-  clearToken: () => {
+  clearAuth: () => {
+    sessionStorage.removeItem(TOKEN_KEY);
+    sessionStorage.removeItem(USER_KEY);
     set({
       token: null,
       user: null,
@@ -36,12 +36,9 @@ export const useAuthStore = create((set) => ({
     });
   },
 
-  // Logout action
   logout: () => {
-    // Clear localStorage
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-
+    sessionStorage.removeItem(TOKEN_KEY);
+    sessionStorage.removeItem(USER_KEY);
     set({
       token: null,
       user: null,
@@ -51,16 +48,14 @@ export const useAuthStore = create((set) => ({
     });
   },
 
-  // Initialize auth from localStorage on app startup
   initializeAuth: () => {
-    const token = localStorage.getItem('token');
-    const userStr = localStorage.getItem('user');
+    const token = sessionStorage.getItem(TOKEN_KEY);
+    const userStr = sessionStorage.getItem(USER_KEY);
 
     if (token && userStr) {
       try {
         const user = JSON.parse(userStr);
         const userRole = user?.user_role || user?.role || null;
-
         set({
           token,
           user,
@@ -68,10 +63,10 @@ export const useAuthStore = create((set) => ({
           isAuthenticated: true,
           isInitializing: false,
         });
-      } catch (error) {
-        // If localStorage is corrupted, clear it
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
+      } catch {
+        // Corrupted storage — clear and require re-login.
+        sessionStorage.removeItem(TOKEN_KEY);
+        sessionStorage.removeItem(USER_KEY);
         set({ isInitializing: false });
       }
     } else {
@@ -79,3 +74,4 @@ export const useAuthStore = create((set) => ({
     }
   },
 }));
+

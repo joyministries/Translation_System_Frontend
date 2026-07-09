@@ -6,7 +6,6 @@ import { useAuthStore } from './store/auth_store';
 
 function App() {
   useEffect(() => {
-    // Restore auth from localStorage on app startup
     useAuthStore.getState().initializeAuth();
   }, []);
 

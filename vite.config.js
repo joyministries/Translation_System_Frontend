@@ -8,4 +8,11 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
-})
+  build: {
+    // Strip all console.* calls from the production bundle.
+    // They remain active in development (npm run dev).
+    esbuild: {
+      drop: ['console', 'debugger'],
+    },
+  },
+})

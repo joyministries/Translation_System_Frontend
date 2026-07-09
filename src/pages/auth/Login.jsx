@@ -22,7 +22,7 @@ export function Login() {
     const [forgotEmailError, setForgotEmailError] = useState('');
     
     const navigate = useNavigate();
-    const setToken = useAuthStore((state) => state.setToken);
+    const setAuthData = useAuthStore((state) => state.setAuthData);
 
     const validateFields = () => {
         const errors = {};
@@ -95,24 +95,21 @@ export function Login() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!validateFields()) {
-            return;
-        }
+        if (!validateFields()) return;
 
         setLoading(true);
 
         try {
-            // Step 1: Authenticate user with email and password
             const loginData = await authAPI.login(email, password);
-            const token = loginData.access_token || loginData.token || null;
+            const token = loginData.access_token;
 
-            if (token) {
-                localStorage.setItem('token', token);
-            } else {
+            if (!token) {
                 throw new Error('No authentication token received. Please try again.');
             }
 
-            // Step 2: Fetch user info from auth/me endpoint
+            // Token must be in sessionStorage before getMe() so the request interceptor can attach it.
+            sessionStorage.setItem('access_token', token);
+
             const userData = await authAPI.getMe();
             const user = userData.user || userData;
 
@@ -120,18 +117,20 @@ export function Login() {
                 throw new Error('Failed to fetch user information.');
             }
 
-            // Step 3: Update auth store with user data and token
-            setToken(token, user);
+            setAuthData(token, user);
 
-            // Step 4: Redirect based on user role
-            if (user.role === 'admin') {
+            const userRole = user.user_role || user.role;
+            if (userRole === 'admin') {
                 navigate('/admin/dashboard');
-            } else if (user.role === 'student') {
+            } else if (userRole === 'student') {
                 navigate('/student/browse');
             } else {
                 throw new Error('Your account does not have a valid role assigned. Please contact your administrator.');
             }
         } catch (err) {
+            // Clean up any token written before the failure to avoid a dangling session.
+            sessionStorage.removeItem('access_token');
+            sessionStorage.removeItem('auth_user');
             toast.error(err.message || 'Login failed. Please check your credentials and try again.');
         } finally {
             setLoading(false);
