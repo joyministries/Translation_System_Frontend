@@ -67,5 +67,14 @@ export const authAPI = {
             const message = error.response?.data?.message || error.response?.data?.detail || 'Failed to send password reset link.';
             throw new Error(message);
         }
+    },
+    updateProfile: async (payload) => {
+        try {
+            const response = await axiosInstance.patch(authEndpoints.me, payload);
+            return response.data;
+        } catch (error) {
+            console.error('Update profile error:', error);
+            throw error;
+        }
     }
 }

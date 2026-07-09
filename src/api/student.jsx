@@ -26,7 +26,7 @@ export const studentAPI = {
                     language_id,
                 },
             });
-            return response.data; // Returns { job_id, status, ... }
+            return response.data;
         } catch (error) {
             console.error('Trigger translation error:', error);
             throw error;

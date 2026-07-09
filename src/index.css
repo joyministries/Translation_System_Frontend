@@ -1,1 +1,137 @@
 @import "tailwindcss";
+
+/* ── Brand color tokens ──────────────────────────────────────────────────────
+   Extracted from team_impact_logo.png — steel royal blue #1a6fa8
+   ─────────────────────────────────────────────────────────────────────────── */
+:root {
+  /* Brand palette */
+  --brand-50:  #eff6ff;
+  --brand-100: #dbeafe;
+  --brand-200: #bfdbfe;
+  --brand-300: #93c5fd;
+  --brand-400: #60a5fa;
+  --brand-500: #2d8fcb;
+  --brand-600: #1a6fa8;   /* PRIMARY — matches logo */
+  --brand-700: #15578a;
+  --brand-800: #0f3d62;
+  --brand-900: #0a2540;
+
+  /* Semantic surface tokens — light mode */
+  --bg-base:    #f8fafc;   /* page background     */
+  --bg-surface: #ffffff;   /* cards, panels        */
+  --bg-muted:   #f1f5f9;   /* subtle fill          */
+  --bg-subtle:  #e2e8f0;   /* borders, dividers    */
+
+  --text-primary:   #0f172a;
+  --text-secondary: #475569;
+  --text-muted:     #94a3b8;
+
+  --border-default: #e2e8f0;
+  --border-muted:   #f1f5f9;
+}
+
+/* Dark mode — flip all tokens */
+.dark {
+  --bg-base:    #0f172a;
+  --bg-surface: #1e293b;
+  --bg-muted:   #1e293b;
+  --bg-subtle:  #334155;
+
+  --text-primary:   #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted:     #64748b;
+
+  --border-default: #334155;
+  --border-muted:   #1e293b;
+}
+
+/* ── Global base styles ──────────────────────────────────────────────────────*/
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--bg-base);
+  color: var(--text-primary);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* ── Dark mode overrides for Tailwind utility classes ────────────────────────
+   These ensure existing pages (which use bg-white, bg-gray-50 etc.)
+   automatically switch without needing dark: classes on every element.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+/* Page / layout backgrounds */
+.dark .bg-white        { background-color: var(--bg-surface) !important; }
+.dark .bg-gray-50      { background-color: var(--bg-base)    !important; }
+.dark .bg-gray-100     { background-color: var(--bg-muted)   !important; }
+.dark .bg-slate-50     { background-color: var(--bg-base)    !important; }
+.dark .bg-slate-100    { background-color: var(--bg-muted)   !important; }
+.dark .bg-slate-200    { background-color: var(--bg-subtle)  !important; }
+
+/* Text */
+.dark .text-gray-900   { color: var(--text-primary)   !important; }
+.dark .text-gray-800   { color: var(--text-primary)   !important; }
+.dark .text-gray-700   { color: var(--text-secondary) !important; }
+.dark .text-gray-600   { color: var(--text-secondary) !important; }
+.dark .text-gray-500   { color: var(--text-muted)     !important; }
+.dark .text-gray-400   { color: var(--text-muted)     !important; }
+.dark .text-slate-900  { color: var(--text-primary)   !important; }
+.dark .text-slate-800  { color: var(--text-primary)   !important; }
+.dark .text-slate-700  { color: var(--text-secondary) !important; }
+.dark .text-slate-600  { color: var(--text-secondary) !important; }
+.dark .text-slate-500  { color: var(--text-muted)     !important; }
+
+/* Borders */
+.dark .border-gray-200  { border-color: var(--border-default) !important; }
+.dark .border-gray-300  { border-color: var(--border-default) !important; }
+.dark .border-slate-200 { border-color: var(--border-default) !important; }
+.dark .border-slate-300 { border-color: var(--border-default) !important; }
+.dark .border-slate-100 { border-color: var(--border-muted)   !important; }
+
+/* Form inputs */
+.dark input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+.dark textarea,
+.dark select {
+  background-color: var(--bg-muted);
+  color: var(--text-primary);
+  border-color: var(--border-default);
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: var(--text-muted);
+}
+
+/* Cards and panels that use shadow */
+.dark .shadow,
+.dark .shadow-sm,
+.dark .shadow-md,
+.dark .shadow-lg,
+.dark .shadow-xl {
+  --tw-shadow-color: rgba(0, 0, 0, 0.4);
+}
+
+/* Skeleton / pulse loaders */
+.dark .animate-pulse .bg-slate-100,
+.dark .animate-pulse .bg-slate-200,
+.dark .bg-slate-100.animate-pulse {
+  background-color: var(--bg-subtle) !important;
+}
+
+/* Blue brand utility aliases — used throughout admin/student pages */
+.dark .bg-blue-50    { background-color: rgba(26, 111, 168, 0.12) !important; }
+.dark .bg-blue-100   { background-color: rgba(26, 111, 168, 0.2)  !important; }
+.dark .text-blue-600 { color: #60bbf5 !important; }
+.dark .text-blue-700 { color: #60bbf5 !important; }
+.dark .border-blue-200 { border-color: rgba(26, 111, 168, 0.4) !important; }
+
+/* Hover states that use gray fills */
+.dark .hover\:bg-gray-50:hover  { background-color: var(--bg-muted)   !important; }
+.dark .hover\:bg-gray-100:hover { background-color: var(--bg-subtle)  !important; }
+.dark .hover\:bg-slate-50:hover { background-color: var(--bg-muted)   !important; }
+
+/* ── Brand color helpers (usable via inline style or Tailwind arbitrary) ─── */
+.brand-bg      { background-color: var(--brand-600); }
+.brand-text    { color: var(--brand-600); }
+.brand-border  { border-color: var(--brand-600); }

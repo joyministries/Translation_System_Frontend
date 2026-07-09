@@ -52,7 +52,12 @@ axiosInstance.interceptors.response.use(
         }
 
         if (error.response?.status === 401) {
-            if (window.location.pathname !== '/login') {
+            const requestUrl = error.config?.url || '';
+            const isAuthEndpoint = requestUrl.includes('/auth/login')
+                || requestUrl.includes('/auth/me')
+                || requestUrl.includes('/auth/refresh');
+
+            if (!isAuthEndpoint && window.location.pathname !== '/login') {
                 window.location.href = '/login';
             }
 
