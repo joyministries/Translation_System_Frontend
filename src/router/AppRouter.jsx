@@ -6,6 +6,7 @@ import { Spinner } from '../components/shared/Spinner';
 // Lazy-load page components
 const Login = lazy(() => import('../pages/auth/Login').then(m => ({ default: m.Login })));
 const ForgotPassword = lazy(() => import('../pages/auth/ForgotPassword').then(m => ({ default: m.ForgotPassword })));
+const ResetPassword = lazy(() => import('../pages/auth/ResetPassword').then(m => ({ default: m.ResetPassword })));
 const AdminLayout = lazy(() => import('../components/admin/AdminLayout').then(m => ({ default: m.AdminLayout })));
 const StudentLayout = lazy(() => import('../components/student/StudentLayout').then(m => ({ default: m.StudentLayout })));
 const Dashboard = lazy(() => import('../pages/admin/Dashboard').then(m => ({ default: m.Dashboard })));
@@ -30,6 +31,7 @@ export function AppRouter() {
           <Route path="/" element={<Navigate to="/login" />} />
           <Route path="/login" element={<Login />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
 
 
           {/* Admin Routes*/}

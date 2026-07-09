@@ -7,6 +7,7 @@ export const authEndpoints = {
     refresh: '/auth/refresh',
     me: '/auth/me',
     forgotPassword: '/auth/forgot-password',
+    resetPassword: '/auth/reset-password/',
 }
 
 export const authAPI = {
@@ -75,6 +76,21 @@ export const authAPI = {
         } catch (error) {
             console.error('Update profile error:', error);
             throw error;
+        }
+    },
+    resetPassword: async (token, email, password, passwordConfirmation) => {
+        try {
+            const response = await axiosInstance.post(authEndpoints.resetPassword, {
+                token,
+                email,
+                password,
+                password_confirmation: passwordConfirmation
+            });
+            return response.data;
+        } catch (error) {
+            console.error('Reset password error:', error);
+            const message = error.response?.data?.message || error.response?.data?.detail || 'Failed to reset password.';
+            throw new Error(message);
         }
     }
 }
