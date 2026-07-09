@@ -23,6 +23,7 @@ export function Login() {
     
     const navigate = useNavigate();
     const setAuthData = useAuthStore((state) => state.setAuthData);
+    const setToken = useAuthStore((state) => state.setToken);
 
     const validateFields = () => {
         const errors = {};
@@ -107,19 +108,18 @@ export function Login() {
                 throw new Error('No authentication token received. Please try again.');
             }
 
-            // Token must be in sessionStorage before getMe() so the request interceptor can attach it.
-            sessionStorage.setItem('access_token', token);
+            setToken(token);
 
-            const userData = await authAPI.getMe();
+            const userData = await authAPI.getMe(token);
             const user = userData.user || userData;
 
             if (!user) {
                 throw new Error('Failed to fetch user information.');
             }
 
-            setAuthData(token, user);
+            setAuthData(user);
 
-            const userRole = user.user_role || user.role;
+            const userRole = user.role;
             if (userRole === 'admin') {
                 navigate('/admin/dashboard');
             } else if (userRole === 'student') {
@@ -128,9 +128,6 @@ export function Login() {
                 throw new Error('Your account does not have a valid role assigned. Please contact your administrator.');
             }
         } catch (err) {
-            // Clean up any token written before the failure to avoid a dangling session.
-            sessionStorage.removeItem('access_token');
-            sessionStorage.removeItem('auth_user');
             toast.error(err.message || 'Login failed. Please check your credentials and try again.');
         } finally {
             setLoading(false);

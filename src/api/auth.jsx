@@ -19,9 +19,13 @@ export const authAPI = {
             throw error;
         }
     },
-    getMe: async () => {
+    getMe: async (token) => {
         try {
-            const response = await axiosInstance.get(authEndpoints.me);
+            const config = {};
+            if (token) {
+                config.headers = { Authorization: `Bearer ${token}` };
+            }
+            const response = await axiosInstance.get(authEndpoints.me, config);
             return response.data;
         } catch (error) {
             console.error('Get user info error:', error);

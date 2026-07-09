@@ -2,6 +2,12 @@ import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
+let tokenProvider = () => null;
+
+export const registerTokenProvider = (provider) => {
+    tokenProvider = provider;
+};
+
 export const axiosInstance = axios.create({
     baseURL: API_URL,
     headers: {
@@ -14,7 +20,7 @@ export const axiosInstance = axios.create({
 
 axiosInstance.interceptors.request.use(
     (config) => {
-        const token = sessionStorage.getItem('access_token');
+        const token = tokenProvider();
         if (token) {
             config.headers['Authorization'] = `Bearer ${token}`;
         }
@@ -46,9 +52,6 @@ axiosInstance.interceptors.response.use(
         }
 
         if (error.response?.status === 401) {
-            sessionStorage.removeItem('access_token');
-            sessionStorage.removeItem('auth_user');
-
             if (window.location.pathname !== '/login') {
                 window.location.href = '/login';
             }

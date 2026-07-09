@@ -8,10 +8,15 @@ export const NavBar = ({title, subtitle}) => {
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
 
-  const handleLogout = () => {
-    authAPI.logout();
-    logout();
-    navigate('/login');
+  const handleLogout = async () => {
+    try {
+      await authAPI.logout();
+    } catch (error) {
+      // API logout failed or already logged out; clean up client session regardless.
+    } finally {
+      logout();
+      navigate('/login');
+    }
   };
 
   return (

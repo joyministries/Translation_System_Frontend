@@ -3,11 +3,22 @@ import { useEffect } from 'react';
 import { Toaster } from 'react-hot-toast';
 import { AppRouter } from './router/AppRouter';
 import { useAuthStore } from './store/auth_store';
+import { Spinner } from './components/shared/Spinner';
 
 function App() {
+  const isInitializing = useAuthStore((state) => state.isInitializing);
+
   useEffect(() => {
     useAuthStore.getState().initializeAuth();
   }, []);
+
+  if (isInitializing) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-gray-50">
+        <Spinner size="lg" />
+      </div>
+    );
+  }
 
   return (
     <>
