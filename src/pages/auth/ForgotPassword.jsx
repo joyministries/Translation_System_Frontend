@@ -4,6 +4,7 @@ import { toast } from 'react-hot-toast';
 import { authAPI } from '../../api/auth';
 import { Button } from '../../components/shared/Button';
 import { Input } from '../../components/shared/Input';
+import logo from '../../assets/team_impact_logo.png';
 
 export function ForgotPassword() {
   const [email, setEmail] = useState('');
@@ -31,11 +32,16 @@ export function ForgotPassword() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-slate-50">
-      <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-md">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-slate-900">Forgot Password</h1>
-          <p className="mt-2 text-slate-600">
+    <div style={{ backgroundColor: 'var(--bg-base)', color: 'var(--text-primary)' }} className="flex items-center justify-center min-h-screen p-4 transition-colors duration-200">
+      <div style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-default)' }} className="w-full max-w-md p-8 space-y-6 border rounded-2xl shadow-xl transition-colors duration-200">
+        <div className="text-center space-y-3">
+          <img
+            src={logo}
+            alt="Team Impact Logo"
+            className="h-16 w-auto mx-auto object-contain mb-2"
+          />
+          <h1 style={{ color: 'var(--text-primary)' }} className="text-3xl font-bold">Forgot Password</h1>
+          <p style={{ color: 'var(--text-secondary)' }} className="text-sm">
             {isSubmitted
               ? "If an account with that email exists, you'll receive a reset link shortly."
               : 'Enter your email to receive a password reset link.'}
@@ -44,11 +50,11 @@ export function ForgotPassword() {
 
         {isSubmitted ? (
           <div className="text-center">
-            <p className="text-slate-600 mb-4">
+            <p style={{ color: 'var(--text-secondary)' }} className="mb-4 text-sm">
               Return to the login page to sign in after resetting your password.
             </p>
             <Link to="/login">
-              <Button>Back to Login</Button>
+              <Button className="w-full">Back to Login</Button>
             </Link>
           </div>
         ) : (
@@ -70,9 +76,9 @@ export function ForgotPassword() {
         )}
 
         {!isSubmitted && (
-          <div className="text-sm text-center text-slate-600">
+          <div style={{ color: 'var(--text-secondary)' }} className="text-sm text-center">
             Remember your password?{' '}
-            <Link to="/login" className="font-medium text-blue-600 hover:underline">
+            <Link to="/login" className="font-semibold text-brand-600 hover:underline">
               Log in
             </Link>
           </div>

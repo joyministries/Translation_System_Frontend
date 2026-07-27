@@ -2,10 +2,11 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/auth_store';
-import { MdOutlineVisibility, MdOutlineVisibilityOff, MdEmail, MdCheckCircle } from 'react-icons/md';
+import { MdEmail, MdCheckCircle } from 'react-icons/md';
 import { Modal } from '../../components/shared/Modal';
 import { authAPI } from '../../api/auth.jsx';
 import { toast } from 'react-hot-toast';
+import logo from '../../assets/team_impact_logo.png';
 
 export function Login() {
     const [email, setEmail] = useState('');
@@ -167,68 +168,94 @@ export function Login() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+        <div style={{ background: 'var(--bg-base-gradient)', color: 'var(--text-primary)' }} className="min-h-screen flex items-center justify-center p-4 transition-colors duration-200">
             <div className="w-full max-w-md">
                 {/* Header */}
                 <div className="text-center mb-8">
-                    <h1 className="text-3xl font-bold text-gray-900">Team Impact Christian University</h1>
-                    <p className="text-gray-600 mt-2"> Education material Translation System</p>
+                    <img
+                        src={logo}
+                        alt="Team Impact Christian University Logo"
+                        className="h-16 w-auto mx-auto mb-4 object-contain"
+                    />
+                    <h1 style={{ color: 'var(--text-primary)' }} className="text-3xl font-bold">
+                        Team Impact Christian University
+                    </h1>
+                    <p style={{ color: 'var(--text-secondary)' }} className="mt-2 text-sm">
+                        Education material Translation System
+                    </p>
                 </div>
 
                 {/* Card */}
-                <div className="bg-white rounded-lg shadow-lg p-8">
+                <div style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-default)' }} className="border rounded-2xl shadow-xl p-8 transition-colors duration-200">
 
                     {/* Form */}
                     <form onSubmit={handleSubmit} className="space-y-6">
-                        <h3 className="text-xl font-semibold text-gray-900">
+                        <h3 style={{ color: 'var(--text-primary)' }} className="text-xl font-semibold">
                            Sign In
                         </h3>
-                        <p className='text-sm font-medium text-gray-700'> Access your learning resources </p>
+                        <p style={{ color: 'var(--text-secondary)' }} className="text-sm font-medium">
+                           Access your learning resources
+                        </p>
 
                         {/* Email Field */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-900 mb-2">Email Address</label>
+                            <label style={{ color: 'var(--text-primary)' }} className="block text-sm font-medium mb-2">
+                                Email Address
+                            </label>
                             <input
                                 type="email"
                                 value={email}
                                 onChange={handleEmailChange}
-                                className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition ${
+                                style={{ backgroundColor: 'var(--bg-muted)', color: 'var(--text-primary)', borderColor: 'var(--border-default)' }}
+                                className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-600 transition ${
                                     fieldErrors.email
-                                        ? 'border-red-500 focus:ring-red-500 bg-red-50'
-                                        : 'border-gray-300 focus:ring-blue-500'
+                                        ? 'border-red-500 focus:ring-red-500'
+                                        : ''
                                 }`}
-                                placeholder='student@example.com'
+                                placeholder="student@example.com"
                             />
                             {fieldErrors.email && (
-                                <p className="text-red-600 text-xs mt-1 font-medium">⚠️ {fieldErrors.email}</p>
+                                <p className="text-red-600 dark:text-red-400 text-xs mt-1 font-medium">⚠️ {fieldErrors.email}</p>
                             )}
                         </div>
 
                         {/* Password Field */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-900 mb-2">Password</label>
-                            <div className="relative">
+                            <label style={{ color: 'var(--text-primary)' }} className="block text-sm font-medium mb-2">
+                                Password
+                            </label>
+                            <div>
                                 <input
                                     type={showPassword ? 'text' : 'password'}
                                     value={password}
                                     onChange={handlePasswordChange}
-                                    className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition ${
+                                    style={{ backgroundColor: 'var(--bg-muted)', color: 'var(--text-primary)', borderColor: 'var(--border-default)' }}
+                                    className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-600 transition ${
                                         fieldErrors.password
-                                            ? 'border-red-500 focus:ring-red-500 bg-red-50'
-                                            : 'border-gray-300 focus:ring-blue-500'
+                                            ? 'border-red-500 focus:ring-red-500'
+                                            : ''
                                     }`}
                                     placeholder="••••••••"
                                 />
-                                <button
-                                    type="button"
-                                    onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 text-xl"
-                                >
-                                    {showPassword ? <MdOutlineVisibilityOff/> : <MdOutlineVisibility/>}
-                                </button>
+                                <div className="mt-3 flex items-center gap-2">
+                                    <input
+                                        id="show-password-login"
+                                        type="checkbox"
+                                        checked={showPassword}
+                                        onChange={(e) => setShowPassword(e.target.checked)}
+                                        className="w-4 h-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500 cursor-pointer"
+                                    />
+                                    <label
+                                        htmlFor="show-password-login"
+                                        style={{ color: 'var(--text-primary)' }}
+                                        className="text-sm select-none cursor-pointer"
+                                    >
+                                        Show password
+                                    </label>
+                                </div>
                             </div>
                             {fieldErrors.password && (
-                                <p className="text-red-600 text-xs mt-1 font-medium">⚠️ {fieldErrors.password}</p>
+                                <p className="text-red-600 dark:text-red-400 text-xs mt-1 font-medium">⚠️ {fieldErrors.password}</p>
                             )}
                         </div>
 
@@ -237,7 +264,8 @@ export function Login() {
                             <button
                                 type="button"
                                 onClick={handleForgotPasswordOpen}
-                                className="text-sm text-blue-600 hover:text-blue-800 hover:underline font-medium transition-colors focus:outline-none"
+                                style={{ color: 'var(--brand-600)' }}
+                                className="text-sm hover:underline font-semibold transition-colors focus:outline-none"
                             >
                                 Forgot Password?
                             </button>
@@ -247,11 +275,12 @@ export function Login() {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full px-4 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                            style={{ backgroundColor: '#1a6fa8', color: '#ffffff' }}
+                            className="w-full px-4 py-3 font-semibold rounded-lg hover:bg-[#15578a] focus:outline-none focus:ring-2 focus:ring-brand-600 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition shadow-md cursor-pointer"
                         >
                             {loading ? (
-                                <span className="flex items-center justify-center gap-2">
-                                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+                                <span className="flex items-center justify-center gap-2 text-white">
+                                    <svg className="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24" fill="none">
                                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
                                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
                                     </svg>

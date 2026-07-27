@@ -7,6 +7,7 @@ import { Spinner } from '../components/shared/Spinner';
 const Login = lazy(() => import('../pages/auth/Login').then(m => ({ default: m.Login })));
 const ForgotPassword = lazy(() => import('../pages/auth/ForgotPassword').then(m => ({ default: m.ForgotPassword })));
 const ResetPassword = lazy(() => import('../pages/auth/ResetPassword').then(m => ({ default: m.ResetPassword })));
+const VerifyPasswordChange = lazy(() => import('../pages/auth/VerifyPasswordChange').then(m => ({ default: m.VerifyPasswordChange })));
 const AdminLayout = lazy(() => import('../components/admin/AdminLayout').then(m => ({ default: m.AdminLayout })));
 const StudentLayout = lazy(() => import('../components/student/StudentLayout').then(m => ({ default: m.StudentLayout })));
 const Dashboard = lazy(() => import('../pages/admin/Dashboard').then(m => ({ default: m.Dashboard })));
@@ -32,6 +33,11 @@ export function AppRouter() {
           <Route path="/login" element={<Login />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/set-password" element={<ResetPassword />} />
+          <Route path="/auth/reset-password" element={<ResetPassword />} />
+          <Route path="/auth/set-password" element={<ResetPassword />} />
+          <Route path="/change-password" element={<ResetPassword />} />
+          <Route path="/verify-password-change" element={<VerifyPasswordChange />} />
 
 
           {/* Admin Routes*/}

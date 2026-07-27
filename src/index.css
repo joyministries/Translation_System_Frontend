@@ -1,5 +1,19 @@
 @import "tailwindcss";
 
+@theme {
+  --color-brand-50:  #eff6ff;
+  --color-brand-100: #dbeafe;
+  --color-brand-200: #bfdbfe;
+  --color-brand-300: #93c5fd;
+  --color-brand-400: #60a5fa;
+  --color-brand-500: #2d8fcb;
+  --color-brand-600: #1a6fa8;
+  --color-brand-700: #15578a;
+  --color-brand-800: #0f3d62;
+  --color-brand-900: #0a2540;
+  --color-brand-950: #05192c;
+}
+
 /* ── Brand color tokens ──────────────────────────────────────────────────────
    Extracted from team_impact_logo.png — steel royal blue #1a6fa8
    ─────────────────────────────────────────────────────────────────────────── */
@@ -17,14 +31,15 @@
   --brand-900: #0a2540;
 
   /* Semantic surface tokens — light mode */
-  --bg-base:    #f8fafc;   /* page background     */
-  --bg-surface: #ffffff;   /* cards, panels        */
-  --bg-muted:   #f1f5f9;   /* subtle fill          */
-  --bg-subtle:  #e2e8f0;   /* borders, dividers    */
+  --bg-base:          #f8fafc;   /* page background     */
+  --bg-base-gradient: linear-gradient(135deg, #f8fafc 0%, #edf4fa 50%, #e2eaf4 100%);
+  --bg-surface:       #ffffff;   /* cards, panels        */
+  --bg-muted:         #f1f5f9;   /* subtle fill          */
+  --bg-subtle:        #e2e8f0;   /* borders, dividers    */
 
   --text-primary:   #0f172a;
-  --text-secondary: #475569;
-  --text-muted:     #94a3b8;
+  --text-secondary: #333333;   /* High-contrast dark grey for WCAG AA 4.5:1 minimum compliance */
+  --text-muted:     #475569;   /* Accessible dark slate for light mode */
 
   --border-default: #e2e8f0;
   --border-muted:   #f1f5f9;
@@ -32,14 +47,15 @@
 
 /* Dark mode — flip all tokens */
 .dark {
-  --bg-base:    #0f172a;
-  --bg-surface: #1e293b;
-  --bg-muted:   #1e293b;
-  --bg-subtle:  #334155;
+  --bg-base:          #0f172a;
+  --bg-base-gradient: linear-gradient(135deg, #0f172a 0%, #172033 50%, #1e293b 100%);
+  --bg-surface:       #1e293b;
+  --bg-muted:         #1e293b;
+  --bg-subtle:        #334155;
 
   --text-primary:   #f1f5f9;
-  --text-secondary: #94a3b8;
-  --text-muted:     #64748b;
+  --text-secondary: #cbd5e1;   /* High-contrast light text for dark mode */
+  --text-muted:     #94a3b8;
 
   --border-default: #334155;
   --border-muted:   #1e293b;

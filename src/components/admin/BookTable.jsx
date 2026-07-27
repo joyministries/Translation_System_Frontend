@@ -6,15 +6,15 @@ import { adminAPI } from '../../api/admin.jsx';
 import { Globe, Trash2, Eye, ChevronUp, ChevronDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-// Colour map for common file extensions
-const FILE_TYPE_COLORS = {
-  pdf: { bg: '#FEE2E2', color: '#991B1B', border: '#FECACA' },
-  docx: { bg: '#DBEAFE', color: '#1E40AF', border: '#BFDBFE' },
-  doc: { bg: '#DBEAFE', color: '#1E40AF', border: '#BFDBFE' },
-  txt: { bg: '#F3F4F6', color: '#374151', border: '#E5E7EB' },
-  epub: { bg: '#EDE9FE', color: '#5B21B6', border: '#DDD6FE' },
-  xlsx: { bg: '#DCFCE7', color: '#166534', border: '#BBF7D0' },
-  xls: { bg: '#DCFCE7', color: '#166534', border: '#BBF7D0' },
+// Colour class map for common file extensions
+const FILE_TYPE_CLASSES = {
+  pdf: 'bg-red-100 text-red-700 border-red-200 dark:bg-red-950/60 dark:text-red-300 dark:border-red-800',
+  docx: 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-800',
+  doc: 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-800',
+  txt: 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700',
+  epub: 'bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-950/60 dark:text-purple-300 dark:border-purple-800',
+  xlsx: 'bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800',
+  xls: 'bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800',
 };
 
 function FileTypeBadge({ book }) {
@@ -27,23 +27,12 @@ function FileTypeBadge({ book }) {
     '';
 
   const ext = raw.toLowerCase().replace(/^\./, '');
-  const style = FILE_TYPE_COLORS[ext] || { bg: '#F9FAFB', color: '#6B7280', border: '#E5E7EB' };
+  const badgeClasses = FILE_TYPE_CLASSES[ext] || 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700';
   const label = ext ? ext.toUpperCase() : 'Unknown';
 
   return (
     <span
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        padding: '2px 10px',
-        borderRadius: '9999px',
-        fontSize: '0.72rem',
-        fontWeight: 600,
-        letterSpacing: '0.05em',
-        background: style.bg,
-        color: style.color,
-        border: `1px solid ${style.border}`,
-      }}
+      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold tracking-wider border ${badgeClasses}`}
     >
       {label}
     </span>

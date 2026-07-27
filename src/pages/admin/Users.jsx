@@ -291,13 +291,13 @@ export function Users() {
 
       {/* ── Edit User Modal ── */}
       {editUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-default)', color: 'var(--text-primary)' }} className="border rounded-2xl shadow-2xl w-full max-w-md overflow-hidden transition-colors">
             {/* Header */}
-            <div className="bg-gradient-to-r from-blue-600 to-blue-500 px-6 py-5">
+            <div style={{ backgroundColor: '#1a6fa8' }} className="px-6 py-5">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white text-lg">
-                  {editUser.name?.[0]?.toUpperCase() || editUser.email[0].toUpperCase()}
+                <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white text-lg font-bold">
+                  {editUser.full_name?.[0]?.toUpperCase() || editUser.name?.[0]?.toUpperCase() || editUser.email[0].toUpperCase()}
                 </div>
                 <div>
                   <h2 className="text-lg font-bold text-white">Edit User</h2>
@@ -310,36 +310,39 @@ export function Users() {
             <div className="px-6 py-6 space-y-5">
               {/* Name */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Full Name</label>
+                <label style={{ color: 'var(--text-primary)' }} className="block text-sm font-medium mb-1.5">Full Name</label>
                 <input
                   type="text"
                   value={editForm.name}
                   onChange={(e) => setEditForm(p => ({ ...p, name: e.target.value }))}
                   placeholder="Enter full name"
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  style={{ backgroundColor: 'var(--bg-muted)', color: 'var(--text-primary)', borderColor: 'var(--border-default)' }}
+                  className="w-full px-4 py-2.5 border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-600 transition-all"
                 />
               </div>
 
               {/* Email */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Email Address</label>
+                <label style={{ color: 'var(--text-primary)' }} className="block text-sm font-medium mb-1.5">Email Address</label>
                 <input
                   type="email"
                   value={editForm.email}
                   onChange={(e) => { setEditForm(p => ({ ...p, email: e.target.value })); setEditErrors(p => ({ ...p, email: '' })); }}
                   placeholder="Enter email address"
-                  className={`w-full px-4 py-2.5 border rounded-xl bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${editErrors.email ? 'border-red-400' : 'border-gray-200'}`}
+                  style={{ backgroundColor: 'var(--bg-muted)', color: 'var(--text-primary)', borderColor: 'var(--border-default)' }}
+                  className={`w-full px-4 py-2.5 border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-600 transition-all ${editErrors.email ? 'border-red-400' : ''}`}
                 />
                 {editErrors.email && <p className="text-red-500 text-xs mt-1.5 ml-1">{editErrors.email}</p>}
               </div>
 
               {/* Role */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Role</label>
+                <label style={{ color: 'var(--text-primary)' }} className="block text-sm font-medium mb-1.5">Role</label>
                 <select
                   value={editForm.role}
                   onChange={(e) => setEditForm(p => ({ ...p, role: e.target.value }))}
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  style={{ backgroundColor: 'var(--bg-muted)', color: 'var(--text-primary)', borderColor: 'var(--border-default)' }}
+                  className="w-full px-4 py-2.5 border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-600 transition-all"
                 >
                   <option value="student">Student</option>
                   <option value="admin">Admin</option>
@@ -351,14 +354,16 @@ export function Users() {
             <div className="px-6 pb-6 flex gap-3">
               <button
                 onClick={() => setEditUser(null)}
-                className="flex-1 px-4 py-2.5 text-gray-700 border border-gray-200 rounded-xl hover:bg-gray-50 font-medium transition-colors"
+                style={{ color: 'var(--text-primary)', borderColor: 'var(--border-default)', backgroundColor: 'var(--bg-subtle)' }}
+                className="flex-1 px-4 py-2.5 border rounded-xl hover:opacity-80 font-medium transition-colors cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSaveEdit}
                 disabled={isSavingEdit}
-                className="flex-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-colors disabled:opacity-60 disabled:cursor-not-allowed shadow-sm"
+                style={{ backgroundColor: '#1a6fa8', color: '#ffffff' }}
+                className="flex-1 px-4 py-2.5 hover:bg-[#15578a] text-white font-semibold rounded-xl transition-colors disabled:opacity-60 disabled:cursor-not-allowed shadow-sm cursor-pointer"
               >
                 {isSavingEdit ? 'Saving...' : 'Save Changes'}
               </button>

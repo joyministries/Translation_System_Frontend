@@ -1,14 +1,13 @@
 import { useState } from 'react';
-import { useSearchParams, useNavigate, Link } from 'react-router-dom';
+import { useSearchParams, Link } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { authAPI } from '../../api/auth';
-import { Button } from '../../components/shared/Button';
 import { Input } from '../../components/shared/Input';
+import { CheckCircle2 } from 'lucide-react';
 import logo from '../../assets/team_impact_logo.png';
 
 export function ResetPassword() {
   const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
   const token = searchParams.get('token') || '';
   const email = searchParams.get('email') || '';
 
@@ -41,7 +40,7 @@ export function ResetPassword() {
     if (!validateFields()) return;
 
     if (!token) {
-      toast.error('Invalid password reset session. Missing token.');
+      toast.error('Invalid or missing password reset token.');
       return;
     }
 
@@ -49,9 +48,10 @@ export function ResetPassword() {
     const toastId = toast.loading('Resetting your password...');
 
     try {
+      // Directly submit the new password using the reset token
       await authAPI.resetPassword(token, email, password, confirmPassword);
       setIsSuccess(true);
-      toast.success('Your password has been reset successfully.', { id: toastId });
+      toast.success('Your password has been reset successfully!', { id: toastId });
     } catch (error) {
       toast.error(error.message || 'Failed to reset password. Please try again.', { id: toastId });
     } finally {
@@ -60,51 +60,61 @@ export function ResetPassword() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-slate-50 dark:bg-slate-900 transition-colors duration-200">
-      <div className="w-full max-w-md p-8 space-y-6 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl">
-        
+    <div
+      style={{ background: 'var(--bg-base-gradient)', color: 'var(--text-primary)' }}
+      className="flex items-center justify-center min-h-screen p-4 transition-colors duration-200"
+    >
+      <div
+        style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-default)' }}
+        className="w-full max-w-md p-8 space-y-6 border rounded-2xl shadow-xl transition-colors duration-200"
+      >
         {/* Brand Header */}
         <div className="text-center space-y-4">
           <img
             src={logo}
-            alt="Team Impact Logo"
+            alt="Team Impact University Logo"
             className="h-16 w-auto mx-auto object-contain"
           />
           <div>
-            <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
+            <h1 style={{ color: 'var(--text-primary)' }} className="text-2xl font-bold">
               Reset Your Password
             </h1>
-            <p className="mt-1.5 text-sm text-slate-500 dark:text-slate-400">
+            <p style={{ color: 'var(--text-secondary)' }} className="mt-1.5 text-sm">
               Team Impact Christian University
             </p>
           </div>
         </div>
 
         {isSuccess ? (
-          <div className="text-center space-y-5">
-            <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 text-green-600">
-              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-              </svg>
+          <div className="text-center space-y-5 py-2">
+            <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400">
+              <CheckCircle2 className="h-10 w-10" />
             </div>
             <div className="space-y-2">
-              <p className="text-sm font-medium text-slate-700 dark:text-slate-200">
-                Password Reset Complete
-              </p>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                You can now log in to your account with your new password.
+              <h2 style={{ color: 'var(--text-primary)' }} className="text-xl font-bold">
+                Password Reset Complete!
+              </h2>
+              <p style={{ color: 'var(--text-secondary)' }} className="text-sm leading-relaxed">
+                Your password has been updated successfully. You can now log in to your account with your new password.
               </p>
             </div>
-            <Link to="/login" className="block">
-              <Button className="w-full">Go to Login</Button>
-            </Link>
+            <div className="pt-2">
+              <Link to="/login" className="block">
+                <button
+                  style={{ backgroundColor: '#1a6fa8', color: '#ffffff' }}
+                  className="w-full py-3 px-4 font-semibold rounded-lg hover:bg-[#15578a] transition-colors shadow-md cursor-pointer"
+                >
+                  Go to Login
+                </button>
+              </Link>
+            </div>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-5">
-            <p className="text-xs text-slate-500 dark:text-slate-400 text-center bg-slate-50 dark:bg-slate-900/40 p-2.5 rounded-lg border border-slate-200/60 dark:border-slate-700/60">
+            <p style={{ color: 'var(--text-secondary)', backgroundColor: 'var(--bg-muted)', borderColor: 'var(--border-default)' }} className="text-xs text-center p-3 rounded-lg border">
               Please enter your new password below to secure your account.
             </p>
-            
+
             <div>
               <Input
                 label="New Password"
@@ -147,16 +157,21 @@ export function ResetPassword() {
               )}
             </div>
 
-            <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? 'Resetting Password...' : 'Update Password'}
-            </Button>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              style={{ backgroundColor: '#1a6fa8', color: '#ffffff' }}
+              className="w-full py-3 px-4 font-semibold rounded-lg hover:bg-[#15578a] disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-md cursor-pointer"
+            >
+              {isSubmitting ? 'Submitting...' : 'Submit'}
+            </button>
           </form>
         )}
 
         {!isSuccess && (
-          <div className="text-sm text-center text-slate-600 dark:text-slate-400">
+          <div style={{ color: 'var(--text-secondary)' }} className="text-sm text-center">
             Remembered your password?{' '}
-            <Link to="/login" className="font-semibold text-brand-600 hover:underline">
+            <Link to="/login" style={{ color: '#1a6fa8' }} className="font-semibold hover:underline">
               Log in
             </Link>
           </div>

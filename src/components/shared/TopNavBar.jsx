@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../../store/auth_store';
 import { authAPI } from '../../api/auth';
 import { useDarkMode } from '../../hooks/useDarkMode';
+import { EditUserDialog } from './EditUserDialog';
 import toast from 'react-hot-toast';
 import logo from '../../assets/team_impact_logo.png';
 
@@ -52,10 +53,13 @@ function PencilIcon() {
   );
 }
 
-function ChevronIcon({ open }) {
+function ChevronIcon({ open, isDark }) {
   return (
-    <svg className={`w-4 h-4 text-slate-400 dark:text-slate-500 transition-transform ${open ? 'rotate-180' : ''}`}
-      fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+    <svg
+      style={{ color: isDark ? '#cbd5e1' : '#000000' }}
+      className={`w-4 h-4 group-hover:!text-slate-200 transition-transform ${open ? 'rotate-180' : ''}`}
+      fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true"
+    >
       <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
     </svg>
   );
@@ -69,36 +73,24 @@ export function TopNavBar({ role }) {
   const { user, logout } = useAuthStore();
   const { isDark, toggle: toggleDark } = useDarkMode();
 
-  const [dropdownOpen,  setDropdownOpen]  = useState(false);
-  const [profileOpen,   setProfileOpen]   = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [dropdownOpen,     setDropdownOpen]     = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [mobileMenuOpen,   setMobileMenuOpen]   = useState(false);
+  const [isLoggingOut,     setIsLoggingOut]     = useState(false);
   const dropdownRef = useRef(null);
 
-  const [profileForm,    setProfileForm]    = useState({ full_name: '', email: '' });
-  const [profileLoading, setProfileLoading] = useState(false);
-
   const tabs = TABS[role] || [];
-
-  // Pre-fill form when edit panel opens
-  useEffect(() => {
-    if (profileOpen) {
-      setProfileForm({ full_name: user?.full_name || '', email: user?.email || '' });
-    }
-  }, [profileOpen, user]);
 
   // Close on outside click or Escape
   useEffect(() => {
     const onOutside = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
         setDropdownOpen(false);
-        setProfileOpen(false);
       }
     };
     const onEscape = (e) => {
       if (e.key === 'Escape') {
         setDropdownOpen(false);
-        setProfileOpen(false);
         setMobileMenuOpen(false);
       }
     };
@@ -125,25 +117,6 @@ export function TopNavBar({ role }) {
     }
   };
 
-  const handleProfileSave = async (e) => {
-    e.preventDefault();
-    setProfileLoading(true);
-    try {
-      const payload = {
-        full_name: profileForm.full_name.trim(),
-        email:     profileForm.email.trim(),
-      };
-      await authAPI.updateProfile(payload);
-      toast.success('Profile updated successfully.');
-      setProfileOpen(false);
-      setDropdownOpen(false);
-    } catch (err) {
-      toast.error(err.message || 'Failed to update profile.');
-    } finally {
-      setProfileLoading(false);
-    }
-  };
-
   const displayName = user?.full_name || user?.email || 'User';
   const initials    = displayName.charAt(0).toUpperCase();
 
@@ -157,10 +130,10 @@ export function TopNavBar({ role }) {
             <div className="flex items-center gap-3 shrink-0">
               <img src={logo} alt="Team Impact Logo" className="h-10 w-auto object-contain" />
               <div className="leading-tight">
-                <p style={{ color: 'var(--text-primary)' }} className="text-sm font-bold whitespace-nowrap">
+                <p style={{ color: isDark ? '#ffffff' : '#0f172a' }} className="text-sm font-bold whitespace-nowrap">
                   Team Impact Christian University
                 </p>
-                <p style={{ color: 'var(--text-muted)' }} className="text-xs whitespace-nowrap">
+                <p style={{ color: isDark ? '#cbd5e1' : '#333333' }} className="text-xs font-bold whitespace-nowrap">
                   Education Content Translation Platform
                 </p>
               </div>
@@ -175,10 +148,14 @@ export function TopNavBar({ role }) {
                     key={tab.path}
                     onClick={() => navigate(tab.path)}
                     aria-current={active ? 'page' : undefined}
-                    className={`px-5 py-2 text-sm font-semibold rounded-md transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 ${
+                    style={{
+                      color: active ? '#ffffff' : (isDark ? '#ffffff' : '#000000'),
+                      backgroundColor: active ? '#1a6fa8' : 'transparent',
+                    }}
+                    className={`px-5 py-2 text-sm font-bold rounded-md transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 cursor-pointer ${
                       active
-                        ? 'bg-brand-50 dark:bg-brand-950 text-brand-700 dark:text-brand-400 border border-brand-200 dark:border-brand-700'
-                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 border border-transparent'
+                        ? 'shadow-sm border border-transparent'
+                        : 'hover:bg-[#1a6fa8] hover:!text-slate-200 border border-transparent'
                     }`}
                   >
                     {tab.label}
@@ -198,7 +175,7 @@ export function TopNavBar({ role }) {
                 aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
                 title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
                 style={{ backgroundColor: isDark ? 'var(--brand-600)' : 'var(--bg-subtle)' }}
-                className="relative flex items-center w-14 h-7 rounded-full p-0.5 transition-colors duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 shrink-0"
+                className="relative flex items-center w-14 h-7 rounded-full p-0.5 transition-colors duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 shrink-0 cursor-pointer"
               >
                 {/* Sliding circle */}
                 <span
@@ -217,18 +194,23 @@ export function TopNavBar({ role }) {
               <div className="relative" ref={dropdownRef}>
                 <button
                   id="user-menu-button"
-                  onClick={() => { setDropdownOpen((o) => !o); setProfileOpen(false); }}
+                  onClick={() => { setDropdownOpen((o) => !o); }}
                   aria-haspopup="true"
                   aria-expanded={dropdownOpen}
                   aria-controls="user-menu"
-                  style={{ borderColor: 'var(--border-default)', color: 'var(--text-primary)' }}
-                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 hover:opacity-80"
+                  style={{ borderColor: 'var(--border-default)' }}
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 hover:bg-[#1a6fa8] cursor-pointer group"
                 >
-                  <span style={{ backgroundColor: 'var(--brand-600)', color: '#ffffff' }} className="w-7 h-7 rounded-full text-xs font-bold flex items-center justify-center select-none">
+                  <span style={{ backgroundColor: 'var(--brand-600)', color: '#ffffff' }} className="w-7 h-7 rounded-full text-xs font-bold flex items-center justify-center select-none group-hover:bg-white group-hover:text-[#1a6fa8] transition-colors">
                     {initials}
                   </span>
-                  <span className="hidden sm:block text-sm font-medium max-w-[140px] truncate">{displayName}</span>
-                  <ChevronIcon open={dropdownOpen} />
+                  <span
+                    style={{ color: isDark ? '#ffffff' : '#000000' }}
+                    className="hidden sm:block text-sm font-bold group-hover:!text-slate-200 max-w-[140px] truncate"
+                  >
+                    {displayName}
+                  </span>
+                  <ChevronIcon open={dropdownOpen} isDark={isDark} />
                 </button>
 
                 {/* Dropdown Menu */}
@@ -237,93 +219,56 @@ export function TopNavBar({ role }) {
                     id="user-menu"
                     role="menu"
                     aria-labelledby="user-menu-button"
-                    style={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0', color: '#1e293b' }}
-                    className="absolute right-0 mt-2 w-72 rounded-xl shadow-xl border py-1 z-50 animate-in fade-in slide-in-from-top-1 duration-150"
+                    style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-default)', color: 'var(--text-primary)' }}
+                    className="absolute right-0 mt-2 w-72 rounded-xl shadow-xl border py-1 z-50 animate-in fade-in slide-in-from-top-1 duration-150 transition-colors"
                   >
                     {/* User info header with pencil edit trigger */}
-                    <div style={{ borderBottomColor: '#f1f5f9' }} className="px-4 py-3 border-b">
+                    <div style={{ borderBottomColor: 'var(--border-default)' }} className="px-4 py-3 border-b">
                       <div className="flex items-center justify-between gap-2">
                         <div className="min-w-0">
-                          <p className="text-sm font-semibold truncate text-slate-800">
+                          <p style={{ color: isDark ? '#ffffff' : '#000000' }} className="text-sm font-bold truncate">
                             {displayName}
                           </p>
                           {user?.full_name && (
-                            <p className="text-xs truncate text-slate-500">{user.email}</p>
+                            <p style={{ color: 'var(--text-secondary)' }} className="text-xs truncate">{user.email}</p>
                           )}
-                          <p className="text-xs capitalize text-slate-400">{user?.role}</p>
+                          <p style={{ color: 'var(--text-muted)' }} className="text-xs capitalize">{user?.role}</p>
                         </div>
-                        {/* Pencil icon — opens/closes the edit form */}
+                        {/* Pencil icon — triggers shared EditUserDialog */}
                         <button
-                          onClick={() => setProfileOpen((o) => !o)}
-                          aria-label={profileOpen ? 'Close profile editor' : 'Edit profile'}
-                          aria-expanded={profileOpen}
-                          className={`p-1.5 rounded-md transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 shrink-0 ${
-                            profileOpen
-                              ? 'bg-brand-100 text-brand-600'
-                              : 'text-slate-400 hover:text-brand-600 hover:bg-brand-50'
-                          }`}
+                          onClick={() => {
+                            setIsEditDialogOpen(true);
+                            setDropdownOpen(false);
+                          }}
+                          aria-label="Edit profile"
+                          style={{ color: isDark ? '#cbd5e1' : '#000000' }}
+                          className="p-1.5 rounded-md transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 hover:!text-slate-200 hover:bg-[#1a6fa8] shrink-0 cursor-pointer"
+                          title="Edit Profile"
                         >
                           <PencilIcon />
                         </button>
                       </div>
-
-                      {/* Inline Profile Edit Form */}
-                      {profileOpen && (
-                        <form onSubmit={handleProfileSave} className="mt-3 space-y-3">
-                          <div>
-                            <label htmlFor="profile-name" className="block text-xs font-medium text-slate-500 mb-1">
-                              Full Name
-                            </label>
-                            <input
-                              id="profile-name"
-                              type="text"
-                              value={profileForm.full_name}
-                              onChange={(e) => setProfileForm((f) => ({ ...f, full_name: e.target.value }))}
-                              placeholder="Your full name"
-                              style={{ backgroundColor: '#ffffff', color: '#1e293b', borderColor: '#cbd5e1' }}
-                              className="w-full px-3 py-2 text-sm rounded-lg placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600"
-                            />
-                          </div>
-                          <div>
-                            <label htmlFor="profile-email" className="block text-xs font-medium text-slate-500 mb-1">
-                              Email
-                            </label>
-                            <input
-                              id="profile-email"
-                              type="email"
-                              value={profileForm.email}
-                              onChange={(e) => setProfileForm((f) => ({ ...f, email: e.target.value }))}
-                              placeholder="your@email.com"
-                              autoComplete="email"
-                              style={{ backgroundColor: '#ffffff', color: '#1e293b', borderColor: '#cbd5e1' }}
-                              className="w-full px-3 py-2 text-sm rounded-lg placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-600"
-                            />
-                          </div>
-                          <div className="flex gap-2">
-                            <button
-                              type="submit"
-                              disabled={profileLoading}
-                              className="flex-1 py-2 text-xs font-semibold bg-brand-600 hover:bg-brand-700 disabled:bg-brand-400 text-white rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-600"
-                            >
-                              {profileLoading ? 'Saving…' : 'Save'}
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setProfileOpen(false)}
-                              className="px-3 py-2 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
-                            >
-                              Cancel
-                            </button>
-                          </div>
-                        </form>
-                      )}
                     </div>
+
+                    {/* Edit Profile Menu Item */}
+                    <button
+                      role="menuitem"
+                      onClick={() => {
+                        setIsEditDialogOpen(true);
+                        setDropdownOpen(false);
+                      }}
+                      style={{ color: isDark ? '#ffffff' : '#000000' }}
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-bold hover:bg-[#1a6fa8] hover:!text-slate-200 transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-500 cursor-pointer"
+                    >
+                      <PencilIcon />
+                      Edit Profile
+                    </button>
 
                     {/* Logout */}
                     <button
                       role="menuitem"
                       onClick={handleLogout}
-                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-600 hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-red-500 group"
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-600 hover:!text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-red-500 cursor-pointer group"
                     >
                       <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h6a2 2 0 012 2v1" />
@@ -336,7 +281,8 @@ export function TopNavBar({ role }) {
 
               {/* Mobile Hamburger */}
               <button
-                className="md:hidden p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-600"
+                style={{ color: isDark ? '#ffffff' : '#000000' }}
+                className="md:hidden p-2 rounded-lg hover:bg-[#1a6fa8] hover:!text-slate-200 transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 cursor-pointer"
                 onClick={() => setMobileMenuOpen((o) => !o)}
                 aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
                 aria-expanded={mobileMenuOpen}
@@ -364,10 +310,14 @@ export function TopNavBar({ role }) {
                     key={tab.path}
                     onClick={() => { navigate(tab.path); setMobileMenuOpen(false); }}
                     aria-current={active ? 'page' : undefined}
-                    className={`flex-1 py-2.5 text-sm font-semibold rounded-md transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 ${
+                    style={{
+                      color: active ? '#ffffff' : (isDark ? '#ffffff' : '#000000'),
+                      backgroundColor: active ? '#1a6fa8' : 'transparent',
+                    }}
+                    className={`flex-1 py-2.5 text-sm font-bold rounded-md transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 cursor-pointer ${
                       active
-                        ? 'bg-brand-50 dark:bg-brand-950 text-brand-700 dark:text-brand-400 border border-brand-200 dark:border-brand-700'
-                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 border border-transparent'
+                        ? 'shadow-sm border border-transparent'
+                        : 'hover:bg-[#1a6fa8] hover:!text-slate-200 border border-transparent'
                     }`}
                   >
                     {tab.label}
@@ -378,6 +328,13 @@ export function TopNavBar({ role }) {
           )}
         </div>
       </header>
+
+      {/* Shared Edit Profile Dialog */}
+      <EditUserDialog
+        open={isEditDialogOpen}
+        onClose={() => setIsEditDialogOpen(false)}
+        user={user}
+      />
 
       {/* Blurred Loading Overlay during Logout */}
       {isLoggingOut && (

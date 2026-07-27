@@ -33,19 +33,27 @@ export function Modal({ isOpen, title, children, actions, onClose }) {
 
   return (
     <div 
-      className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm p-4 bg-black/40"
+      className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm p-4 bg-black/60 dark:bg-black/80"
       onClick={handleBackdropClick}
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-title"
     >
-      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] flex flex-col focus:outline-none" tabIndex="-1">
-        <div className="border-b border-gray-200 px-6 py-4 flex-shrink-0 flex items-center justify-between">
-          <h2 id="modal-title" className="text-lg font-semibold text-gray-900">{title}</h2>
+      <div 
+        style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-default)', color: 'var(--text-primary)' }}
+        className="border rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col focus:outline-none transition-colors duration-200" 
+        tabIndex="-1"
+      >
+        <div 
+          style={{ borderBottomColor: 'var(--border-default)' }}
+          className="border-b px-6 py-4 flex-shrink-0 flex items-center justify-between"
+        >
+          <h2 id="modal-title" style={{ color: 'var(--text-primary)' }} className="text-lg font-semibold">{title}</h2>
           {onClose && (
             <button
               onClick={onClose}
-              className="p-1 hover:bg-gray-100 rounded-lg transition-colors text-gray-500 hover:text-gray-700 cursor-pointer"
+              style={{ color: 'var(--text-secondary)' }}
+              className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
               aria-label="Close modal"
               title="Close"
             >
@@ -55,7 +63,10 @@ export function Modal({ isOpen, title, children, actions, onClose }) {
         </div>
         <div className="overflow-y-auto flex-1 px-6 py-4">{children}</div>
         {actions && (
-          <div className="border-t border-gray-200 px-6 py-4 flex gap-2 justify-end flex-shrink-0">
+          <div 
+            style={{ borderTopColor: 'var(--border-default)' }}
+            className="border-t px-6 py-4 flex gap-2 justify-end flex-shrink-0"
+          >
             {actions}
           </div>
         )}
@@ -84,7 +95,8 @@ export function ConfirmModal({
         <>
           <button
             onClick={onClose}
-            className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+            style={{ backgroundColor: 'var(--bg-subtle)', color: 'var(--text-primary)' }}
+            className="px-4 py-2 rounded-lg font-medium hover:opacity-80 transition"
           >
             {cancelLabel}
           </button>
@@ -93,10 +105,10 @@ export function ConfirmModal({
               onConfirm();
               onClose();
             }}
-            className={`px-4 py-2 text-white rounded-lg ${
+            className={`px-4 py-2 text-white font-medium rounded-lg transition ${
               isDangerous
-                ? 'bg-error hover:bg-red-700'
-                : 'bg-primary hover:bg-blue-700'
+                ? 'bg-red-600 hover:bg-red-700'
+                : 'bg-brand-600 hover:bg-brand-700'
             }`}
           >
             {confirmLabel}
@@ -104,7 +116,7 @@ export function ConfirmModal({
         </>
       }
     >
-      <p className="text-gray-600">{message}</p>
+      <p style={{ color: 'var(--text-secondary)' }}>{message}</p>
     </Modal>
   );
 }
