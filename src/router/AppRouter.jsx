@@ -36,8 +36,10 @@ export function AppRouter() {
           <Route path="/set-password" element={<ResetPassword />} />
           <Route path="/auth/reset-password" element={<ResetPassword />} />
           <Route path="/auth/set-password" element={<ResetPassword />} />
-          <Route path="/change-password" element={<ResetPassword />} />
           <Route path="/verify-password-change" element={<VerifyPasswordChange />} />
+          <Route path="/auth/change-password/confirm" element={<VerifyPasswordChange />} />
+          <Route path="/auth/verify-password-change" element={<VerifyPasswordChange />} />
+          <Route path="/auth/confirm-password-change" element={<VerifyPasswordChange />} />
 
 
           {/* Admin Routes*/}

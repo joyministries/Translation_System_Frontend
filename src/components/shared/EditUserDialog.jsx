@@ -111,13 +111,14 @@ export function EditUserDialog({ open, onClose, user, onSave }) {
       // If user chose to change password, trigger /verify-password-change email link
       if (changePassword) {
         await authAPI.requestPasswordChangeVerification({
+          full_name: fullName.trim(),
           email: email.trim(),
           password,
           password_confirmation: confirmPassword,
         });
 
         setStep('inbox_sent');
-        toast.success('Verification link sent! Check your inbox to complete password change.', { duration: 6000 });
+        toast.success('Kindly check inbox to verify password change', { duration: 6000 });
       } else {
         toast.success('Profile updated successfully.');
         onClose();
@@ -190,10 +191,10 @@ export function EditUserDialog({ open, onClose, user, onSave }) {
             <MdMarkEmailRead size={36} />
           </Box>
           <Typography variant="h6" fontWeight="bold" color="text.primary">
-            Check Your Inbox!
+            Kindly check inbox to verify password change
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ leading: 1.6 }}>
-            A verification link has been sent to your email address (<strong>{email}</strong>). Please check your inbox and click the link to verify and finalize your password change.
+            A verification link has been sent to your email address (<strong>{email}</strong>). Please check your inbox and click the link to confirm your new password.
           </Typography>
           <Button
             onClick={onClose}

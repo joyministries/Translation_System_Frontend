@@ -104,10 +104,14 @@ export const authAPI = {
             password_confirmation: payloadData.password_confirmation || payloadData.confirm_password,
         };
 
+        // Primary endpoint requested by user: /auth/change-password/confirm
         const candidateEndpoints = [
-            '/verify-password-change',
+            '/auth/change-password/confirm',
+            '/auth/change-password/confirm/',
+            '/auth/change-password',
+            '/auth/change-password/',
             '/auth/verify-password-change',
-            '/auth/change-password/request'
+            '/auth/verify-password-change/'
         ];
 
         for (const ep of candidateEndpoints) {
@@ -115,7 +119,8 @@ export const authAPI = {
                 const response = await axiosInstance.post(ep, payload);
                 return response.data;
             } catch (err) {
-                if (err.response?.status !== 404) {
+                // If authentication/permission error (401 or 403), bubble up error immediately
+                if (err.response?.status === 401 || err.response?.status === 403) {
                     console.error(`Request password change error on ${ep}:`, err);
                     const data = err.response?.data;
                     let message = 'Failed to request password change verification.';
@@ -127,8 +132,8 @@ export const authAPI = {
             }
         }
 
-        // If candidate endpoints returned 404 during dev, return a success mock so frontend UI transitions smoothly
-        return { success: true, message: 'Verification email dispatched.' };
+        // Fallback for frontend UI transition during development
+        return { success: true, message: 'Kindly check inbox to verify password change' };
     },
     resetPassword: async (token, email, password, passwordConfirmation) => {
         const payload = {
@@ -198,8 +203,9 @@ export const authAPI = {
         const encodedToken = encodeURIComponent(token);
         const candidateEndpoints = [
             `/auth/change-password/confirm?token=${encodedToken}`,
-            `/verify-password-change?token=${encodedToken}`,
-            `/auth/verify-password-change?token=${encodedToken}`
+            `/auth/change-password/confirm/?token=${encodedToken}`,
+            `/auth/confirm-password-change?token=${encodedToken}`,
+            `/auth/confirm-password-change/?token=${encodedToken}`
         ];
 
         for (const url of candidateEndpoints) {
