@@ -13,6 +13,7 @@ export function ResetPassword() {
 
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [validationErrors, setValidationErrors] = useState({});
@@ -119,7 +120,7 @@ export function ResetPassword() {
               <Input
                 label="New Password"
                 id="password"
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => {
                   setPassword(e.target.value);
@@ -140,7 +141,7 @@ export function ResetPassword() {
               <Input
                 label="Confirm New Password"
                 id="confirmPassword"
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 value={confirmPassword}
                 onChange={(e) => {
                   setConfirmPassword(e.target.value);
@@ -155,6 +156,20 @@ export function ResetPassword() {
               {validationErrors.confirmPassword && (
                 <p className="text-red-500 text-xs mt-1 font-medium">⚠️ {validationErrors.confirmPassword}</p>
               )}
+            </div>
+
+            <div className="flex items-center gap-2 pt-1">
+              <input
+                type="checkbox"
+                id="showPassword"
+                checked={showPassword}
+                onChange={(e) => setShowPassword(e.target.checked)}
+                disabled={isSubmitting}
+                className="h-4 w-4 rounded border-gray-300 text-[#1a6fa8] focus:ring-[#1a6fa8] cursor-pointer"
+              />
+              <label htmlFor="showPassword" style={{ color: 'var(--text-secondary)' }} className="text-sm font-medium cursor-pointer select-none">
+                Show password
+              </label>
             </div>
 
             <button
